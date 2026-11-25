@@ -1,0 +1,101 @@
+<h2 id="s4"><span class="num">4</span>Structural constraints: cardinality and participation</h2>
+<p>A relationship type usually has rules that limit which combinations of entities may appear in its relationship set. The two kinds of rule together are
+called the <b>structural constraints</b> of the relationship:</p>
+<ol><li>the <b>cardinality ratio</b> (mapping cardinality): the <i>maximum</i> number of relationship instances an entity can take part in;</li>
+<li>the <b>participation constraint</b>: the <i>minimum</i> — must every entity take part, or may some stay out?</li></ol>
+
+<h3 id="s4-1">4.1 Cardinality ratio (mapping cardinality)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>The <b>cardinality ratio</b> of a binary relationship type specifies the <b>maximum number of relationship instances</b> in which an entity can
+participate, i.e. the number of entities of one set to which an entity of the other set can be associated. The possible ratios are
+<b>1:1, 1:N, N:1 and M:N</b>.</p></div>
+{{svg:cardinality}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Ratio</th><th>Meaning (read both directions!)</th><th>Example</th></tr>
+<tr><td><b>1 : 1</b></td><td>an E1 is related to at most one E2, <b>and</b> an E2 to at most one E1</td><td>EMPLOYEE <i>manages</i> DEPARTMENT; PERSON <i>holds</i> PASSPORT</td></tr>
+<tr><td><b>1 : N</b></td><td>an E1 to many E2, but an E2 to at most one E1</td><td>DEPARTMENT <i>has</i> EMPLOYEES; SCIENTIST <i>invents</i> INVENTIONS (course p. 49)</td></tr>
+<tr><td><b>N : 1</b></td><td>the same as 1:N, read from the other side</td><td>STUDENT <i>enrols in</i> (one) COURSE (course p. 49)</td></tr>
+<tr><td><b>M : N</b></td><td>an E1 to many E2 <b>and</b> an E2 to many E1</td><td>EMPLOYEE <i>works on</i> PROJECT; STUDENT <i>takes</i> COURSE</td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">How to find the ratio from an English sentence</div>
+<p>Ask two questions: “one A can have how many B?” and “one B can have how many A?”. Write the answer to the first question <b>next to B</b> and the answer to
+the second <b>next to A</b>.</p>
+<p>“A department has many employees; an employee works in only one department” → N next to EMPLOYEE, 1 next to DEPARTMENT →
+<code>DEPARTMENT 1 — WORKS_FOR — N EMPLOYEE</code>.</p></div>
+<div class="box note"><div class="box-t">Significance of cardinality (asked as “explain its significance”)</div>
+<ul><li>It records a <b>business rule</b> (“an employee works in only one department”) that the database must enforce.</li>
+<li>It decides the <b>table design</b>: 1:N → foreign key on the N side, no extra table; M:N → a separate table; 1:1 → foreign key on either side, or merge
+(section 8). A wrong ratio gives either redundant tables or a schema that cannot store valid data.</li>
+<li>It fixes the <b>keys</b> of relationship tables and so prevents invalid data (a second department for the same employee is rejected by the PK/UNIQUE).</li>
+<li>It helps query writers know whether a join returns one row or many.</li></ul></div>
+
+<h3 id="s4-2">4.2 Participation constraint</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>The <b>participation constraint</b> specifies whether the existence of an entity depends on its being related to another entity through the
+relationship, i.e. the <b>minimum</b> number of relationship instances each entity must take part in.</p>
+<ul><li><b>Total participation</b> (existence dependency): <b>every</b> entity of the set must participate in at least one relationship instance. Drawn as a
+<b>double line</b>.</li>
+<li><b>Partial participation</b>: <b>some</b> entities may not participate. Drawn as a <b>single line</b>.</li></ul></div>
+{{svg:participation}}
+{{erm:t_part|Every department must have a manager (total, double line); most employees manage nothing (partial, single line). MANAGES is also 1:1.}}
+<div class="box tip"><div class="box-t">Words that signal participation</div>
+<p><b>Total:</b> “every”, “each … must”, “cannot exist without”, “is always”, “at least one”. <b>Partial:</b> “may”, “some”, “may or may not”, “optionally”,
+“can have”.</p>
+<p>Summer mid-sem example: “Every patient <b>must</b> undergo treatment” → PATIENT total; “a department <b>may or may not</b> have doctors” → DEPARTMENT partial.</p></div>
+
+<h3 id="s4-3">4.3 (min, max) notation</h3>
+<p>Cardinality ratio and participation can be written together as a pair <b>(min, max)</b> on each line, with 0 ≤ min ≤ max and max ≥ 1.</p>
+<div class="box def"><div class="box-t">Meaning</div>
+<p>(min, max) on the line between entity type E and relationship R means: <b>each entity e of E takes part in at least min and at most max
+relationship instances of R</b>. min = 0 ⇒ partial participation; min ≥ 1 ⇒ total participation. max = 1 ⇒ e is related to at most one other entity.</p></div>
+{{er:t_minmax|The same schema in (min,max) notation: an employee manages 0 or 1 department, a department has exactly 1 manager; an employee works for exactly one
+department, a department has at least one employee.}}
+<div class="box warn"><div class="box-t">Common mistake — the numbers sit on opposite sides</div>
+<p>In the 1/N notation the <b>N</b> of WORKS_FOR is written next to EMPLOYEE (many employees per department). In (min,max) notation EMPLOYEE gets
+<b>(1,1)</b>, because each employee takes part in exactly one WORKS_FOR, and DEPARTMENT gets <b>(1,N)</b>.
+So to convert, <b>swap sides</b>: max next to E in (min,max) = the ratio label written next to the <i>other</i> entity.</p></div>
+
+<h3 id="s4-4">4.4 The same relationship in the notations you will meet</h3>
+<p>NSUT papers are set by different teachers and use different notations. Your class notes use Korth’s arrows; the 2023 end-sem uses the
+Ramakrishnan arrow; the 2022 and 2024 papers write 1/N labels. All four drawings below say the <b>same thing</b>: each employee works for exactly one department,
+and a department has any number of employees.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Notation</th><th>Drawing</th><th>How to read it</th></tr>
+<tr><td><b>Chen labels</b> (Elmasri, 2022/2024 papers)</td><td>{{er:t_n_label}}</td><td>The label next to an entity is how many of <b>that</b> entity go with one of the other. Double line = total.</td></tr>
+<tr><td><b>Korth arrows</b> (your class notes)</td><td>{{er:t_n_korth}}</td><td>Arrow <b>from the diamond to an entity</b> = “one” on that side. No arrow = “many”. Here: each employee → at most one department.</td></tr>
+<tr><td><b>Ramakrishnan arrow</b> (End-Sem 2023 paper)</td><td>{{er:t_n_rama}}</td><td>Arrow <b>from an entity to the diamond</b> = key constraint: each entity <b>at the tail</b> takes part in at most one instance.
+Here: each employee in at most one WORKS_FOR. Thick/double line = total.</td></tr>
+<tr><td><b>(min,max)</b> (Elmasri)</td><td>{{er:t_n_mm}}</td><td>Employee (1,1): exactly one department. Department (0,N): zero or more employees.</td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">Rule that works for both arrow styles</div>
+<p>Look at <b>where the arrowhead touches</b>. Touching an <b>entity</b> (Korth) → that entity is the “1” side. Touching a <b>diamond</b>
+(Ramakrishnan) → the entity at the <b>tail</b> is the “many” side (each of its entities has at most one partner). Either way, in the 2023 diagram
+“A → R1 — B” means each A has at most one B, so A gets B’s key as a foreign key. If a diagram mixes styles or has no marks, <b>state your assumption</b>
+— the paper explicitly allows “missing data may be suitably assumed”.</p></div>
+{{svg:crowsfoot}}
+
+<h3 id="s4-5">4.5 Constraints on ternary relationships</h3>
+<p>For a relationship of degree 3 or more, the label next to an entity says how many of <b>that</b> entity can be associated with <b>one fixed combination of
+the other entities</b>.</p>
+{{er:r9|INSTRUCTOR teaches COURSE to STUDENT. 1 next to INSTRUCTOR: for a fixed (course, student) pair there is at most one instructor.}}
+<ul>
+<li>Fix (course, student): <b>at most 1 instructor</b> (the “1”) — a student takes a given course from one instructor.</li>
+<li>Fix (instructor, student): <b>many courses</b> (N) — one instructor may teach the same student several courses.</li>
+<li>Fix (instructor, course): <b>many students</b> (M) — a class has many students.</li>
+<li>Consequence for tables: the key of TEACHES is made of the keys of the <b>non-“1”</b> sides: (course_id, student_id). Section 8, rule 9.</li>
+</ul>
+<div class="box warn"><div class="box-t">(min,max) on ternary relationships is different</div>
+<p>(min,max) next to E in a ternary relationship counts how many instances <b>each single entity e</b> takes part in, not per pair. The two notations
+are not interchangeable for n-ary relationships — say which one you are using.</p></div>
+
+<h3 id="s4-6">4.6 Ternary relationship vs three binary relationships</h3>
+<p>Can SUPPLY(supplier, part, project) be replaced by three binary relationships CAN_SUPPLY(s,p), USES(p,j), SUPPLIES(s,j)? <b>In general, no.</b></p>
+{{er:t_3bin|Three binary relationships among the same entity types.}}
+{{svg:ternary_vs_binary}}
+<ul>
+<li>The ternary relationship stores <i>which supplier supplied which part to which project</i>. The binaries store only “S1 can supply P1”, “J1 uses P1”,
+“S1 supplies something to J1”; combining them may claim a triple that never happened.</li>
+<li>The binaries may still be useful <b>in addition</b> (e.g. CAN_SUPPLY records suppliers who are able to supply a part even if no project has ordered it).</li>
+<li>Some ternaries can be replaced: if the relationship is really two independent facts, or by turning the ternary into a (weak) entity with three binary
+identifying relationships — this is how ternaries are represented in models that only allow binary relationships (UML, crow’s-foot).</li>
+</ul>

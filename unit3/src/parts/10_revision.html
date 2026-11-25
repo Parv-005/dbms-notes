@@ -1,0 +1,45 @@
+<h2 id="s10"><span class="num">10</span>One-page revision sheet</h2>
+<div class="grid2">
+<div class="box key"><div class="box-t">Notation</div>
+<ul class="small">
+<li>Rectangle = entity · double rectangle = weak entity</li>
+<li>Diamond = relationship · double diamond = identifying relationship</li>
+<li>Ellipse = attribute · underlined = key · dashed underline = partial key</li>
+<li>Double ellipse = multivalued · dashed ellipse = derived · ellipse with sub-ellipses = composite</li>
+<li>Single line = partial · double line = total participation</li>
+<li>1 / N / M near an entity = how many of <i>that</i> entity per one of the other</li>
+<li>Korth arrow diamond → entity = “one” side · Ramakrishnan arrow entity → diamond = “each at most once”</li>
+<li>(min,max) next to E = how many instances each e takes part in</li>
+<li>ISA triangle = specialization/generalization · box around relationship = aggregation</li>
+</ul></div>
+<div class="box key"><div class="box-t">ER → tables</div>
+<ul class="small">
+<li>Strong entity → table, key → PK; composite → components; derived → not stored</li>
+<li>Multivalued → new table (key, value), PK both</li>
+<li>Weak → table, PK = owner PK + partial key, FK cascade</li>
+<li>1:N → FK in N side (NOT NULL if N side total)</li>
+<li>1:1 → FK UNIQUE in total side; both total → merge into one table</li>
+<li>M:N → new table, PK = both keys + rel attributes</li>
+<li>n-ary → new table, PK = keys of non-“1” sides</li>
+<li>Recursive → role-named copy of the key</li>
+<li>ISA → super + subs (always) / subs only (total) / one table + type (disjoint) / + flags (overlap)</li>
+<li>Aggregation → use the aggregated relationship’s PK</li>
+</ul></div>
+</div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Term</th><th>One-line definition</th></tr>
+<tr><td>Entity / entity type / entity set</td><td>an object / its schema / the collection of current entities of that type</td></tr>
+<tr><td>Relationship type / set</td><td>association among entity types / the current set of instances (subset of E1 × … × En)</td></tr>
+<tr><td>Degree</td><td>number of participating entity types (unary, binary, ternary)</td></tr>
+<tr><td>Role</td><td>the function an entity plays in a relationship; essential in recursive relationships</td></tr>
+<tr><td>Cardinality ratio</td><td>maximum number of relationship instances an entity can participate in (1:1, 1:N, M:N)</td></tr>
+<tr><td>Participation</td><td>minimum: total (every entity participates) or partial</td></tr>
+<tr><td>Structural constraints</td><td>cardinality ratio + participation, or the (min,max) pair</td></tr>
+<tr><td>Weak entity</td><td>no key of its own; identified by owner key + partial key; total participation in identifying relationship</td></tr>
+<tr><td>Specialization</td><td>top-down: define subclasses of an entity type</td></tr>
+<tr><td>Generalization</td><td>bottom-up: combine entity types into a superclass</td></tr>
+<tr><td>Disjoint / overlapping</td><td>an entity in at most one subclass / possibly several</td></tr>
+<tr><td>Total / partial specialization</td><td>every superclass entity in some subclass / not necessarily</td></tr>
+<tr><td>Aggregation</td><td>relationship + its entities treated as an entity, to relate relationships</td></tr>
+<tr><td>Attribute inheritance</td><td>subclass gets all attributes and relationships of its superclass</td></tr>
+</table></div>

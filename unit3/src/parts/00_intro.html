@@ -1,0 +1,35 @@
+<section class="hero">
+<h1>Unit 3 — Database Design with the ER Model</h1>
+<p class="sub">Database Management System · ITITC302 / INITC302 · complete notes written for a first-time reader, with every
+Unit-3 PYQ solved topic-wise.</p>
+<div class="chips">
+<span class="chip acc">Top-down design</span><span class="chip acc">Entities &amp; attributes</span><span class="chip acc">Relationship types, sets, roles</span>
+<span class="chip warn">Cardinality · participation · (min,max)</span><span class="chip good">Weak entity types</span>
+<span class="chip pur">Specialization · generalization · aggregation</span><span class="chip bad">ER → relational tables</span>
+<span class="chip">Minimum-number-of-tables method</span><span class="chip">23 solved PYQs (all papers)</span><span class="chip">Practice Qs + 22 MCQs</span>
+</div>
+</section>
+
+<h2 id="s0"><span class="num">0</span>How to use these notes</h2>
+<ul>
+<li><b>Syllabus covered:</b> Database design: top-down approach (ER model), participation constraints, specialization, generalization and
+aggregation, relationship types, relationship sets, roles and structural constraints, weak entity types, transformation of ER schema to relational tables.</li>
+<li><b>How Unit 3 is examined.</b> In every end-sem Q3 is entirely Unit 3 (three 5-mark parts, attempt two). The same three kinds of question come every year:
+<ol>
+<li><b>Design:</b> a story (“a university / hospital / car-rental company …”) → draw the ER diagram, often “and convert it to tables with the minimum number of relations”.</li>
+<li><b>Convert:</b> a given ER diagram → relational schema with primary and foreign keys, “minimum number of tables”.</li>
+<li><b>Theory with examples:</b> weak entities, specialization / generalization / aggregation, overlap / disjoint, multivalued attributes, cardinality.</li>
+</ol>
+Mid-sems ask 2-mark versions of the same.</li>
+<li><b>Every ER diagram here is drawn from a definition</b>, and <b>every “convert to tables” answer is computed</b> by a program that applies the mapping
+rules of section 8. It is then compared with the answer written by hand, and the generated <code>CREATE TABLE</code> statements are run in SQLite. If a schema
+says “5 tables”, the rules really give 5 tables.</li>
+<li>Your class notes (rules 1–7 for ER → table, the A/B/C and M/P/N questions) are included where they fit: section 8 follows them rule by rule,
+and the class-notes questions are solved in section 9.</li>
+<li><b>Boxes:</b> <span class="chip acc">Definition</span> exact wording to reproduce, <span class="chip good">Example</span>,
+<span class="chip warn">Tip</span>, <span class="chip bad">Common mistake</span>, <span class="chip pur">Exam</span> what is asked and how,
+<span class="chip pur">Beyond syllabus</span> useful extras (marked, safe to skip on a first read).</li>
+<li>Sections 12–13 contain every Unit-3 PYQ with full exam-style answers, then harder practice questions. Section 10 is a one-page revision sheet and 11 has MCQs.
+Use the <b>▾ Answers</b> button in the sidebar to open or close all answers.</li>
+</ul>
+{{svg:design_phases}}

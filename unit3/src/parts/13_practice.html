@@ -1,0 +1,131 @@
+<h2 id="s13"><span class="num">13</span>Practice questions (PYQ pattern, one level harder)</h2>
+<p>These follow the shape of the end-sem Q3 questions but add one or two traps each (a weak entity owned by a weak entity, a ternary with an aggregate, a
+1:1 that merges, a reverse-engineering question). Each answer was checked by the mapping program.</p>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P1</span><span class="chip">design + minimum tables</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A campus housing office records BUILDINGs (bid, bname). Each building has floors numbered 0, 1, 2 … (floor numbers repeat across buildings) with a wing name;
+each floor has rooms numbered 1, 2, 3 … within the floor, with a capacity. A PERSON (pid, name = first + last, several email ids) may occupy one room
+(recording since when); a room may hold several persons. Every person holds exactly one PASSPORT (passport_no, expiry) and every passport belongs to exactly one
+person. A person may mentor several other persons; each person has at most one mentor. Draw the ER diagram and convert it with the minimum number of tables.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>FLOOR is weak (owner BUILDING, partial key floor_no); ROOM is weak with owner <b>FLOOR</b> (a weak entity owning a weak entity), partial key room_no.
+ROOM’s key = (bid, floor_no, room_no).</li>
+<li>PASSPORT–PERSON is 1:1 with total participation on both sides → merge into PERSON (passport_no becomes an alternate key).</li>
+<li>OCCUPIES N:1 → FK (bid, floor_no, room_no) + since in PERSON (nullable — participation partial). MENTORS 1:N recursive → mentor_pid in PERSON.</li>
+<li>email multivalued → separate table.</li>
+</ul>
+{{erm:pr1}}
+<p class="answer-line">5 tables.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P2</span><span class="chip">ternary + aggregation</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>In an IPL auction database, a PLAYER signs a contract with a TEAM for a SEASON at a price. In one season a player plays for at most one team, but a team signs
+many players and a player can sign with different teams in different seasons. Each contract is negotiated by exactly one AGENT, who earns a commission on it;
+an agent negotiates many contracts. Draw the ER diagram (justify ternary vs binary and the need for aggregation) and convert it with minimum tables.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>CONTRACT involves player, team and season together → ternary. Labels: fixed (player, season) → at most 1 team ⇒ TEAM side “1”; fixed (team, season) →
+many players; fixed (player, team) → many seasons.</li>
+<li>NEGOTIATES relates an AGENT to a <i>contract</i> — a relationship instance — so CONTRACT is aggregated. NEGOTIATES is N:1 from the aggregate to AGENT.</li>
+<li>Key of CONTRACT = keys of non-“1” sides = (pid, year); team_id is a non-key FK.</li>
+</ul>
+{{erm:pr2}}
+<p>Because NEGOTIATES is N:1 (each contract one agent) it could also be folded into CONTRACT as agent_id + commission, giving 5 tables. Both are acceptable if
+you say which rule you used; the version above keeps CONTRACT free of NULLs for contracts signed without an agent.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P3</span><span class="chip">design + minimum tables</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>An online food-delivery app stores CUSTOMERs (cust_id, name, phone, several delivery addresses each made of house, street, city, pin), RESTAURANTs (rest_id, name,
+several cuisines, average rating computed from reviews), and menu items that are numbered within each restaurant (item_no, name, price). A customer places
+orders; each order is from exactly one restaurant, contains several menu items with quantities, has an order time, status and a total amount computed from
+its items, and is delivered by at most one DELIVERY_PARTNER (dp_id, name, vehicle_no). Draw the ER diagram and give the minimum relational schema.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>MENU_ITEM is weak (owner RESTAURANT). CONTAINS is M:N between FOOD_ORDER and MENU_ITEM — its table holds the whole key of MENU_ITEM (rest_id, item_no).</li>
+<li>Derived: total_amount, avg_rating (not stored). Multivalued: cuisine; multivalued <b>composite</b>: address → one table with all components in the key.</li>
+<li>PLACES, FROM_REST (total for orders) and DELIVERS (partial) are 1:N → FKs in FOOD_ORDER.</li>
+</ul>
+{{erm:pr3}}
+<p class="answer-line">8 tables.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P4</span><span class="chip">count the tables</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Convert the following hostel ER diagram with the minimum number of relations. Every hostel has exactly one warden and every warden manages exactly one hostel.</p>{{er:pr4}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>MANAGED_BY: 1:1, total on both sides → WARDEN and HOSTEL merged into one table.</li>
+<li>ROOM weak (owner HOSTEL) → PK (hostel_id, room_no). ALLOTTED N:1 → FK (hostel_id, room_no) + since in STUDENT.</li>
+<li>phone multivalued → STUDENT_phone; age derived → not stored. FILES 1:N → roll_no in COMPLAINT.</li>
+</ul>
+{{map:pr4}}
+<p class="answer-line">5 tables.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P5</span><span class="chip">reverse engineering</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Draw the ER diagram from which the following tables were produced, stating the cardinality and participation of every relationship.</p>
+<pre class="sql">PUBLISHER(pub_name PK, city)
+BOOK(isbn PK, title, pub_name NOT NULL REFERENCES PUBLISHER)
+BOOK_author(isbn, author, PRIMARY KEY(isbn, author), FK isbn -> BOOK)
+BOOK_COPY(isbn, copy_no, shelf, mid NULL REFERENCES MEMBER, issue_date,
+          PRIMARY KEY(isbn, copy_no), FK isbn -> BOOK ON DELETE CASCADE)
+MEMBER(mid PK, mname)</pre></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>BOOK_author has only (isbn, author) as key → <b>author is a multivalued attribute</b> of BOOK, not an entity.</li>
+<li>BOOK.pub_name NOT NULL FK → PUBLISHES is 1:N with BOOK <b>total</b>.</li>
+<li>BOOK_COPY’s key contains BOOK’s key plus copy_no and has ON DELETE CASCADE → <b>weak entity</b> owned by BOOK, partial key copy_no.</li>
+<li>BOOK_COPY.mid is a nullable FK with issue_date beside it → BORROWS is 1:N (one member, many copies), copy participation <b>partial</b>; issue_date is an
+attribute of BORROWS.</li>
+</ul>
+{{erm:pr5}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P6</span><span class="chip">ternary keys</span><span class="chip warn">3 marks</span></div>
+<div class="pyq-q"><p>In a project-guidance relationship GUIDES(STUDENT, PROJECT, GUIDE): a student works on one project under a given guide, and on a given project a student has
+only one guide. Mark the cardinalities, give the candidate keys of the GUIDES table and explain why (roll_no) alone is not enough.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>Fixed (student, guide) → at most one project ⇒ PROJECT side “1”. Fixed (student, project) → at most one guide ⇒ GUIDE side “1”.
+Fixed (project, guide) → many students ⇒ STUDENT side N.</li>
+<li>A “1” side is determined by the other two, so each “1” gives a candidate key made of the other two keys:
+<b>{roll_no, fac_id}</b> and <b>{roll_no, proj_id}</b>. One is the PK, the other is declared UNIQUE.</li>
+<li>{roll_no} alone is not a key: a student can do two projects under two different guides.</li>
+</ul>
+{{erm:pr6}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P7</span><span class="chip">true / false with reason</span><span class="chip warn">5 × 1 mark</span></div>
+<div class="pyq-q"><ol>
+<li>An entity type with total participation in a relationship must be a weak entity type.</li>
+<li>A 1:1 relationship never needs a separate table.</li>
+<li>An M:N relationship with total participation on both sides can be merged into one of the entity tables.</li>
+<li>For an overlapping, partial specialization, the “subclass tables only” mapping is correct.</li>
+<li>A relationship attribute of a 1:N relationship can be placed in the entity on the “1” side.</li>
+</ol></div>
+<details><summary>Show answer</summary><div class="ans">
+<ol>
+<li><b>False.</b> Weak means no key of its own. EMPLOYEE may be total in WORKS_FOR and still has emp_id.</li>
+<li><b>True</b> in the standard mapping — the FK goes into one side (or the tables merge). (A separate table is allowed when both sides are partial and
+you want to avoid NULLs, but it is not needed.)</li>
+<li><b>False.</b> Each entity can still be related to many of the other; one cell cannot hold several keys. M:N always needs its own table.</li>
+<li><b>False.</b> Partial: superclass entities in no subclass would be lost. Overlapping: inherited data would be duplicated in several tables.</li>
+<li><b>False.</b> Each “1”-side entity relates to many N-side entities, so it would need many values. Only the N side has one value.</li>
+</ol>
+</div></details></div>
+
+<div class="box tip"><div class="box-t">Last-day checklist for an ER question</div>
+<ol>
+<li>Every entity has a key (or is weak with a partial key and double diamond).</li>
+<li>Every relationship has cardinality on both sides and the right participation lines.</li>
+<li>Special attributes are marked (composite, multivalued, derived) — the question usually names them.</li>
+<li>Assumptions are written in a box before the diagram.</li>
+<li>For “minimum tables”: merge 1:N and 1:1, keep M:N, n-ary and multivalued tables, merge 1:1 total-both; count and state the total.</li>
+</ol></div>

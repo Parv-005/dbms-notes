@@ -1,0 +1,143 @@
+<h2 id="s8"><span class="num">8</span>Transforming an ER schema into relational tables</h2>
+<p>This is the “logical design” step. The rules below are the ones in your class notes (rules 1–7) plus the cases the papers also ask about
+(recursive, ternary, specialization, aggregation). Each rule shows the ER fragment, the tables produced (computed by the rule program, see section 0),
+and — for some — the SQL.</p>
+<div class="box key"><div class="box-t">Reading the schemas</div>
+<p><code>TABLE(<u>pk</u>, col, <span class="fkc">fk</span>)</code>: underlined = primary key, purple italic = foreign key. The grey line under a table lists the
+FK targets and extra constraints. “+ R” means relationship R was <b>merged</b> into this table (no separate table for R).</p></div>
+
+<h3 id="s8-1">8.1 Rule 1 — strong entity with simple attributes</h3>
+<p>Make one table per strong entity type; each simple attribute becomes a column; the key attribute becomes the <b>primary key</b>.</p>
+<div class="er-pair">{{er:r1}}{{map:r1}}</div>
+
+<h3 id="s8-2">8.2 Rule 2 — composite attributes</h3>
+<p>Store only the <b>component</b> (leaf) attributes as columns; the composite name itself disappears.</p>
+<div class="er-pair">{{er:r2}}{{map:r2}}</div>
+
+<h3 id="s8-3">8.3 Rule 3 — multivalued attributes</h3>
+<p>A multivalued attribute becomes a <b>separate table</b> containing the key of the entity (as a foreign key) and the attribute; the <b>primary key is the
+combination</b> of both. The entity’s own table keeps the remaining attributes (your class notes: “entity key + MV attribute in a separate table”).</p>
+<div class="er-pair">{{er:r3}}{{map:r3}}</div>
+<div class="box note"><div class="box-t">Why a separate table? (End-Sem 2024 Q3(b)(i))</div>
+<p>A relational column must hold one atomic value (first normal form). Putting several numbers in one cell (“98…, 97…”) breaks 1NF and makes searching or
+updating a single number impossible. Making columns mobile1, mobile2, mobile3 wastes space, gives NULLs and still limits the count. Repeating the whole
+student row once per number duplicates name and gender (update anomalies). A separate table STUDENT_mobile_no(roll_no, mobile_no) stores any number of
+values with no redundancy. Full answer in section 12.</p></div>
+<p>A <b>multivalued composite</b> attribute gives one table with all its components:</p>
+<div class="er-pair">{{er:r3c}}{{map:r3c}}</div>
+<p><b>Derived attributes</b> are not stored at all (age in section 2) — they are computed in queries or views.</p>
+
+<h3 id="s8-4">8.4 Rule 4 — M:N relationship</h3>
+<p>Create a <b>separate table</b> for the relationship containing the primary keys of both participating entities (as foreign keys) plus the relationship’s
+own attributes. Its primary key is the <b>combination of the two foreign keys</b>.</p>
+<div class="er-pair">{{er:r4}}{{map:r4}}</div>
+{{ddl:r4}}
+
+<h3 id="s8-5">8.5 Rule 5 — 1:N, N:1 and 1:1 relationships (no separate table)</h3>
+<p>Class notes: “when m:1 or 1:n, no separate table for R is to be made”. Instead, put the primary key of the <b>“1” side</b> as a foreign key into the
+table of the <b>“N” side</b>, together with the relationship’s attributes. The FK and the N-side table are written as one table, e.g. <code>BR</code>.</p>
+<h4>1 : N (A is the one side)</h4>
+<div class="er-pair">{{er:r5a}}{{map:r5a}}</div>
+<h4>N : 1 (B is the one side)</h4>
+<div class="er-pair">{{er:r5b}}{{map:r5b}}</div>
+<div class="box tip"><div class="box-t">Why the N side and never the 1 side?</div>
+<p>Each B has <b>one</b> A, so one column in B is enough. If we put b-keys into A instead, an A with five B’s would need five values in one cell — impossible.</p></div>
+<h4>1 : 1 (both partial) — either side</h4>
+<p>Two tables; the relationship can be combined with <b>either</b> of them (class notes “way 1 / way 2”). The FK must be declared <b>UNIQUE</b>, otherwise the
+table would allow 1:N.</p>
+<div class="er-pair">{{er:r5c}}<div>{{map:r5c}}{{map:r5c2}}</div></div>
+<p class="small muted">Prefer the side where fewer NULLs result — the side whose participation is closer to total.</p>
+
+<h3 id="s8-6">8.6 Rule 5′ — the effect of participation</h3>
+<p>If the N side (the side receiving the FK) has <b>total participation</b>, the foreign key is declared <b>NOT NULL</b>. With partial participation
+it may be NULL (class notes: “FK can be NULL”).</p>
+<div class="er-pair">{{er:r5d}}{{map:r5d}}</div>
+<p>For a 1:1 relationship with total participation on <b>one</b> side only, put the FK in the <b>total</b> side (NOT NULL, UNIQUE): every row then has a value,
+no NULLs.</p>
+<div class="er-pair">{{er:r6b}}{{map:r6b}}</div>
+
+<h3 id="s8-7">8.7 Rule 6 — 1:1 with total participation on both sides</h3>
+<p>Class notes: “in this particular case we can combine all tables into a single table”. Every A has exactly one B and every B exactly one A, so A, B and R
+can be <b>merged into one table</b>. a1 and b1 are both candidate keys — either can be the primary key, the other is declared UNIQUE NOT NULL.</p>
+<div class="er-pair">{{er:r6}}{{map:r6}}</div>
+
+<h3 id="s8-8">8.8 Rule 7 — weak entity type</h3>
+<p>Class notes: “identifying relation and weak entity set together”. Make one table for the weak entity containing the owner’s primary key (as FK,
+<code>ON DELETE CASCADE</code>) and its own attributes; <b>PK = owner key + partial key</b>. The identifying relationship needs no table.</p>
+<div class="er-pair">{{er:r7}}{{map:r7}}</div>
+{{ddl:r7}}
+
+<h3 id="s8-9">8.9 Rule 8 — recursive (unary) relationships</h3>
+<p>Treat the two roles as two different entities that happen to be the same table: <b>1:N recursive</b> → a self-referencing foreign key in the same table
+named after the role; <b>M:N recursive</b> → a separate table with two copies of the key, renamed by role.</p>
+<div class="er-pair">{{er:t_unary}}{{map:t_unary}}</div>
+<div class="er-pair">{{er:r8}}{{map:r8}}</div>
+
+<h3 id="s8-10">8.10 Rule 9 — ternary / n-ary relationships</h3>
+<p>Always a <b>separate table</b> with the keys of all participating entities as foreign keys. If every side is M/N, all keys together form the PK.
+A side labelled <b>1</b> is determined by all the other sides, so its key is left out: with one “1” side, PK = keys of the other sides.
+With two “1” sides there are <b>two candidate keys</b> (practice P6).</p>
+<div class="er-pair">{{er:t_ternary}}{{map:t_ternary}}</div>
+<div class="er-pair">{{er:r9}}{{map:r9}}</div>
+
+<h3 id="s8-11">8.11 Rule 10 — specialization / generalization</h3>
+<p>There are four standard options. The 2022 PYQ hierarchy (DOCTOR → PERMANENT / RESIDENT / VISITING, disjoint and total) is used to compare them.</p>
+<h4>(a) One table for the superclass + one for each subclass (always valid)</h4>
+<p>Each subclass table holds the superclass key (PK and FK to the superclass, ON DELETE CASCADE) plus its own attributes.</p>
+<div class="er-pair">{{er:p22c_er}}{{map:p22c_er}}</div>
+<h4>(b) Only subclass tables (valid only for total specialization)</h4>
+<p>Each subclass table repeats all inherited attributes. No superclass table, so there is no join to get a full doctor record. Use it only if the
+specialization is <b>total</b> (otherwise doctors belonging to no subclass would be lost) and preferably <b>disjoint</b> (otherwise inherited data is
+duplicated). Also no other table can have a single FK to “DOCTOR”.</p>
+{{map:p22c}}
+<h4>(c) A single table with a type attribute (disjoint)</h4>
+{{map:p22c_single}}
+<p>Columns of the other subclasses are NULL in each row; doctor_type tells which subclass applies.</p>
+<h4>(d) A single table with one boolean flag per subclass (overlapping)</h4>
+<div class="er-pair">{{er:t_overlap}}{{map:t_overlap}}</div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Option</th><th>Tables</th><th>Use when</th><th>Drawback</th></tr>
+<tr><td>(a) super + subs</td><td>1 + k</td><td>any case; the default answer</td><td>join needed to get full subclass rows</td></tr>
+<tr><td>(b) subs only</td><td>k</td><td>total (and disjoint) specialization</td><td>no single table for the superclass; duplication if overlapping</td></tr>
+<tr><td>(c) single + type</td><td>1</td><td>disjoint, few subclass attributes</td><td>many NULLs</td></tr>
+<tr><td>(d) single + flags</td><td>1</td><td>overlapping</td><td>many NULLs</td></tr>
+</table></div>
+
+<h3 id="s8-12">8.12 Rule 11 — aggregation</h3>
+<p>The aggregated relationship gets its table as usual (M:N rule). A relationship attached to the aggregate is mapped like an ordinary relationship whose
+“entity” is the aggregate, i.e. it uses the <b>primary key of the aggregated relationship’s table</b>.</p>
+<div class="er-pair">{{er:t_agg2}}{{map:t_agg2}}</div>
+<p>MONITORS is N:1 from the aggregate to MANAGER, so its primary key is (emp_id, proj_id) alone. For the “minimum tables” count it could also be merged into
+WORKS_ON as a nullable mgr_id column, but the separate table is the standard answer and avoids NULLs.</p>
+
+<h3 id="s8-13">8.13 The whole algorithm on one page</h3>
+<div class="box key"><div class="box-t">ER → relational, in order</div>
+<ol>
+<li>Strong entity → table; composite → components; multivalued → separate table (key + value); derived → not stored.</li>
+<li>Weak entity → table with owner key + partial key as PK; owner key is FK with ON DELETE CASCADE; identifying relationship merged.</li>
+<li>Binary 1:1 → FK (UNIQUE) in the total side (either side if both partial); merge both tables if both sides total.</li>
+<li>Binary 1:N → FK in the N side (NOT NULL if N side total); relationship attributes go with it.</li>
+<li>Binary M:N → new table (key1, key2, attributes), PK = key1 + key2.</li>
+<li>Recursive → same as above with role-named keys.</li>
+<li>n-ary → new table with all keys; PK = keys of the non-“1” sides.</li>
+<li>Specialization → option (a)/(b)/(c)/(d).</li>
+<li>Aggregation → relationships on the aggregate use the aggregated relationship’s key.</li>
+</ol></div>
+
+<h3 id="s8-14">8.14 Worked example: COMPANY (section 7.4) → 6 tables</h3>
+{{er:company}}
+<ol class="steps">
+<li><b>Strong entities:</b> EMPLOYEE(ssn, fname, minit, lname, bdate, address, salary, sex) — name is composite, so its parts are stored.
+DEPARTMENT(dnumber, dname) with dname UNIQUE (second key); number_of_employees is derived → not stored. PROJECT(pnumber, pname, plocation).</li>
+<li><b>Weak entity:</b> DEPENDENT(ssn, dependent_name, sex, birth_date, relationship), PK (ssn, dependent_name).</li>
+<li><b>1:1 MANAGES</b>, DEPARTMENT total → FK mgr_ssn (+ start_date) in DEPARTMENT, NOT NULL, UNIQUE.</li>
+<li><b>1:N</b> WORKS_FOR → dnumber in EMPLOYEE (NOT NULL: employee total); CONTROLS → dnumber in PROJECT; SUPERVISION → supervisor_ssn in EMPLOYEE.</li>
+<li><b>M:N</b> WORKS_ON → WORKS_ON(ssn, pnumber, hours).</li>
+<li><b>Multivalued</b> locations → DEPARTMENT_locations(dnumber, locations).</li>
+</ol>
+{{map:company}}
+{{ddl:company}}
+<div class="box warn"><div class="box-t">A foreign-key cycle</div>
+<p>EMPLOYEE.dnumber is NOT NULL and references DEPARTMENT; DEPARTMENT.mgr_ssn is NOT NULL and references EMPLOYEE. The very first employee cannot be inserted
+before its department, and the department not before its manager. Real systems solve this with <code>DEFERRABLE INITIALLY DEFERRED</code> constraints
+(checked at COMMIT), or by allowing NULL temporarily. Mentioning this in an answer shows real understanding. <span class="beyond-tag">beyond</span></p></div>

@@ -1,0 +1,109 @@
+<h2 id="s6"><span class="num">6</span>Extended ER: specialization, generalization, aggregation</h2>
+<p>The basic ER model cannot say “a SECRETARY is a kind of EMPLOYEE with extra attributes” or “a manager monitors an <i>assignment</i> (an
+employee–project pair)”. The <b>Enhanced (Extended) ER model — EER</b> adds superclass/subclass relationships, specialization, generalization,
+categories and aggregation.</p>
+
+<h3 id="s6-1">6.1 Superclass, subclass and the IS-A relationship</h3>
+<div class="box def"><div class="box-t">Definitions</div>
+<ul>
+<li>A <b>subclass</b> is a subset of the entities of an entity type that need to be represented separately (they have extra attributes or relationships).
+The entity type is their <b>superclass</b>. The link is the <b>IS-A</b> (ISA) relationship: “a SECRETARY <i>is an</i> EMPLOYEE”.</li>
+<li>An entity of a subclass is the <b>same real-world entity</b> as in the superclass, just playing a specialised role. It is not a different object.</li>
+<li><b>Attribute inheritance:</b> a subclass entity <b>inherits all attributes and all relationships</b> of its superclass and may have its own
+<b>specific (local) attributes</b> and relationships.</li>
+</ul></div>
+<p><b>Notation (Korth / course notes):</b> an ISA triangle; the superclass is joined to the triangle, the subclasses hang below. Elmasri uses a circle with
+<b>d</b> (disjoint) or <b>o</b> (overlapping) and a ⊂ symbol on each subclass line. Write the constraints next to the triangle, as done here.</p>
+
+<h3 id="s6-2">6.2 Specialization (top-down)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Specialization</b> is the <b>top-down</b> process of defining a set of subclasses of an entity type, based on some distinguishing characteristic of
+its entities. One higher-level entity type is broken into lower-level entity types.</p></div>
+{{erm:t_spec|EMPLOYEE specialized by job type (course notes p. 57–58). Each subclass adds its own attribute; all inherit emp_id, name, salary.}}
+<p>Why specialize? (1) attributes such as typing_speed apply only to some entities — without subclasses they would be NULL for everyone else;
+(2) some relationships apply only to a subclass (only ENGINEERs belong to a TRADE_UNION).</p>
+
+<h3 id="s6-3">6.3 Generalization (bottom-up)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Generalization</b> is the <b>bottom-up</b> process of combining several entity types that share common attributes into a single
+higher-level (generalized) entity type. The common attributes move up to the superclass; the original types become its subclasses.</p></div>
+<div class="side">{{er:t_gen0|Before: CAR and TRUCK repeat vehicle_id, price and license_plate.}}</div>
+<div class="side">{{er:t_gen|After generalization: VEHICLE holds the common attributes. Every vehicle is a car or a truck and not both (disjoint, total).}}</div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Specialization</th><th>Generalization</th></tr>
+<tr><td>top-down</td><td>bottom-up</td></tr>
+<tr><td>start from one entity type, define its subclasses</td><td>start from several entity types, define a common superclass</td></tr>
+<tr><td>emphasises <b>differences</b> among entities</td><td>emphasises <b>similarities</b></td></tr>
+<tr><td>adds local attributes to subclasses</td><td>removes repeated attributes from the lower types</td></tr>
+<tr><td>subclasses often partial (not every employee is a secretary/engineer)</td><td>superclass usually total (every vehicle is a car or a truck)</td></tr>
+<tr><td>EMPLOYEE → SECRETARY, TECHNICIAN, ENGINEER</td><td>CAR, TRUCK → VEHICLE; FACULTY, STUDENT → PERSON (course p. 56)</td></tr>
+</table></div>
+<p class="small muted">Both produce the same kind of diagram; the difference is only the direction in which the designer worked. That is why the ISA symbol
+is the same for both.</p>
+
+<h3 id="s6-4">6.4 Constraints on specialization / generalization</h3>
+<div class="grid2">
+<div class="box def"><div class="box-t">Disjointness constraint</div>
+<p><b>Disjoint</b> — an entity can belong to <b>at most one</b> subclass (an employee is a secretary <i>or</i> a technician <i>or</i> an engineer).</p>
+<p><b>Overlapping</b> — an entity may belong to <b>more than one</b> subclass (a PERSON can be both an EMPLOYEE and a STUDENT — e.g. a teaching assistant).</p></div>
+<div class="box def"><div class="box-t">Completeness (participation) constraint</div>
+<p><b>Total</b> — every superclass entity <b>must</b> belong to at least one subclass. Drawn as a double line from the superclass.</p>
+<p><b>Partial</b> — a superclass entity <b>may</b> belong to no subclass (an employee who is a manager or accountant is none of the three).</p></div>
+</div>
+<p>The two constraints are independent, giving four combinations:</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th></th><th>Total</th><th>Partial</th></tr>
+<tr><th>Disjoint</th><td>VEHICLE → CAR, TRUCK; DOCTOR → PERMANENT, RESIDENT, VISITING (2022 PYQ); ACCOUNT → SAVINGS, CURRENT</td>
+<td>EMPLOYEE → SECRETARY, TECHNICIAN, ENGINEER</td></tr>
+<tr><th>Overlapping</th><td>PERSON → EMPLOYEE, STUDENT in a university where everyone is at least one of them</td>
+<td>PART → MANUFACTURED_PART, PURCHASED_PART (a part may be both, or neither if obsolete)</td></tr>
+</table></div>
+{{erm:t_overlap|Overlapping, total: a PERSON can be both EMPLOYEE and STUDENT. Mapped to one table with a flag per subclass (section 8, rule 10d).}}
+<div class="box note"><div class="box-t">Two more terms</div>
+<ul>
+<li><b>Predicate-defined (condition-defined)</b> subclass: membership decided by a condition on a superclass attribute, e.g. job_type = 'Engineer'
+(attribute-defined specialization). <b>User-defined</b>: the user decides membership entity by entity.</li>
+<li><b>Hierarchy vs lattice:</b> in a specialization <b>hierarchy</b> every subclass has one superclass. In a <b>lattice</b> a subclass can have several superclasses
+(<b>multiple inheritance</b>) — a <b>shared subclass</b>, e.g. ENGINEERING_MANAGER is both an ENGINEER and a MANAGER.</li>
+<li>Insertion/deletion rules: deleting a superclass entity deletes it from all subclasses; inserting into a superclass with a predicate-defined
+specialization automatically places it in the matching subclasses.</li>
+</ul></div>
+
+<h3 id="s6-5">6.5 Aggregation</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Aggregation</b> is an abstraction in which a <b>relationship (together with its participating entities) is treated as a higher-level entity</b>, so that
+it can itself participate in another relationship. The basic ER model cannot express <b>relationships among relationships</b>; aggregation removes this
+limitation. Drawn as a <b>box around</b> the relationship and its entities.</p></div>
+{{erm:t_agg2|Korth’s example. A MANAGER monitors a particular employee’s work on a particular project. MONITORS is attached to the aggregate
+(EMPLOYEE–WORKS_ON–PROJECT), not to either entity.}}
+<p><b>Why not a ternary relationship MONITORS(employee, project, manager)?</b> Because then every (employee, project) pair that is monitored would be
+stored twice — once in WORKS_ON and again in MONITORS — and nothing would force a monitored pair to be an actual WORKS_ON pair. With aggregation,
+MONITORS can only refer to existing WORKS_ON instances.</p>
+{{er:t_agg_bad|Without aggregation: a ternary MONITORS repeats the employee–project pairs of WORKS_ON (redundant, and can become inconsistent).}}
+{{erm:t_agg1|Course notes p. 59: a visitor enquires about a <i>course at a centre</i> (an OFFERS instance), not about the centre alone or the course alone.}}
+<div class="box ex"><div class="box-t">More places where aggregation is useful</div>
+<ul>
+<li>A hospital: DOCTOR <i>treats</i> PATIENT; the <b>treatment</b> (doctor–patient pair) <i>uses</i> MEDICINE, or is <i>supervised</i> by a senior doctor (summer mid-sem).</li>
+<li>A university: STUDENT <i>registers for</i> COURSE; the <b>registration</b> is <i>approved by</i> an ADVISOR.</li>
+<li>Banking: CUSTOMER <i>holds</i> ACCOUNT; the <b>holding</b> is <i>guaranteed by</i> a GUARANTOR.</li>
+<li>Projects: EMPLOYEE <i>works on</i> PROJECT; the <b>assignment</b> <i>uses</i> MACHINERY.</li>
+</ul></div>
+
+<h3 id="s6-6">6.6 Composition vs aggregation <span class="beyond-tag">beyond syllabus</span></h3>
+<p>The July 2026 end-sem asked to differentiate generalization, specialization, aggregation <b>and composition</b>. “Composition” comes from object
+modelling (UML): a <b>whole–part</b> relationship in which the part <b>cannot exist without the whole</b> and belongs to exactly one whole (a ROOM is
+part of exactly one BUILDING; deleting the building deletes its rooms). In ER terms composition is modelled with a <b>weak entity</b> and an identifying
+relationship. (UML’s “aggregation” is a weaker whole–part link where the part can exist independently — a different idea from ER aggregation.)</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th></th><th>Generalization</th><th>Specialization</th><th>Aggregation (ER)</th><th>Composition</th></tr>
+<tr><td>Relationship expressed</td><td>IS-A (subclass of)</td><td>IS-A</td><td>relationship treated as an entity (“has-a” among relationships)</td><td>PART-OF, strong ownership</td></tr>
+<tr><td>Direction</td><td>bottom-up</td><td>top-down</td><td>abstraction upward</td><td>whole → parts</td></tr>
+<tr><td>Lifetime</td><td>same entity at two levels</td><td>same entity at two levels</td><td>aggregate exists while the relationship exists</td><td>part dies with the whole</td></tr>
+<tr><td>ER notation</td><td>ISA triangle</td><td>ISA triangle</td><td>box around a relationship</td><td>weak entity + identifying relationship</td></tr>
+<tr><td>Example</td><td>CAR, TRUCK → VEHICLE</td><td>EMPLOYEE → ENGINEER, SECRETARY</td><td>MANAGER monitors (EMPLOYEE works_on PROJECT)</td><td>BUILDING ◆— ROOM</td></tr>
+</table></div>
+
+<h3 id="s6-7">6.7 Categories (union types) <span class="beyond-tag">beyond syllabus</span></h3>
+<p>Sometimes a subclass has <b>several different</b> superclasses and each of its entities belongs to <b>exactly one</b> of them: an OWNER of a vehicle is
+either a PERSON or a BANK or a COMPANY. Such a subclass is a <b>category</b> (union type), drawn with a circle containing ∪. It differs from a shared subclass,
+which belongs to <i>all</i> its superclasses at once.</p>

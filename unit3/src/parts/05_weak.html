@@ -1,0 +1,65 @@
+<h2 id="s5"><span class="num">5</span>Weak entity types</h2>
+
+<h3 id="s5-1">5.1 Definition and notation</h3>
+<div class="box def"><div class="box-t">Definitions</div>
+<ul>
+<li>A <b>strong (regular) entity type</b> has a key attribute of its own.</li>
+<li>A <b>weak entity type</b> does <b>not have a key attribute of its own</b>. Its entities are identified by being related to specific entities of
+another entity type, called the <b>identifying (owner) entity type</b>, in combination with some of their own attribute values.</li>
+<li>The relationship linking a weak entity type to its owner is the <b>identifying relationship</b>.</li>
+<li>The <b>partial key</b> (or <b>discriminator</b>) is the set of attributes that uniquely identifies weak entities <b>that are related to the same owner
+entity</b>.</li>
+<li>Key of a weak entity = <b>primary key of the owner + partial key</b>.</li>
+</ul></div>
+<p><b>Notation:</b> weak entity type = <b>double rectangle</b>; identifying relationship = <b>double diamond</b>; partial key = <b>dashed underline</b>;
+the weak entity always has <b>total participation</b> (double line) in the identifying relationship.</p>
+{{erm:t_weak|Course notes p. 44: a LOAN has several PAYMENTs (instalments). Payment number 1, 2, 3 … restarts for each loan, so payment_no identifies a
+payment only within its loan.}}
+
+<h3 id="s5-2">5.2 Properties you must state in an answer</h3>
+<ol>
+<li>A weak entity <b>cannot exist without its owner</b> (existence dependency) — hence <b>total participation</b> in the identifying relationship.
+Deleting the owner deletes its weak entities (<code>ON DELETE CASCADE</code>).</li>
+<li>The identifying relationship is usually <b>1 : N</b> from owner to weak entity (one loan, many payments). It can also be 1:1.</li>
+<li>The weak entity has a <b>partial key</b> but no full key; its key in the table is (owner key, partial key).</li>
+<li>Total participation alone does <b>not</b> make an entity weak: an EMPLOYEE that must work for a DEPARTMENT is still strong because emp_id identifies it.
+<b>Weak = no key of its own.</b></li>
+<li>A weak entity type can own another weak entity type (BUILDING → FLOOR → ROOM, practice question P1).</li>
+</ol>
+
+<h3 id="s5-3">5.3 Strong vs weak entity — comparison table</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Strong entity type</th><th>Weak entity type</th></tr>
+<tr><td>has a primary key of its own</td><td>has no key of its own; only a partial key (discriminator)</td></tr>
+<tr><td>exists independently</td><td>existence-dependent on an owner entity</td></tr>
+<tr><td>single rectangle</td><td>double rectangle</td></tr>
+<tr><td>key attribute: solid underline</td><td>partial key: dashed underline</td></tr>
+<tr><td>takes part in ordinary relationships (single diamond)</td><td>linked to the owner by an identifying relationship (double diamond)</td></tr>
+<tr><td>participation may be partial or total</td><td>always total participation in the identifying relationship</td></tr>
+<tr><td>table PK = its own key</td><td>table PK = owner’s PK + partial key; owner’s PK is also a FK (ON DELETE CASCADE)</td></tr>
+<tr><td>e.g. EMPLOYEE(emp_id), LOAN(loan_no)</td><td>e.g. DEPENDENT(dep_name) of EMPLOYEE, PAYMENT(payment_no) of LOAN</td></tr>
+</table></div>
+
+<h3 id="s5-4">5.4 Why have weak entity types at all?</h3>
+<p>One could always make a weak entity strong by adding a globally unique attribute (payment_id = loan_no + payment_no, or a serial number). We still use
+weak entities because:</p>
+<ul>
+<li>It is the <b>natural model</b>: a dependent named “Riya” is meaningful only as a dependent <i>of a particular employee</i>; a room number “101” only
+inside a building.</li>
+<li>Adding the owner’s key as an attribute of the weak entity would store it <b>twice</b> (in the entity and in the relationship), which is redundant and can
+become inconsistent.</li>
+<li>An artificial id adds a meaningless attribute and an extra uniqueness rule to maintain.</li>
+<li>It captures the <b>existence dependency</b> explicitly: deleting the owner must delete the dependants (cascade).</li>
+<li>Specifying the weak entity tells the designer exactly how the key will be formed when converting to tables.</li>
+</ul>
+
+<h3 id="s5-5">5.5 Can an identifying relationship have degree greater than two?</h3>
+<p><b>Yes.</b> A weak entity can be identified by <b>more than one</b> owner; the identifying relationship then has degree 3 or more and the key of the weak entity is
+<b>the keys of all owners + the partial key</b>.</p>
+{{erm:t_weak3|An INTERVIEW is identified by the applicant, the company and the interview date: the same applicant can be interviewed by many companies and
+the same company interviews many applicants; on a given date one applicant has at most one interview with one company.}}
+<p>Other examples: a weak entity EXAM_SLOT identified by (COURSE, SEMESTER, slot_no); a SHIPMENT_LINE identified by (ORDER, WAREHOUSE, line_no).</p>
+<div class="box warn"><div class="box-t">Correction to the course notes (pp. 44, 52)</div>
+<p>p. 44 says a weak entity set “doesn’t contain any key attribute of its own”. That is right, but it does have a <b>partial key</b>. State that, or you
+cannot explain how its entities are identified. The hospital diagram on p. 52 draws PATIENT as a weak entity without an identifying relationship or
+partial key. A patient has its own registration number, so it is a <b>strong</b> entity. Do not copy that drawing.</p></div>

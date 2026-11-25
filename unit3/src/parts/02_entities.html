@@ -1,0 +1,52 @@
+<h2 id="s2"><span class="num">2</span>Entities and attributes</h2>
+
+<h3 id="s2-1">2.1 Entity, entity type, entity set</h3>
+<div class="box def"><div class="box-t">Definitions</div>
+<ul>
+<li><b>Entity</b> — a thing or object in the real world that is distinguishable from all other objects; it may be physical (a student, a car) or
+conceptual (a course, a loan, a job).</li>
+<li><b>Entity type</b> — the description (schema) of a collection of entities that have the <b>same attributes</b>, e.g. STUDENT(roll_no, name, dob).
+Drawn as a <b>rectangle</b>.</li>
+<li><b>Entity set</b> (extension) — the collection of all entities of that type <b>at a particular moment</b>, e.g. the 600 students currently enrolled.</li>
+</ul></div>
+<p>The entity <i>type</i> is like the column headings of a table; the entity <i>set</i> is like the rows present right now. Many books (and exam papers)
+use “entity set” for both; that is acceptable in answers.</p>
+
+<h3 id="s2-2">2.2 Attributes and their types</h3>
+<p>An <b>attribute</b> is a property that describes an entity (or a relationship). Each attribute has a <b>domain</b> (value set): the set of values it may
+take, e.g. <code>age</code> ∈ integers 16–40. Attributes are drawn as <b>ellipses</b> joined to their entity.</p>
+{{erm:t_attrs|One entity showing every kind of attribute (your class notes p. 7 and course notes pp. 45–47). The mapping on the right is section 8’s rules 1–3.}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Type</th><th>Meaning</th><th>Example</th><th>Drawn as</th></tr>
+<tr><td><b>Simple (atomic)</b></td><td>cannot be divided further</td><td>roll_no, dob, gender</td><td>ellipse</td></tr>
+<tr><td><b>Composite</b></td><td>made of smaller sub-parts that have meaning of their own</td><td>name = (first_name, middle_name, last_name); address = (street, city, pin)</td><td>ellipse with its component ellipses attached</td></tr>
+<tr><td><b>Single-valued</b></td><td>one value per entity</td><td>dob</td><td>ellipse</td></tr>
+<tr><td><b>Multivalued</b></td><td>a set of values per entity</td><td>phone numbers, email ids, college degrees</td><td><b>double ellipse</b></td></tr>
+<tr><td><b>Stored</b></td><td>value is physically stored</td><td>dob</td><td>ellipse</td></tr>
+<tr><td><b>Derived</b></td><td>value can be computed from other attributes or entities</td><td>age (from dob), no_of_employees of a department (by counting)</td><td><b>dashed ellipse</b></td></tr>
+<tr><td><b>Key</b></td><td>its value is unique for each entity of the set</td><td>roll_no</td><td>name <b>underlined</b></td></tr>
+<tr><td><b>Complex</b> <span class="beyond-tag">beyond</span></td><td>composite and multivalued nested in any way</td><td>{address(street, city)} — several addresses, each composite</td><td>double ellipse with components</td></tr>
+</table></div>
+<div class="grid2">
+<div class="box tip"><div class="box-t">Composite vs simple — how to decide</div>
+<p>Make an attribute composite when users sometimes need the <b>whole</b> value and sometimes the <b>parts</b> (search by city, print the full address).
+If the parts are never used separately, keep it simple.</p></div>
+<div class="box tip"><div class="box-t">Derived — why draw it at all?</div>
+<p>It documents that users need the value, but it is <b>not stored</b> in the table (it would go stale: age changes every year). It is computed in a query or a
+view: <code>age = YEAR(CURRENT_DATE) − YEAR(dob)</code>.</p></div>
+</div>
+<p><b>NULL values</b> appear when an attribute is <i>not applicable</i> (apartment_no for a house) or <i>unknown</i> (phone not given). They are allowed for
+non-key attributes.</p>
+
+<h3 id="s2-3">2.3 Keys of an entity type</h3>
+<div class="box def"><div class="box-t">Key attribute</div>
+<p>An attribute (or set of attributes) whose values are <b>distinct for every entity</b> in the entity set, so it can identify each entity uniquely.
+Shown by <b>underlining</b>. An entity type may have more than one key (e.g. roll_no and email); one is chosen as the primary key.</p></div>
+<ul>
+<li>A composite key is shown by underlining a composite attribute, e.g. <u>registration(state, number)</u> for a vehicle.</li>
+<li>An entity type with <b>no key of its own</b> is a <b>weak entity type</b> (section 5).</li>
+<li>Super key, candidate key, primary key and alternate key were done in Unit 2; the same meanings apply here.</li>
+</ul>
+<div class="box warn"><div class="box-t">Correction to the course notes (p. 46)</div>
+<p>The course notes say a key attribute “represents the main characteristics of an entity”. More precisely, a key is what <b>uniquely identifies</b> each entity.
+Being “important” has nothing to do with it: <code>name</code> is an important attribute but it is not a key.</p></div>

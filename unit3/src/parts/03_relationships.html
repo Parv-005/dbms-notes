@@ -1,0 +1,52 @@
+<h2 id="s3"><span class="num">3</span>Relationship types, relationship sets and roles</h2>
+
+<h3 id="s3-1">3.1 Relationship, relationship type, relationship set</h3>
+<div class="box def"><div class="box-t">Definitions</div>
+<ul>
+<li><b>Relationship (instance)</b> — an association among two or more entities, e.g. “Asha works for the Sales department”.</li>
+<li><b>Relationship type</b> R among entity types E<sub>1</sub>, …, E<sub>n</sub> — the schema of a set of similar associations, e.g. WORKS_FOR between
+EMPLOYEE and DEPARTMENT. Drawn as a <b>diamond</b> joined by lines to the participating entity types.</li>
+<li><b>Relationship set</b> — the set of relationship instances of that type at a given moment. Mathematically it is a subset of the Cartesian product
+E<sub>1</sub> × E<sub>2</sub> × … × E<sub>n</sub>; each instance r<sub>i</sub> = (e<sub>1</sub>, …, e<sub>n</sub>) takes exactly one entity from each
+participating set.</li>
+</ul></div>
+{{erm:t_rel|EMPLOYEE works for DEPARTMENT (course notes p. 43). “since” is an attribute of the relationship, not of either entity.}}
+<p>Because a relationship set is a <b>set</b>, the same combination of entities cannot appear twice. If an employee could work for the same department
+in two separate periods and both must be recorded, the relationship alone cannot hold that: model a separate entity (e.g. ASSIGNMENT) instead.</p>
+
+<h3 id="s3-2">3.2 Degree of a relationship type</h3>
+<p>The <b>degree</b> is the number of participating entity types.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Degree</th><th>Name</th><th>Example</th></tr>
+<tr><td>1</td><td><b>Unary / recursive</b></td><td>EMPLOYEE <i>supervises</i> EMPLOYEE; COURSE <i>is prerequisite of</i> COURSE; PERSON <i>is married to</i> PERSON</td></tr>
+<tr><td>2</td><td><b>Binary</b> (by far the most common)</td><td>STUDENT <i>enrols in</i> COURSE</td></tr>
+<tr><td>3</td><td><b>Ternary</b></td><td>SUPPLIER <i>supplies</i> PART to PROJECT; INSTRUCTOR <i>teaches</i> COURSE to STUDENT</td></tr>
+<tr><td>n</td><td><b>n-ary</b></td><td>rarely needed; usually replaced by an entity (section 7)</td></tr>
+</table></div>
+{{erm:t_ternary|A ternary relationship. Each SUPPLY instance is a triple (supplier, part, project) plus the quantity.}}
+
+<h3 id="s3-3">3.3 Roles and recursive relationships</h3>
+<div class="box def"><div class="box-t">Role name</div>
+<p>Each entity type that participates in a relationship plays a particular <b>role</b> in it, written as a label on the connecting line. Role names are
+optional when the entity types are different (the role is obvious). They are <b>essential in a recursive relationship</b>, where the
+<b>same entity type participates more than once in different roles</b>.</p></div>
+{{erm:t_unary|SUPERVISES is recursive: one EMPLOYEE plays the role <i>supervisor</i>, another plays <i>supervisee</i>. Each supervisor has N supervisees;
+each supervisee has 1 supervisor.}}
+<p>Without role names you could not tell, for the instance (e<sub>1</sub>, e<sub>7</sub>), who supervises whom. When converted to a table the roles become
+column names: <code>supervisor_emp_id</code>.</p>
+
+<h3 id="s3-4">3.4 Attributes of relationship types</h3>
+<p>A relationship can have its own attributes: <code>since</code> on WORKS_FOR, <code>hours</code> on WORKS_ON, <code>grade</code> on ENROLS. Such an attribute
+describes the <b>combination</b>, not either entity.</p>
+<div class="box tip"><div class="box-t">Where can a relationship attribute be moved?</div>
+<ul>
+<li><b>1:1</b> — the attribute can be moved to <b>either</b> entity type.</li>
+<li><b>1:N</b> — it can be moved <b>only to the N-side</b> entity. <code>since</code> of WORKS_FOR (N employees : 1 department) can become an attribute of
+EMPLOYEE, because each employee has only one “since”.</li>
+<li><b>M:N</b> — it <b>cannot be moved</b>; it depends on both entities together. <code>grade</code> belongs to (student, course), not to either alone.</li>
+</ul>
+This is exactly what happens in the table conversion (section 8): the attribute goes wherever the foreign key goes.</div>
+
+<div class="box exam"><div class="box-t">Exam phrasing to recognise</div>
+<p>“Each instructor teaches a course <i>in a semester</i>” → the semester is an attribute of TEACHES. “Record the grade each student received” → grade is
+an attribute of ENROLS / TAKES. “The date on which the employee joined the department” → attribute of WORKS_FOR.</p></div>

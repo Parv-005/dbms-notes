@@ -1,0 +1,478 @@
+<h2 id="s12"><span class="num">12</span>Previous Year Questions — Topic-wise, Fully Solved</h2>
+<p>Every Unit-3 question in the papers you provided, grouped by topic, answered the way it should be written in the exam. Every “convert to tables”
+answer was produced by the mapping program and checked against the hand-written answer. Try each question yourself first.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Paper (as labelled here)</th><th>Source file</th><th>Unit-3 questions</th></tr>
+<tr><td>End-Sem Nov–Dec 2025 (ITITC302)</td><td>endsem 2025.pdf</td><td>Q3(a) ternary design, Q3(b) weak entity + aggregation, Q3(c) registrar design</td></tr>
+<tr><td>End-Sem Nov–Dec 2025 (ITITC05)</td><td>ITITC05.pdf</td><td>Q3(a), Q3(c) — identical to the ITITC302 paper</td></tr>
+<tr><td>End-Sem Nov–Dec 2024</td><td>endsem 2024.pdf</td><td>Q3(a) airline ER → tables, Q3(b) multivalued; generalization etc., Q3(c) car selling</td></tr>
+<tr><td>End-Sem July 2026 (Summer)</td><td>endsem 2026 summer sem.pdf</td><td>Q3(a) hospital, Q3(b) generalization … composition, Q3(c) car rental</td></tr>
+<tr><td>End-Sem Nov–Dec 2023 (ITITC05)</td><td>PYQ images</td><td>Q3(c) participation, derived attributes + A/B/C diagram</td></tr>
+<tr><td>End-Sem Nov–Dec 2022 (COCSC05)</td><td>PYQ images</td><td>Q2(a) weak entity, Q2(b) E1–E4 diagram, Q2(c) Doctor specialization</td></tr>
+<tr><td>End-Sem (year not printed)</td><td>PYQ images</td><td>Q1(a)(iv) strong vs weak, Q1(c) E1–E4 diagram with rules</td></tr>
+<tr><td>Mid-Sem Oct 2021 (ITITC05)</td><td>PYQ images</td><td>Q3(c) registrar design</td></tr>
+<tr><td>Mid-Sem Sep 2025</td><td>midsem 2025.pdf</td><td>Q5(b) NSUT_UBER</td></tr>
+<tr><td>Mid-Sem Sep 2026</td><td>midsem 2026 dbms.pdf</td><td>Q4(b) employee–dependent, Q5(a)(b) multivalued vs derived, Q5(b) manager</td></tr>
+<tr><td>Summer-Semester Mid-Sem</td><td>ITITC302-INITC302-EEITC401.pdf</td><td>Q3(b) hospital staff concepts</td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">What the pattern tells you</div><ul>
+<li><b>Every end-sem since 2024 has a “design + convert with minimum tables” question</b> (university, airline, car selling, hospital, car rental). Practise
+drawing one complete diagram in 15 minutes.</li>
+<li><b>Weak entities</b> appear in almost every paper — definition, comparison with strong, why they exist, degree &gt; 2.</li>
+<li><b>Generalization / specialization / aggregation</b> with overlap/disjoint and total/partial — asked in 2024, 2025, 2026 and the summer mid-sem.</li>
+<li>“Convert the given diagram” questions are the easiest marks: apply section 8 mechanically and <b>state each rule you used</b>.</li>
+</ul></div>
+
+<!-- ------------------------------------------------ 12.1 -->
+<h3 id="p1">12.1 Attributes</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q5(a)(b)</span><span class="chip warn">1 mark</span></div>
+<div class="pyq-q"><p>Give differences between multivalued and derived attribute.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Multivalued attribute</th><th>Derived attribute</th></tr>
+<tr><td>can have <b>more than one value</b> for a single entity</td><td>value is <b>computed</b> from other attributes / entities</td></tr>
+<tr><td>values are stored</td><td>usually <b>not stored</b>; calculated when needed</td></tr>
+<tr><td>drawn as a <b>double ellipse</b></td><td>drawn as a <b>dashed ellipse</b></td></tr>
+<tr><td>mapped to a <b>separate table</b> (entity key + attribute)</td><td>no column; computed in a query or view</td></tr>
+<tr><td>e.g. phone_numbers, email_ids, degrees of a STUDENT</td><td>e.g. age from dob; no_of_employees of a DEPARTMENT; total of an order</td></tr>
+</table></div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q3(b)(i)</span><span class="chip warn">2.5 marks</span></div>
+<div class="pyq-q"><p>Justify the statement with the help of an example: “In ER to relational schema conversion, a multivalued attribute requires a separate relational table.”</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Take STUDENT(roll_no, name, gender) with a multivalued attribute mobile_no (a student may have several numbers).</p>
+{{er:r3}}
+<p><b>Why it cannot stay in the STUDENT table:</b></p>
+<ol>
+<li><b>Several values in one cell</b> — <code>(101, 'Asha', '98…, 97…')</code> violates the relational rule that every value is atomic (1NF). Searching for
+one number or deleting one number becomes string manipulation.</li>
+<li><b>Fixed extra columns</b> mobile1, mobile2, mobile3 — wastes space with NULLs for students with one number, and still fails for a student with four.</li>
+<li><b>One row per number</b> — <code>(101, Asha, F, 98…)</code>, <code>(101, Asha, F, 97…)</code>: roll_no is no longer a key, and name/gender are repeated,
+causing update anomalies (change the name in one row and not the other).</li>
+</ol>
+<p><b>Correct mapping:</b> a separate table with the entity’s key and the attribute; the key of the new table is the combination:</p>
+{{map:r3}}
+<pre class="sql">CREATE TABLE STUDENT_mobile_no (
+  roll_no   INT,
+  mobile_no VARCHAR(15),
+  PRIMARY KEY (roll_no, mobile_no),
+  FOREIGN KEY (roll_no) REFERENCES STUDENT(roll_no) ON DELETE CASCADE);</pre>
+<p>Any number of phone numbers can be stored, nothing is repeated, and deleting a student deletes their numbers. Hence a multivalued attribute needs
+a separate table.</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 12.2 -->
+<h3 id="p2">12.2 Weak entity types</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2022</span><span class="chip">Q2(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Explain weak entity set with example and how it is different from strong entity set.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A <b>weak entity set</b> is an entity set that <b>does not have a primary key of its own</b>. Its entities can be identified only by being related
+to an entity of another (<b>owner / identifying</b>) entity set, combined with its own <b>partial key (discriminator)</b>. It is existence-dependent
+on the owner and has <b>total participation</b> in the <b>identifying relationship</b>.</p>
+<p><b>Example:</b> LOAN(<u>loan_no</u>, amount) and PAYMENT(payment_no, pay_date, pay_amount). Payment numbers 1, 2, 3 … restart for every loan, so
+payment_no alone is not unique; (loan_no, payment_no) is.</p>
+{{er:t_weak}}
+<p>Notation: double rectangle (weak entity), double diamond (identifying relationship), dashed underline (partial key), double line (total participation).
+Table: PAYMENT(<u>loan_no, payment_no</u>, pay_date, pay_amount), loan_no FK → LOAN ON DELETE CASCADE.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Strong entity set</th><th>Weak entity set</th></tr>
+<tr><td>has its own primary key</td><td>has only a partial key (discriminator)</td></tr>
+<tr><td>independent existence</td><td>existence depends on the owner entity</td></tr>
+<tr><td>single rectangle; key underlined</td><td>double rectangle; partial key dashed-underlined</td></tr>
+<tr><td>ordinary relationships (single diamond)</td><td>identifying relationship (double diamond), total participation</td></tr>
+<tr><td>PK of table = own key</td><td>PK of table = owner’s PK + partial key</td></tr>
+<tr><td>e.g. EMPLOYEE, LOAN, STUDENT</td><td>e.g. DEPENDENT, PAYMENT, ROOM of a building</td></tr>
+</table></div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q1(a)(iv)</span><span class="chip warn">part of 4 marks</span></div>
+<div class="pyq-q"><p>Highlight the key difference between strong and weak entities with the help of a suitable example.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Key difference:</b> a strong entity has a key of its own and exists independently; a weak entity has no key of its own — it is identified by its
+owner’s key plus its partial key and cannot exist without the owner.</p>
+<p><b>Example:</b> EMPLOYEE(<u>emp_id</u>, ename) is strong. DEPENDENT(dep_name, relation, dob) is weak: two employees can both have a dependent called
+“Riya”, so dep_name identifies a dependent only within one employee. Key = (emp_id, dep_name). Deleting an employee deletes their dependents.</p>
+{{er:m26dep}}
+<p>(The full comparison table is in the previous answer.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q4(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>A company maintains details of employees and their dependents. A dependent is identified by its name only within the context of a particular employee. A
+dependent cannot exist without the corresponding employee. Identify: strong entity, weak entity, partial key, identifying relationship, participation
+constraints. Represent the scenario using an ER diagram.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Strong entity:</b> EMPLOYEE (key emp_id).</li>
+<li><b>Weak entity:</b> DEPENDENT — no key of its own.</li>
+<li><b>Partial key:</b> dep_name (unique only among the dependents of one employee).</li>
+<li><b>Identifying relationship:</b> HAS_DEPENDENT (EMPLOYEE 1 : N DEPENDENT).</li>
+<li><b>Participation:</b> DEPENDENT — <b>total</b> (“cannot exist without the employee”); EMPLOYEE — <b>partial</b> (an employee may have no dependents).</li>
+</ul>
+{{erm:m26dep}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q3(b)(i)</span><span class="chip warn">3 marks</span></div>
+<div class="pyq-q"><p>We can convert any weak entity set to a strong entity set by simply adding appropriate attributes. Why, then, do we have weak entity sets? Can an
+identifying relationship of a weak entity type be of a degree greater than two? Give examples to illustrate your answer.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>Why weak entity sets</h4>
+<p>Yes — PAYMENT could be made strong by adding a unique payment_id, or by copying loan_no into it. We still use weak entity sets because:</p>
+<ol>
+<li><b>Avoids redundancy:</b> if loan_no were also an attribute of PAYMENT, it would be stored both in the entity and in the LOAN_PAYMENT relationship;
+the two copies could disagree.</li>
+<li><b>Models reality:</b> a payment “number 3” means something only for a particular loan; a dependent only for a particular employee. The weak entity
+expresses this <b>existence dependency</b>, so deleting the owner deletes its weak entities (cascade).</li>
+<li><b>No artificial keys:</b> a surrogate id adds a meaningless attribute and an extra uniqueness rule to maintain.</li>
+<li>It tells the designer exactly how the key is formed during mapping (owner key + discriminator).</li>
+</ol>
+<h4>Degree greater than two — yes</h4>
+<p>A weak entity may depend on <b>more than one owner</b>. Then the identifying relationship is ternary (or higher) and the weak entity’s key = keys of all
+owners + its partial key.</p>
+<p><b>Example:</b> INTERVIEW is identified by the APPLICANT, the COMPANY and the interview date.</p>
+{{erm:t_weak3}}
+<p>Another example: a weak entity EXAM_SLOT identified by COURSE and SEMESTER together with slot_no.</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 12.3 -->
+<h3 id="p3">12.3 Specialization, generalization, aggregation, roles</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q3(b)(ii)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Define the concept of aggregation. Give two examples of where this concept is useful.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Aggregation</b> is an abstraction through which a <b>relationship set, together with its participating entity sets, is treated as a higher-level
+entity set</b>, so that it can participate in another relationship. It is needed because the ER model cannot express relationships among
+relationships. It is drawn as a box around the relationship and its entities.</p>
+<p><b>Example 1:</b> EMPLOYEE <i>works on</i> PROJECT; a MANAGER <i>monitors</i> each (employee, project) assignment.</p>
+{{er:t_agg2}}
+<p><b>Example 2:</b> a coaching CENTER <i>offers</i> a COURSE; a VISITOR <i>enquires</i> about a particular course at a particular centre (course notes p. 59).
+Other uses: a guarantor for a (customer, account) holding; an advisor who approves a (student, course) registration.</p>
+<p>Without aggregation a ternary relationship would repeat every (employee, project) pair and could record monitoring of a pair that does not exist in WORKS_ON.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q3(b)(ii)</span><span class="chip warn">2.5 marks</span></div>
+<div class="pyq-q"><p>Explain generalization, specialization and aggregation with the help of overlap and disjoint set examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Specialization</b> (top-down): defining subclasses of an entity type based on distinguishing characteristics; subclasses inherit all attributes of the
+superclass and add their own. <b>Disjoint</b> example: EMPLOYEE → SECRETARY, TECHNICIAN, ENGINEER — an employee belongs to at most one.</p>
+{{er:t_spec}}
+<p><b>Generalization</b> (bottom-up): combining entity types with common attributes into a higher-level entity type. <b>Overlapping</b> example: EMPLOYEE and
+STUDENT generalized to PERSON — a teaching assistant is both.</p>
+{{er:t_overlap}}
+<p><b>Disjoint</b> = an entity in at most one subclass; <b>overlapping</b> = an entity may be in several. (Completeness: total = every superclass entity in
+some subclass; partial = not necessarily.)</p>
+<p><b>Aggregation</b>: treating a relationship with its entities as an entity so it can take part in another relationship — e.g. MANAGER monitors
+(EMPLOYEE works_on PROJECT), diagram in the previous answer.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem July 2026</span><span class="chip">Q3(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Differentiate between Generalization, Specialization, Aggregation and Composition using suitable real-world examples. Explain overlap/disjoint constraints
+and total/partial participation with diagrams.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th></th><th>Generalization</th><th>Specialization</th><th>Aggregation</th><th>Composition</th></tr>
+<tr><td>Idea</td><td>combine similar lower-level entity types into one higher-level type</td><td>divide one entity type into sub-types</td>
+<td>treat a relationship (with its entities) as an entity</td><td>whole–part: the part cannot exist without the whole</td></tr>
+<tr><td>Approach</td><td>bottom-up</td><td>top-down</td><td>abstraction of a relationship</td><td>ownership</td></tr>
+<tr><td>Relationship</td><td>IS-A</td><td>IS-A</td><td>relationship among relationships</td><td>PART-OF</td></tr>
+<tr><td>Notation</td><td>ISA triangle</td><td>ISA triangle</td><td>box around a relationship</td><td>weak entity + identifying relationship (UML: filled diamond)</td></tr>
+<tr><td>Example</td><td>CAR, TRUCK → VEHICLE</td><td>EMPLOYEE → ENGINEER, SECRETARY</td><td>MANAGER monitors (EMPLOYEE works_on PROJECT)</td><td>BUILDING has ROOMs; ORDER has ORDER_LINEs</td></tr>
+</table></div>
+<p><b>Disjoint vs overlapping:</b> disjoint — an entity belongs to at most one subclass (a VEHICLE is a CAR or a TRUCK); overlapping — it may belong to several
+(a PERSON can be both EMPLOYEE and STUDENT).</p>
+<p><b>Total vs partial</b> (specialization completeness): total — every superclass entity belongs to some subclass (double line from the superclass);
+partial — some belong to none. For relationships: total = every entity participates (double line), partial = some may not.</p>
+<div class="side">{{er:t_gen|Disjoint, total}}{{er:t_overlap|Overlapping, total}}</div>
+{{er:t_spec|Disjoint, partial}}
+{{er:t_part|Relationship participation: DEPARTMENT total, EMPLOYEE partial}}
+{{er:t_agg2|Aggregation}}
+{{er:r7|Composition modelled as a weak entity: B cannot exist without its A}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q3(b)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>A Hospital Management System maintains information about doctors, nurses, patients, treatments and departments. Doctors and nurses are considered medical
+staff, while medical staff and administrative employees together constitute hospital staff. Every patient must undergo treatment prescribed by a doctor,
+whereas a department may or may not have doctors assigned to it. The hospital also records the supervision of treatment activities by senior doctors.
+Identify and explain the concepts of Participation Constraints, Specialization, Generalization and Aggregation present in the above scenario. Justify
+your answer with suitable reasoning.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Specialization:</b> MEDICAL_STAFF is specialized into DOCTOR and NURSE (“doctors and nurses are considered medical staff”) — top-down
+division by role. Disjoint and total (assumed).</li>
+<li><b>Generalization:</b> MEDICAL_STAFF and ADMIN_EMPLOYEE are generalized into HOSPITAL_STAFF (“together constitute hospital staff”) — common
+attributes (staff_id, name) move up.</li>
+<li><b>Participation:</b> PATIENT has <b>total</b> participation in PRESCRIBES (“every patient <b>must</b> undergo treatment”); DEPARTMENT has
+<b>partial</b> participation in ASSIGNED_TO (“<b>may or may not</b> have doctors”).</li>
+<li><b>Aggregation:</b> supervision is of a <i>treatment activity</i> — the (doctor, patient, treatment) relationship PRESCRIBES — not of a doctor or a patient
+alone. So PRESCRIBES is aggregated and SUPERVISES links the aggregate to DOCTOR in the role <i>senior doctor</i>.</li>
+</ul>
+{{er:msum}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q5(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Consider the statement: “Every employee has a manager, but a manager is also an employee.” Should Manager be modeled as a separate entity, an attribute of
+Employee, or a role played by Employee? Justify your answer.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>As a role played by EMPLOYEE</b>, in a recursive relationship MANAGES (EMPLOYEE 1 —manager— MANAGES —subordinate— N EMPLOYEE).</p>
+<ul>
+<li><b>Not a separate entity:</b> a manager <i>is</i> an employee and has the same attributes (id, name, salary). A MANAGER entity would store the same person
+twice and the two copies could become inconsistent.</li>
+<li><b>Not an attribute</b> (manager_name): an attribute is only a value — it loses the link to the manager’s own employee record (salary, department) and
+breaks if two employees share a name.</li>
+<li><b>Role:</b> the same entity type participates twice in different roles; each employee has one manager, a manager has many subordinates. Mapping gives a
+self-referencing foreign key: EMPLOYEE(<u>emp_id</u>, name, …, manager_emp_id → EMPLOYEE).</li>
+</ul>
+{{erm:t_unary}}
+<p>(If managers had extra attributes, e.g. allowance, one would additionally specialize EMPLOYEE → MANAGER; the relationship still stays recursive.)</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 12.4 -->
+<h3 id="p4">12.4 Convert a given ER diagram</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2023</span><span class="chip">Q3(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Explain the following concepts in an ER diagram: participation constraints and derived attributes. Convert the following ER diagram into the relational
+model with minimum number of relations.</p>{{er:p23}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Participation constraint</b> — whether every entity of a set must take part in a relationship. <b>Total</b> (double line): every entity participates,
+e.g. every DEPARTMENT has a manager. <b>Partial</b> (single line): some may not, e.g. not every EMPLOYEE manages a department.</p>
+<p><b>Derived attribute</b> — an attribute whose value is computed from other attributes, e.g. age from dob; drawn as a dashed ellipse and not stored.</p>
+<p><b>Conversion.</b> An arrow from an entity to a relationship means each entity of that set takes part in at most one instance (key constraint):</p>
+<ul>
+<li>A → R1: each A is related to at most one B ⇒ R1 is many-to-one; put b1 in A.</li>
+<li>A → R2: each A related to at most one C ⇒ put c1 in A.</li>
+<li>R3 has no arrows ⇒ many-to-many ⇒ separate table R3(b1, c1).</li>
+</ul>
+{{map:p23}}
+<p class="answer-line">Minimum number of relations = 4: A(a1, a2, b1, c1), B(b1, b2), C(c1, c2), R3(b1, c1).</p>
+<p class="small muted">This arrow style (entity → diamond) is Ramakrishnan’s key-constraint notation; your class notes use Korth’s style (diamond → entity). See section 4.4.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2022</span><span class="chip">Q2(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Convert the given ER model to relational model. Also state how you have converted.</p>{{er:p22b}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<ol class="steps">
+<li>Strong entities E1, E2, E3 → tables with their key attributes m1, n1, p1 as primary keys.</li>
+<li>R1 is N:1 (many E1 per E2) → no table; the key of the 1 side (n1) goes into E1 as a foreign key. E1 has total participation, so n1 is NOT NULL.</li>
+<li>R2 is 1:N (one E2, many E3) → n1 goes into E3 as a NOT NULL foreign key (E3 total).</li>
+<li>E4 is weak (double rectangle, partial key q1), R3 is its identifying relationship → E4(p1, q1, q2), PK (p1, q1), p1 FK → E3 ON DELETE CASCADE. R3 needs no table.</li>
+</ol>
+{{map:p22b}}
+{{ddl:p22b}}
+<p class="answer-line">4 tables: E1(m1, m2, n1), E2(n1, n2), E3(p1, p2, n1), E4(p1, q1, q2).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2022</span><span class="chip">Q2(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Consider the given specialization hierarchy in the ER model with mutually exclusive and total participation constraint. Convert it into a relational schema.
+(DOCTOR(Id, name, area) → Permanent Doctor (salary), Resident Doctor (stipend), Visiting Doctor (wages per hour).)</p>{{er:p22c}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Because the specialization is <b>total</b> (every doctor is one of the three) and <b>disjoint</b> (mutually exclusive — no doctor is two kinds), we can use
+<b>only subclass tables</b>, each containing the inherited attributes. No doctor is lost (total) and no doctor is stored twice (disjoint).</p>
+{{map:p22c}}
+<p>The same Id is never in two tables. To find any doctor by Id you search the three tables (or a view: <code>SELECT id, name, area FROM PERMANENT UNION
+SELECT … FROM RESIDENT UNION …</code>).</p>
+<p><b>Alternative (also correct, works for any constraint):</b> a superclass table plus one table per subclass.</p>
+{{map:p22c_er}}
+<p>Or a single table with a type attribute (many NULLs): {{map:p22c_single}}</p>
+<p>Mention that the first option is the <b>minimum</b> that keeps all information without NULLs; it is valid only because of the given constraints.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q1(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Analyze the following ER diagram. Find the number of tables/relations and provide their schema. State all the rules to transform the ER diagram to schema.</p>
+{{er:pny}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Assumption:</b> no cardinality ratios are marked, so R2, R3 and R4 are taken as many-to-many (the general case). R4 is attached only to E4, so it is
+a recursive relationship on E4 (two roles of E4). E1 has total participation in R2 and R3 (double lines).</p>
+<p><b>Rules used</b></p>
+<ol>
+<li>Strong entity → table; key attribute → PK (E1, E3, E4).</li>
+<li>Multivalued attribute A8 of E3 → separate table (A6, A8), PK both.</li>
+<li>Weak entity E2 with identifying relationship R1 → table E2(A1, A3, A4, A5), PK = owner key A1 + partial key A3, A1 FK ON DELETE CASCADE; R1 needs no table.</li>
+<li>M:N relationship → table with both keys + relationship attributes, PK = both keys: R2(A1, A6, D1), R3(A1, A9).</li>
+<li>Recursive M:N → table with the key twice, renamed by role: R4(A9, R4b_A9, D2, D3).</li>
+<li>(If a relationship were 1:N, its table would be dropped and the key of the 1 side placed in the N side; 1:1 total-both would merge.)</li>
+</ol>
+{{map:pny}}
+<p class="answer-line">8 tables. (If R2 and R3 are read as 1:N from E1, they would merge into E3 and E4 and the count would drop to 6 — state your reading.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q3(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Consider the ER diagram in the given figure, which shows a simplified schema for an airline reservations system. Convert it into a relational schema and write
+down the relational schema with minimum number of tables (note: if they exist, mention the primary key and foreign key of each table).
+<i>Notes in the figure: a LEG (segment) is a nonstop portion of a flight; a LEG_INSTANCE is a particular occurrence of a LEG on a particular date.</i></p>
+{{er:p24a|The paper’s diagram, redrawn (Elmasri &amp; Navathe Fig. 3.21).}}</div>
+<details><summary>Show answer</summary><div class="ans">
+<ol class="steps">
+<li><b>Strong entities:</b> AIRPORT(<u>airport_code</u>, name, city, state), FLIGHT(<u>number</u>, airline, weekdays),
+AIRPLANE_TYPE(<u>type_name</u>, max_seats, company), AIRPLANE(<u>airplane_id</u>, total_no_of_seats).</li>
+<li><b>Weak entities</b> (owner key + partial key): FLIGHT_LEG(number, leg_no) owned by FLIGHT through LEGS; FARE(number, code) owned by FLIGHT through FARES;
+LEG_INSTANCE(number, leg_no, date) owned by FLIGHT_LEG through INSTANCE_OF; SEAT(number, leg_no, date, seat_no) owned by LEG_INSTANCE through RESERVATION
+— the relationship attributes customer_name and cphone go into SEAT.</li>
+<li><b>1:N relationships</b> → FK in the N side: DEPARTURE_AIRPORT / ARRIVAL_AIRPORT → dep_airport_code, arr_airport_code (+ scheduled times) in FLIGHT_LEG;
+DEPARTS / ARRIVES → dep_airport_code, arr_airport_code (+ dep_time, arr_time) in LEG_INSTANCE; ASSIGNED → airplane_id in LEG_INSTANCE;
+TYPE → type_name in AIRPLANE. Two relationships to the same AIRPORT need <b>role-named</b> columns.</li>
+<li><b>M:N relationship</b> CAN_LAND → CAN_LAND(<u>type_name, airport_code</u>).</li>
+</ol>
+{{map:p24a}}
+{{ddl:p24a}}
+<p class="answer-line">Minimum number of tables = 9.</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 12.5 -->
+<h3 id="p5">12.5 Design an ER diagram from a description</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025 (both papers)</span><span class="chip">Q3(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A university maintains information about its Students, Courses and Instructors. Each Instructor can teach a Course to one or more Students, and each Student
+can take multiple Courses, possibly taught by different Instructors. The university wishes to record for each teaching assignment: the semester in which
+the course was taught, and the grade each student received. Draw an Entity-Relationship Diagram. Include a ternary relationship “Teaches” (or equivalent).
+Indicate clearly the relationship’s degree, participation and cardinalities. Give an explanation of the cardinalities for the ternary relationship: for each
+fixed pair of entities, describe how many instances of the third entity may participate.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Assumptions:</b> a student takes a given course from only one instructor; every student takes at least one course; an instructor or course may have no
+teaching assignment in the database (e.g. new faculty, elective not offered).</p>
+{{er:r9}}
+<p><b>Degree:</b> 3 (ternary) — TEACHES involves INSTRUCTOR, COURSE and STUDENT together; semester and grade are attributes of TEACHES because they
+describe the triple.</p>
+<p><b>Cardinalities</b> (1 : N : M):</p>
+<ul>
+<li>Fixed (course, student) → <b>at most 1 instructor</b> (a student takes a course from one instructor).</li>
+<li>Fixed (instructor, student) → <b>many courses</b> (N) — the same instructor may teach the student several courses.</li>
+<li>Fixed (instructor, course) → <b>many students</b> (M) — “teach a course to one or more students”.</li>
+</ul>
+<p><b>Participation:</b> STUDENT total (double line — every student takes courses); INSTRUCTOR and COURSE partial.</p>
+<p><b>Tables</b> (not asked, but shows the effect of the cardinalities): key of TEACHES = keys of the non-“1” sides.</p>
+{{map:r9}}
+<p class="small muted">If a student may repeat a course in a later semester, add semester to the key of TEACHES.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025 (both papers)</span><span class="chip">Q3(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A university registrar’s office maintains data about the following entities: (a) courses, including number, title, credits, syllabus and prerequisites;
+(b) course offerings, including course number, year, semester, section number, instructor(s), timings and classroom; (c) students, including student-id,
+name and program; and (d) instructors, including identification number, name, department and title. Further, the enrollment of students in courses and
+grades awarded to students in each course they are enrolled for must be appropriately modeled. Construct an E-R diagram for the registrar’s office and
+convert into relational model (hint: write schema only) with minimum tables. Document all assumptions that you make about the mapping constraints.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Assumptions</b></p>
+<ul>
+<li>A course offering exists only for a course and is identified by (year, semester, section_no) within that course → OFFERING is a <b>weak entity</b>
+owned by COURSE.</li>
+<li>“instructor(s)” → an offering can have several instructors and an instructor teaches several offerings → TEACHES is M:N.</li>
+<li>A student enrols in many offerings, an offering has many students → ENROLS M:N with attribute grade.</li>
+<li>Prerequisites: a course has many prerequisites and is prerequisite of many → recursive M:N PREREQ with roles course / prereq.</li>
+<li>An offering may meet at several timings → timings multivalued; classroom single-valued.</li>
+</ul>
+{{er:p25c}}
+{{map:p25c}}
+<p class="answer-line">8 tables.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Oct 2021</span><span class="chip">Q3(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Design an ER diagram for a university registrar’s office. The office maintains data about each class, including the instructor, the number of students enrolled,
+and the time and place of the class meetings. For each student–class pair, a grade is recorded. Include the following concepts in the ER diagram:
+1. an entity having derived and multivalued attribute; 2. a 1:1 mapping; 3. a weak entity with its discriminator.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Weak entity with discriminator:</b> CLASS is a section of a COURSE, identified by (section_no, semester, year) within the course; identifying
+relationship OFFERED_AS.</li>
+<li><b>Derived attribute:</b> no_enrolled of CLASS (count of TAKES rows); age of STUDENT (from dob). <b>Multivalued:</b> phone of INSTRUCTOR.</li>
+<li><b>1:1 mapping:</b> DEPARTMENT is HEADED_BY one INSTRUCTOR; an instructor heads at most one department (department total).</li>
+<li>TEACHES: one instructor, many classes (class total). TAKES: M:N with attribute grade (“for each student–class pair a grade”). room and meet_time
+record the time and place.</li>
+</ul>
+{{erm:p21}}
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q3(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A person wants to sell his car having attributes car id, serial number of the car, model of the car. The model of the car is a composite attribute which is made
+up of three more attributes: model number, colour and year of the car. The person who wants to sell the car can be identified by attributes id of the person,
+name, address and qualification of the person. The qualification attribute is multivalued. The buyer of the car can be identified by various attributes
+such as id of the buyer, name, contact number, address, country and city. The contact number is a composite attribute made up of mobile number and landline
+number. There will be an invoice of the car having attributes invoice_id and date. Create an ER diagram of the given problem statement and convert it into
+a relational schema having minimum number of tables.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Assumptions:</b> a seller may sell several cars, each car has one seller; each car is billed on at most one invoice and every invoice is for exactly one
+car (1:1, invoice total); a buyer may buy several cars (several invoices), every invoice has one buyer.</p>
+{{er:p24c}}
+<p><b>Mapping:</b> composite model and contact_no → their components; multivalued qualification → separate table; SELLS (1:N) → seller_id in CAR;
+BILLED_FOR (1:1, INVOICE total) → car_id UNIQUE NOT NULL in INVOICE; BUYS (1:N) → buyer_id in INVOICE.</p>
+{{map:p24c}}
+<p class="answer-line">Minimum number of tables = 5.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem July 2026</span><span class="chip">Q3(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A hospital management system stores information about Patients, Doctors, Departments, Appointments, Prescriptions, Medicines and Billing. Draw an ER diagram
+showing: i) strong and weak entities ii) one-to-one, one-to-many and many-to-many relationships iii) participation constraints iv) cardinality constraints
+v) suitable attributes. Convert the ER diagram into relational tables by specifying the primary and foreign keys.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Strong:</b> DEPARTMENT, DOCTOR, PATIENT, APPOINTMENT, MEDICINE, BILL. <b>Weak:</b> PRESCRIPTION — numbered 1, 2 … within an appointment,
+identified by (appt_id, presc_no).</li>
+<li><b>1:1:</b> HEADS (a doctor heads at most one department; every department has a head), BILLED_AS (one bill per appointment).</li>
+<li><b>1:N:</b> WORKS_IN, ATTENDS (doctor–appointments), BOOKS (patient–appointments), ISSUES (identifying).</li>
+<li><b>M:N:</b> CONTAINS (a prescription has many medicines; a medicine appears in many prescriptions) with dosage and quantity.</li>
+<li><b>Participation:</b> every doctor works in a department, every appointment has one doctor and one patient, every bill is for an appointment
+(all total, double lines); patients, doctors without appointments allowed (partial).</li>
+<li>Attributes include composite name, multivalued phone, derived age.</li>
+</ul>
+{{er:p26a}}
+{{map:p26a}}
+<p class="answer-line">10 tables, primary keys underlined, foreign keys in italics with their targets.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem July 2026</span><span class="chip">Q3(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A car rental company maintains details of Customers, Vehicles, Branches, Reservations, Payments, Drivers and Insurance. Design an ER model and convert it into a
+relational schema with the minimum number of relations. Clearly specify keys, participation constraints and relationship cardinalities.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Assumptions:</b> each vehicle and each driver belongs to one branch; each vehicle has exactly one insurance policy and each policy covers exactly one
+vehicle (1:1 total both); a reservation is for one vehicle, by one customer, optionally with a driver; a reservation can be paid in instalments (PAYMENT weak,
+numbered within the reservation).</p>
+{{er:p26c}}
+<p><b>Minimum relations:</b> INSURANCE is merged into VEHICLE (1:1 with total participation on both sides); all 1:N relationships become foreign keys;
+PAYMENT is weak; phone is multivalued.</p>
+{{map:p26c}}
+<p class="answer-line">Minimum number of relations = 7.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q5(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>NSUT has launched its own campus ride-sharing app called NSUT_UBER. Every user has a unique UserID, a Name (divided into first and last name), an Email and
+multiple phone numbers. The system also stores the date of birth of the user, and from this the age is derived. Some users also act as drivers, and they
+must provide their license number and vehicle details, including vehicle number, model and type. A driver can use multiple vehicles over time, but a vehicle
+is assigned to only one driver at a given time. Each ride has a unique RideID, pickup and drop locations, fare and date-time. A ride is always requested by
+exactly one user, but one user can request many rides. Many users can book the same ride for carpooling, and each user can also book many rides; therefore
+a Booking entity is required, which stores booking ID, status (confirmed/cancelled/completed) and payment mode. Additionally, every driver is assigned a
+parking spot, and one parking spot can belong to at most one driver at a time. Draw an ER diagram of the given problem statement.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li>APP_USER: composite name, multivalued phone, derived age. “Some users also act as drivers” → specialization APP_USER → DRIVER (partial).</li>
+<li>DRIVER 1 — USES — N VEHICLE (a vehicle has one driver at a time).</li>
+<li>APP_USER 1 — REQUESTS — N RIDE, RIDE total (“always requested by exactly one user”).</li>
+<li>BOOKING entity resolves the M:N “users book rides”: APP_USER 1 — BOOKS — N BOOKING, RIDE 1 — FOR_RIDE — N BOOKING, BOOKING total in both.</li>
+<li>DRIVER 1 — ALLOTTED — 1 PARKING_SPOT, DRIVER total (“every driver is assigned a spot”).</li>
+</ul>
+{{er:m25uber}}
+<details class="more"><summary>Tables (not asked)</summary>{{map:m25uber}}</details>
+</div></details></div>

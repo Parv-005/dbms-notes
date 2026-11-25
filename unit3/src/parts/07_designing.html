@@ -1,0 +1,70 @@
+<h2 id="s7"><span class="num">7</span>Drawing an ER diagram from a problem statement</h2>
+<p>Every end-sem has a 5-mark “design an ER diagram for …” question. The marks go to: correct entities and keys, correct relationships with cardinality
+and participation, weak entities and special attributes where the story demands them, and a clean diagram with stated assumptions.</p>
+
+<h3 id="s7-1">7.1 The step method</h3>
+<ol class="steps">
+<li><b>Underline the nouns</b> in the story. Nouns that have their own properties and many instances become <b>entity types</b> (STUDENT, COURSE). Nouns that
+only describe something become <b>attributes</b> (name, colour).</li>
+<li><b>Find the key</b> of every entity. If none exists naturally and the entity only makes sense inside another one (a dependent, an instalment, a room in a
+building, a section of a course), make it a <b>weak entity</b> with a partial key.</li>
+<li><b>Classify attributes</b>: composite (name, address), multivalued (phones, qualifications, emails), derived (age, number_enrolled, total amount).
+Questions often list them on purpose (“the qualification attribute is multivalued”).</li>
+<li><b>Underline the verbs</b> linking two or more nouns: these are <b>relationship types</b> (teaches, enrols, books). Give each a verb name.</li>
+<li>For every relationship decide the <b>cardinality</b> (ask the two “one A has how many B?” questions) and the <b>participation</b> of each side
+(“every”, “must” → total).</li>
+<li>Attach <b>relationship attributes</b> (grade, date, quantity) to the diamond. Decide whether any relationship needs to be <b>ternary</b>, or whether a
+relationship itself takes part in another (<b>aggregation</b>).</li>
+<li>Look for <b>is-a</b> phrases (“some users also act as drivers”, “doctors are permanent, resident or visiting”) → specialization with its
+disjoint/overlap and total/partial constraints.</li>
+<li><b>Write the assumptions</b> you made, then draw neatly: entities in a row/column, relationships between them, attributes outside, no crossing lines.</li>
+</ol>
+
+<h3 id="s7-2">7.2 Design choices examiners like to ask about</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Choice</th><th>Make it an entity when…</th><th>Make it an attribute / relationship when…</th></tr>
+<tr><td><b>Entity vs attribute</b><br>(e.g. phone, address, department)</td><td>it has its own properties, or is shared by several entities, or takes part in relationships
+(DEPARTMENT has a head, a budget, employees)</td><td>it is a single value describing one entity and nothing refers to it (dept_name inside EMPLOYEE is fine only if nothing else
+is stored about departments)</td></tr>
+<tr><td><b>Entity vs relationship</b><br>(e.g. LOAN, ENROLMENT, BOOKING)</td><td>it has its own identity/key, its own attributes and relationships, or the same pair can occur many times
+(a customer books the same ride twice; NSUT_UBER says “a Booking entity is required”)</td><td>it is only an association between existing entities and each combination occurs once</td></tr>
+<tr><td><b>Binary vs ternary</b></td><td>use ternary when the fact really involves three entities at once (who supplied which part to which project)</td>
+<td>use binaries when the pairs are independent facts (a supplier can supply a part, a project uses a part)</td></tr>
+<tr><td><b>Weak vs strong</b></td><td>strong when it has a natural unique id (account_no, roll_no)</td><td>weak when identified only within an owner (dependent name, instalment no, section no)</td></tr>
+<tr><td><b>Where to put an attribute of a relationship</b></td><td colspan="2">on the relationship if it describes the combination (grade). For 1:1 or 1:N it may be placed on the N-side entity (section 3.4).</td></tr>
+</table></div>
+<div class="box ex"><div class="box-t">Example: Manager — separate entity, attribute, or role?</div>
+<p>“Every employee has a manager, but a manager is also an employee” (Mid-Sem 2026). A manager has everything an employee has (id, name, salary), so a separate
+MANAGER entity would duplicate data. An attribute <code>manager_name</code> would lose the link to the manager’s own record. The right model is a
+<b>role</b>: a recursive relationship MANAGES / SUPERVISES on EMPLOYEE with roles <i>manager</i> and <i>subordinate</i> (diagram in section 3.3).
+If managers have extra attributes (allowance, cabin), additionally specialize EMPLOYEE → MANAGER. The full answer is in section 12.</p></div>
+
+<h3 id="s7-3">7.3 Common mistakes</h3>
+<div class="box warn"><div class="box-t">Lose-marks list</div>
+<ul>
+<li>Putting a <b>foreign key</b> as an attribute in the ER diagram (dept_id inside EMPLOYEE). In ER, links are shown <b>only by relationships</b>;
+foreign keys appear only after mapping.</li>
+<li>Forgetting keys, or underlining a non-unique attribute (name).</li>
+<li>Drawing a weak entity without a double diamond, a partial key or total participation.</li>
+<li>Writing the cardinality labels on the wrong side (see the tip in 4.1), or mixing notations in one diagram.</li>
+<li>Making every relationship M:N “to be safe”. The question usually tells you the ratio; read it twice.</li>
+<li>Relationship names that are nouns (EMPLOYEE–DEPARTMENT); use verbs (WORKS_FOR).</li>
+<li>Attaching a relationship to an attribute, or an attribute to two entities.</li>
+<li>Ignoring “minimum number of tables” in the conversion part.</li>
+</ul></div>
+
+<h3 id="s7-4">7.4 A complete worked example: the COMPANY database</h3>
+<p>The classic example from Elmasri &amp; Navathe. Read the requirements, then check every element of the diagram against them.</p>
+<div class="box note"><div class="box-t">Requirements</div>
+<ol>
+<li>The company is organised into departments. Each department has a unique name, a unique number and a particular employee who manages it; we record
+the start date of the manager. A department may have several locations.</li>
+<li>A department controls a number of projects, each of which has a unique name, a unique number and a single location.</li>
+<li>For each employee: name, SSN, address, salary, sex and birth date. An employee is assigned to one department but may work on several projects, which
+are not necessarily controlled by the same department. We record the hours per week an employee works on each project, and each employee’s
+direct supervisor.</li>
+<li>Dependents of each employee are recorded for insurance: first name, sex, birth date and relationship to the employee.</li>
+</ol></div>
+{{er:company|COMPANY ER diagram. Check: two keys on DEPARTMENT (dnumber, dname); multivalued locations; derived number_of_employees; MANAGES 1:1 with
+DEPARTMENT total; WORKS_FOR N:1 total on both sides; SUPERVISION recursive with roles; DEPENDENT weak with partial key dependent_name.}}
+<p>Its conversion to 6 tables is done step by step at the end of section 8.</p>
