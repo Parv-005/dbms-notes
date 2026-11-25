@@ -1,0 +1,495 @@
+<!-- ------------------------------------------------ 14.5 -->
+<h3 id="p5">14.5 SQL commands and functions (theory)</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q2(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Differentiate between DELETE, TRUNCATE and DROP commands. Discuss their effect on the data and structure of a table, and explain when each
+command would be appropriate.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr>
+<tr><td>Type</td><td>DML</td><td>DDL</td><td>DDL</td></tr>
+<tr><td>Effect on data</td><td>removes selected rows (WHERE) or all rows</td><td>removes all rows</td><td>removes all rows</td></tr>
+<tr><td>Effect on structure</td><td>table, columns, constraints, indexes remain</td><td>structure remains (empty table)</td><td>table definition, indexes, constraints, triggers, privileges removed</td></tr>
+<tr><td>WHERE</td><td>yes</td><td>no</td><td>no</td></tr>
+<tr><td>Rollback</td><td>yes (logged per row)</td><td>no in Oracle/MySQL (implicit commit)</td><td>no</td></tr>
+<tr><td>Speed / triggers</td><td>slower; DELETE triggers fire</td><td>fast; no triggers; identity reset</td><td>fast; no triggers</td></tr>
+<tr><td>Syntax</td><td><code>DELETE FROM emp WHERE dept_id = 30;</code></td><td><code>TRUNCATE TABLE emp;</code></td><td><code>DROP TABLE emp;</code></td></tr>
+</table></div>
+<p><b>When appropriate:</b> DELETE — to remove particular rows (e.g. cancelled orders) or when the change may need to be undone or audited by triggers.
+TRUNCATE — to empty a large table quickly but keep it for reuse (staging/log tables). DROP — when the table itself is no longer needed.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q1(b)(iv)</span><span class="chip warn">part of 4 marks</span></div>
+<div class="pyq-q"><p>Briefly describe GRANT and REVOKE with the help of an example.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>GRANT and REVOKE are the <b>DCL</b> commands that control authorisation.</p>
+<ul>
+<li><b>GRANT</b> gives privileges (SELECT, INSERT, UPDATE, DELETE, REFERENCES, ALL, or system privileges like CREATE TABLE) on an object to users or roles.
+<code>WITH GRANT OPTION</code> lets the receiver pass the privilege on.</li>
+<li><b>REVOKE</b> takes privileges back. With <code>CASCADE</code>, privileges the user had passed on are also revoked; <code>RESTRICT</code> refuses if such
+dependent grants exist.</li>
+</ul>
+<pre class="sql">GRANT SELECT, INSERT ON student TO ravi;
+GRANT UPDATE (marks) ON result TO teacher1 WITH GRANT OPTION;
+REVOKE INSERT ON student FROM ravi;
+REVOKE UPDATE (marks) ON result FROM teacher1 CASCADE;</pre>
+<p>Example: a clerk is given only SELECT on <code>student</code> so he can view but not change records; if he leaves, REVOKE removes his access.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q2(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Explain aggregate functions with syntax and example.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>An aggregate function computes one value from a set of values. Syntax: <code>SELECT FUNC([DISTINCT] column) FROM table [WHERE …] [GROUP BY …] [HAVING …];</code></p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Function</th><th>Meaning</th><th>Example on employee</th><th>Result</th></tr>
+<tr><td>COUNT(*) / COUNT(col)</td><td>number of rows / non-NULL values</td><td><code>COUNT(*)</code>, <code>COUNT(salary)</code></td><td>9, 8</td></tr>
+<tr><td>SUM(col)</td><td>total</td><td><code>SUM(salary)</code></td><td>486000</td></tr>
+<tr><td>AVG(col)</td><td>average of non-NULL values</td><td><code>AVG(salary)</code></td><td>60750</td></tr>
+<tr><td>MIN / MAX(col)</td><td>smallest / largest</td><td><code>MIN(salary), MAX(salary)</code></td><td>39000, 95000</td></tr>
+</table></div>
+<pre class="sql">SELECT dept_id, COUNT(*) AS n, AVG(salary) AS avg_sal
+FROM   employee
+GROUP  BY dept_id
+HAVING COUNT(*) &gt;= 3;      -- departments with at least 3 employees</pre>
+<p>Rules: NULLs are ignored (except by COUNT(*)); aggregates cannot appear in WHERE; non-aggregated SELECT columns must be in GROUP BY.</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.6 -->
+<h3 id="p6">14.6 SQL queries</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q2(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Employees(EmployeeID, Name, DepartmentID, Salary), Departments(DepartmentID, DepartmentName), Projects(ProjectID, ProjectName, DepartmentID),
+EmployeeProjects(EmployeeID, ProjectID, HoursWorked), Sales(SalesID, EmployeeID, SaleDate, SaleAmount). Write SQL queries:
+i) the highest-paid employee in each department, including their name, department name and salary; ii) each department’s name, total hours
+worked across all projects, and the number of employees who worked on those projects, only for departments with more than 500 total hours worked;
+iii) the total sales amount for each employee in each department — show the department name, employee name and total sales, only for employees with
+total sales exceeding $5,000; iv) the names of projects in which only employees earning a salary above $70,000 are involved; v) the average sales
+amount per project for each department — display the department name, project name and average sales for each project, only for projects with an
+average sale amount above $2,000.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(i) Highest-paid employee in each department (correlated sub-query)</h4>
+{{sqlc:p24_1}}
+<p>For each employee the inner query finds the maximum salary of <i>his</i> department; ties return all top earners.</p>
+<h4>(ii) Departments with more than 500 total project hours</h4>
+{{sqlc:p24_2}}
+<p>Projects belong to departments, so hours are summed through Projects. COUNT(DISTINCT …) counts an employee once even if he works on several projects
+of that department.</p>
+<h4>(iii) Total sales per employee per department, &gt; 5000</h4>
+{{sqlc:p24_3}}
+<h4>(iv) Projects whose every member earns more than 70000</h4>
+{{sqlc:p24_4}}
+<p>Equivalent “for all” form with NOT EXISTS:</p>
+{{sqlc:p24_4b}}
+<h4>(v) Average sale per project per department, &gt; 2000</h4>
+<p><i>Assumption:</i> Sales has no ProjectID, so a sale is attributed to the projects its employee works on (link Sales → EmployeeProjects → Projects).</p>
+{{sqlc:p24_5}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:p24.Departments}}{{rel:p24.Employees}}{{rel:p24.Projects}}{{rel:p24.EmployeeProjects}}{{rel:p24.Sales}}</div>
+<div class="tables">{{sqlr:p24_1}}{{sqlr:p24_2}}{{sqlr:p24_3}}{{sqlr:p24_4}}{{sqlr:p24_5}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q2(a)</span><span class="chip acc">ITITC05 2025</span><span class="chip">Q2(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>LOCATIONS(LocID, AreaName, Zone, PopulationDensity), SENSORS(SensorID, LocID, SensorType, InstalledDate), READINGS(SensorID, RDate, PM2_5, PM10,
+NO2, SO2, AQI), ALERTS(AlertID, LocID, ADate, AQI_Level, AlertType); FKs SENSORS.LocID → LOCATIONS, READINGS.SensorID → SENSORS, ALERTS.LocID →
+LOCATIONS. Write SQL: i) AreaName values that had a ‘Severe’ AQI-level alert on 2025-11-07; ii) locations with no sensors installed; iii) AreaName and
+number of sensors per location (highest first); iv) locations that recorded AQI &gt; 400 at least 3 times in 2025; v) AreaName of locations where the
+average AQI across all readings is greater than 250.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(i)</h4>{{sqlc:aqi1}}
+<h4>(ii) No sensors — NOT EXISTS (or LEFT JOIN … IS NULL)</h4>{{sqlc:aqi2}}{{sqlc:aqi2b}}
+<h4>(iii) Number of sensors per location, highest first</h4>{{sqlc:aqi3}}
+<p>LEFT JOIN + COUNT(S.SensorID) so that a location with no sensor is listed with 0.</p>
+<h4>(iv) AQI &gt; 400 at least 3 times in 2025</h4>{{sqlc:aqi4}}
+<p>Readings reach a location through its sensors. WHERE keeps only 2025 readings above 400 (row filter), HAVING keeps locations with ≥ 3 of them (group filter).</p>
+<h4>(v) Average AQI &gt; 250</h4>{{sqlc:aqi5}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:aqi.LOCATIONS}}{{rel:aqi.SENSORS}}{{rel:aqi.READINGS}}{{rel:aqi.ALERTS}}</div>
+<div class="tables">{{sqlr:aqi1}}{{sqlr:aqi2}}{{sqlr:aqi3}}{{sqlr:aqi4}}{{sqlr:aqi5}}</div>
+<p class="small">Note in (iv): Anand Vihar has 4 readings above 400 but one is from 2024, so it counts 3; RK Puram has only 2.</p></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2026 Summer</span><span class="chip">Q2(a)(i)</span><span class="chip warn">part of 5 marks</span></div>
+<div class="pyq-q"><p>Employee(EmpID, Name, Department, Salary). Write SQL: a) the second highest-paid employee in each department; b) department-wise average salary
+only for departments having more than five employees; c) employees whose salary is greater than the average salary of their department.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(a) Second highest-paid in each department</h4>
+<p>Method 1 — the largest salary that is below the department maximum:</p>{{sqlc:e26a}}
+<p>Method 2 — exactly one distinct salary in the department is higher:</p>{{sqlc:e26a2}}
+<p>(Method 3, with window functions: <code>DENSE_RANK() OVER (PARTITION BY Department ORDER BY Salary DESC) = 2</code>.) All three return both employees
+when two people tie for second place.</p>
+<h4>(b) Average salary of departments with more than five employees</h4>{{sqlc:e26b}}
+<h4>(c) Salary above own department’s average (correlated)</h4>{{sqlc:e26c}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:emp26.Employee}}{{sqlr:e26a}}{{sqlr:e26b}}{{sqlr:e26c}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2026 Summer</span><span class="chip">Q2(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A banking system contains Account(AccountNo, CustomerID, Balance), Loan(LoanID, CustomerID, Amount), Branch(BranchID, BranchName),
+Customer(CustomerID, Name, City). Write SQL queries using joins, aggregate functions, sub-queries and GROUP BY/HAVING clauses to answer any five
+meaningful business requirements.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>(As given, Branch is not linked to any other table, so the requirements use Customer, Account and Loan. If Account had a BranchID FK, branch-wise
+totals would be <code>… JOIN Branch b ON b.BranchID = a.BranchID GROUP BY b.BranchName</code>.)</p>
+{{sqlc:b1}}{{sqlc:b2}}{{sqlc:b3}}{{sqlc:b4}}{{sqlc:b5}}{{sqlc:b6}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:bank26.Customer}}{{rel:bank26.Account}}{{rel:bank26.Loan}}</div>
+<div class="tables">{{sqlr:b1}}{{sqlr:b2}}{{sqlr:b3}}{{sqlr:b4}}{{sqlr:b5}}{{sqlr:b6}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q5(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>STUDENT(student_id, student_name, age, gender, city, major), COURSES(course_id, course_name, faculty_id, credits, semester), FACULTY(faculty_id,
+faculty_name, department, position, salary), ENROLLMENT(student_id, course_id, enrollment_date, grade). Write SQL: a) names and IDs of all students
+majoring in “Information Technology” who are enrolled in at least three courses in the 3rd semester; b) names of faculty members teaching courses with
+more than 4 credits and belonging to the “Information Technology” department, with the course names; c) average age of students enrolled in “Data
+Structures”, grouped by gender; d) names of faculty members who do not teach any course in the 3rd semester.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(a)</h4>{{sqlc:n1}}
+<h4>(b)</h4>{{sqlc:n2}}
+<h4>(c)</h4>{{sqlc:n3}}
+<h4>(d)</h4>{{sqlc:n4}}
+<p>(The <code>IS NOT NULL</code> guard protects NOT IN from a course with no faculty; <code>NOT EXISTS</code> works equally well.)</p>
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:nsut.STUDENT}}{{rel:nsut.FACULTY}}{{rel:nsut.COURSES}}{{rel:nsut.ENROLLMENT}}</div>
+<div class="tables">{{sqlr:n1}}{{sqlr:n2}}{{sqlr:n3}}{{sqlr:n4}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q5(a)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>Same university schema (FACULTY has designation instead of position). 1. names and IDs of students majoring in “Information Technology”
+enrolled in at least two courses offered in Semester 3; 2. names of faculty with the course names they teach, where the course carries more than 4
+credits and the faculty belongs to “Information Technology”; 3. average age of students enrolled in “Database Management System”, gender-wise.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:n1b}}
+<p>2. Same as (b) of the previous question.</p>
+{{sqlc:n3b}}
+<details class="more"><summary>Outputs (same test data)</summary><div class="tables">{{sqlr:n1b}}{{sqlr:n2}}{{sqlr:n3b}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q4(a)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>EMPLOYEE(emp_id, emp_name, dept_id, salary) = (E1, Rahul, D1, 60000), (E2, Nitin, D2, 45000), (E3, Amit, D3, 75000), (E4, Priya, D4, 55000);
+DEPARTMENT(dept_id, dept_name) = (D1, IT), (D2, HR), (D3, Finance). 1. Write an INNER JOIN query to display employee names and department names.
+2. Write a sub-query to find employees earning more than the average salary. 3. Write a correlated sub-query to find employees having the highest
+salary in their department.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sql:sm1}}
+<p>Priya is not shown: her dept_id D4 has no matching department (inner join keeps only matches).</p>
+{{sql:sm2}}
+<p>Average = (60000 + 45000 + 75000 + 55000) / 4 = 58750.</p>
+{{sql:sm3}}
+<p>Every department here has exactly one employee, so each employee is the highest-paid in his/her department (including Priya in D4 — the query does
+not need the DEPARTMENT table).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q2(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Customers(customer_id, name, email, city, join_date), Orders(order_id, customer_id, order_date, total_amount). Write an SQL query to find the
+names of customers who have placed more than 3 orders in the last 6 months and whose average order amount is greater than the overall average order
+amount across all customers.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:m25a}}
+<ul>
+<li>WHERE keeps only orders of the last 6 months (Oracle: <code>o.order_date &gt;= ADD_MONTHS(SYSDATE, -6)</code>; PostgreSQL: <code>CURRENT_DATE - INTERVAL '6 months'</code>).</li>
+<li>GROUP BY customer; HAVING applies both group conditions: more than 3 orders, and average above the overall average computed by a non-correlated sub-query.</li>
+<li>Assumption: the “overall average” is over all orders in the table (if only the last 6 months are intended, add the same date filter inside the sub-query).</li>
+</ul>
+<details class="more"><summary>Test data &amp; output</summary>
+<div class="tables">{{rel:m25.Customers}}{{rel:m25.Orders}}{{sqlr:m25a}}</div>
+<p class="small">Ravi has 5 recent orders but a low average; Meena has a high average but only 3 orders; John has 4 orders but only 3 in the window.</p></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q3(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Users(user_id INT, user_name VARCHAR(50), email VARCHAR(100)), Posts(post_id INT, user_id INT, content VARCHAR(500), likes_count INT). Find users who
+have written posts whose content contains the word “travel” (but not “work”), where the likes on such posts are greater than the average likes across
+all posts, and only users with an official Facebook email (ending with “@facebook.com”). Return user_name, email, post_id and likes_count using a sub-query.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:fb1}}
+<p><code>%</code> matches any sequence of characters; the sub-query computes the overall average once. (LIKE is case-insensitive in MySQL; in
+PostgreSQL/Oracle use <code>LOWER(p.content) LIKE '%travel%'</code> or ILIKE.)</p>
+<details class="more"><summary>Test data &amp; output</summary>
+<div class="tables">{{rel:fb.Users}}{{rel:fb.Posts}}{{sqlr:fb1}}</div>
+<p class="small">Post 12 contains “work”, post 13 is by a gmail user, posts 14 and 16 have fewer likes than the average 402.86.</p></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q3(a), Q3(b)</span><span class="chip warn">2 + 2 marks</span></div>
+<div class="pyq-q"><p>TRAIN(<b>TrainNo</b>, TrainName, Source, Destination, Distance), PASSENGER(<b>PassengerID</b>, PassengerName, Age, Gender, City),
+BOOKING(<b>BookingID</b>, PassengerID, TrainNo, JourneyDate, Class, Fare, Status). 3(a): (a) names of passengers who have made the highest-fare booking;
+(b) train numbers for which the total booking revenue exceeds ₹1,00,000. 3(b): the city of the passenger and the number of bookings made by passengers
+from each city, considering only cities from which more than 10 bookings have been made.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:t1}}{{sqlc:t2}}{{sqlc:t3}}
+<p>(If only confirmed bookings should count as revenue/bookings, add <code>WHERE Status = 'Confirmed'</code> before GROUP BY.)</p>
+<details class="more"><summary>Outputs on generated test data (8 passengers, 3 trains, 31 bookings)</summary>
+<div class="tables">{{rel:train.TRAIN}}{{rel:train.PASSENGER}}{{sqlr:t1}}{{sqlr:t2}}{{sqlr:t3}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q4(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Frame the appropriate question for the following SQL query:</p>
+<pre class="sql">SELECT B.BookingID, B.PassengerID, B.Fare
+FROM   BOOKING B
+WHERE  B.Fare &gt; ( SELECT AVG(B2.Fare)
+                  FROM   BOOKING B2
+                  WHERE  B2.PassengerID = B.PassengerID );</pre></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>The sub-query is <b>correlated</b> on PassengerID: for each booking B it computes the average fare of all bookings made by the <b>same passenger</b>.</p>
+<p class="answer-line">Question: “Display the BookingID, PassengerID and Fare of every booking whose fare is greater than the average fare of all the bookings made by that passenger.”</p>
+<details class="more"><summary>Output on the test data</summary>{{sqlr:t4}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Oct 2021</span><span class="chip">Q2(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Worker(Worker_Id, First_name, salary, joining_date, department), Title(Worker_ref_id, Worker_title, affected_from). Write SQL: 1. to fetch the list
+of employees with the same salary; 2. to print the name of employees having the highest salary in each department; 3. to print names of the workers who
+are Managers and have joined after 20.6.2022; 4. to fetch the names of the workers with salaries ≥ 50000 and ≤ 100000.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:w1}}
+<p>(Self-join alternative: <code>SELECT DISTINCT W1.* FROM Worker W1 JOIN Worker W2 ON W1.salary = W2.salary AND W1.Worker_Id &lt;&gt; W2.Worker_Id;</code>)</p>
+{{sqlc:w2}}{{sqlc:w3}}{{sqlc:w4}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:wk.Worker}}{{rel:wk.Title}}{{sqlr:w1}}{{sqlr:w2}}{{sqlr:w3}}{{sqlr:w4}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2023</span><span class="chip">Q2(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Write SQL to create Suppliers(<u>sid</u>: integer, sname: varchar(10), address: varchar(10)), Parts(<u>pid</u>: integer, pname: varchar(10), color: varchar(10)),
+Catalog(<u>sid, pid</u>: integer, cost: real). Then: 1. parts can only be of colours green, red, blue and black — add this constraint to Parts; 2. for every
+supplier that only supplies black parts, display the name of the supplier and the total number of parts that she supplies; 3. drop the attribute cost
+from Catalog; 4. display the cost of all the items supplied by the supplier whose id is 50.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<pre class="sql">CREATE TABLE Suppliers (
+  sid      INTEGER      PRIMARY KEY,
+  sname    VARCHAR(10)  NOT NULL,
+  address  VARCHAR(10)
+);
+CREATE TABLE Parts (
+  pid      INTEGER      PRIMARY KEY,
+  pname    VARCHAR(10),
+  color    VARCHAR(10)
+);
+CREATE TABLE Catalog (
+  sid      INTEGER REFERENCES Suppliers(sid),
+  pid      INTEGER REFERENCES Parts(pid),
+  cost     REAL,
+  PRIMARY KEY (sid, pid)
+);</pre>
+<p><b>1.</b></p>
+<pre class="sql">ALTER TABLE Parts ADD CONSTRAINT chk_color
+      CHECK (color IN ('green', 'red', 'blue', 'black'));</pre>
+<p><b>2.</b> “Only black” = supplies something and supplies no non-black part:</p>
+{{sqlc:sp2}}
+<p>or with conditional counting:</p>
+{{sqlc:sp2b}}
+<p><b>3.</b></p>
+<pre class="sql">ALTER TABLE Catalog DROP COLUMN cost;</pre>
+<p><b>4.</b> (run before step 3!)</p>
+{{sqlc:sp4}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:sp.Suppliers}}{{rel:sp.Parts}}{{rel:sp.Catalog}}{{sqlr:sp2}}{{sqlr:sp4}}</div>
+{{viol:sp_chk}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q2(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>employee(<u>ID</u>, person_name, street, city), works(<u>ID</u>, company_name, salary), company(<u>company_name</u>, city), manages(<u>ID</u>, manager_id). Give SQL for:
+i. the ID of each employee who does not work for “First Bank Corporation”; ii. the ID of each employee who earns more than every employee of
+“Small Bank Corporation”.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sqlc:cw1}}
+<p>Using <code>employee</code> (not <code>works</code>) also returns people who work for no company. (If everyone is assumed to work somewhere:
+<code>SELECT ID FROM works WHERE company_name &lt;&gt; 'First Bank Corporation';</code>)</p>
+{{sqlc:cw2}}
+<p><code>&gt; ALL</code> = greater than the maximum salary of Small Bank Corporation.</p>
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:comp.works}}{{sqlr:cw1}}{{sqlr:cw2}}</div></details>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.7 -->
+<h3 id="p7">14.7 Triggers</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q2(a)(ii)</span><span class="chip warn">2.5 marks</span></div>
+<div class="pyq-q"><p>What is an SQL trigger? Explain its types and use cases.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A <b>trigger</b> is a stored block of SQL/procedural code that the DBMS executes <b>automatically</b> when a specified event (INSERT, UPDATE, DELETE —
+or a DDL/system event) occurs on a table. It follows the Event–Condition–Action model and is never called explicitly.</p>
+<pre class="sql">CREATE TRIGGER trg_name {BEFORE | AFTER | INSTEAD OF} {INSERT | UPDATE | DELETE}
+ON table_name [FOR EACH ROW] [WHEN (condition)]
+BEGIN  ...action...  END;</pre>
+<p><b>Types:</b></p>
+<ul>
+<li>By timing — <b>BEFORE</b> (validate / modify the new row before it is written), <b>AFTER</b> (act after the change: audit, update other tables),
+<b>INSTEAD OF</b> (on views: replace the statement).</li>
+<li>By level — <b>row-level</b> (FOR EACH ROW: once per affected row; can use OLD/NEW) and <b>statement-level</b> (once per statement).</li>
+<li>By event — <b>DML</b> triggers, <b>DDL</b> triggers (CREATE/ALTER/DROP), <b>system/database-event</b> triggers (LOGON, STARTUP …).</li>
+</ul>
+<p><b>Use cases:</b> enforcing complex business rules (e.g. salary may not decrease), auditing changes, maintaining derived values (account balance,
+stock level), automatic timestamps, preventing DDL changes, making join-views updatable.</p>
+<pre class="sql">CREATE TRIGGER trg_audit AFTER UPDATE OF salary ON emp
+FOR EACH ROW
+BEGIN
+  INSERT INTO salary_audit VALUES (OLD.id, OLD.salary, NEW.salary, CURRENT_DATE);
+END;</pre>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2026 Summer</span><span class="chip">Q2(a)(ii)</span><span class="chip warn">part of 5 marks</span></div>
+<div class="pyq-q"><p>Explain SQL triggers. Differentiate between BEFORE, AFTER and INSTEAD OF triggers with suitable use cases.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Definition and syntax as in the previous answer.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>BEFORE</th><th>AFTER</th><th>INSTEAD OF</th></tr>
+<tr><td>Fires</td><td>before the row is inserted/updated/deleted (and before constraints are checked)</td><td>after the change is made</td><td>in place of the triggering statement</td></tr>
+<tr><td>Object</td><td>table</td><td>table</td><td>view</td></tr>
+<tr><td>Can change NEW</td><td>yes</td><td>no</td><td>decides what to do</td></tr>
+<tr><td>Use case</td><td>validation: reject a negative quantity; normalise data (<code>NEW.email = LOWER(NEW.email)</code>); fill default values</td><td>audit log; update account balance after a transaction row is inserted; decrease stock after an order</td><td>insert into a view joining two tables by inserting into both base tables</td></tr>
+</table></div>
+<pre class="sql">-- BEFORE: block salary cuts
+CREATE TRIGGER trg_no_cut BEFORE UPDATE OF salary ON emp
+FOR EACH ROW WHEN (NEW.salary &lt; OLD.salary)
+BEGIN  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'salary cannot be decreased';  END;
+
+-- AFTER: audit
+CREATE TRIGGER trg_audit AFTER UPDATE OF salary ON emp
+FOR EACH ROW
+BEGIN  INSERT INTO salary_audit VALUES (OLD.id, OLD.salary, NEW.salary, NOW());  END;
+
+-- INSTEAD OF (Oracle) on a join view
+CREATE TRIGGER trg_v INSTEAD OF INSERT ON emp_dept_v
+FOR EACH ROW
+BEGIN  INSERT INTO employee(emp_id, name, dept_id) VALUES (:NEW.emp_id, :NEW.name, :NEW.dept_id);  END;</pre>
+<details class="more"><summary>Executed BEFORE/AFTER demonstration</summary>{{viol:trg_before}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q3(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Accounts(account_id, customer_name, balance) and Transactions(trans_id, account_id, amount, trans_type, trans_date). Whenever a new transaction is
+inserted into Transactions, Accounts should be updated automatically: if the type is DEPOSIT the amount is added to the balance, if WITHDRAW it is
+subtracted. Write a trigger to implement this functionality.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>An <b>AFTER INSERT, row-level</b> trigger on Transactions (it must run once per inserted transaction and use the new row’s values):</p>
+<pre class="sql">DELIMITER //
+CREATE TRIGGER trg_update_balance
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+  IF NEW.trans_type = 'DEPOSIT' THEN
+     UPDATE Accounts
+     SET    balance = balance + NEW.amount
+     WHERE  account_id = NEW.account_id;
+  ELSEIF NEW.trans_type = 'WITHDRAW' THEN
+     UPDATE Accounts
+     SET    balance = balance - NEW.amount
+     WHERE  account_id = NEW.account_id;
+  END IF;
+END //
+DELIMITER ;</pre>
+<p>Optionally a BEFORE INSERT trigger can reject a withdrawal larger than the balance
+(<code>IF NEW.trans_type = 'WITHDRAW' AND NEW.amount &gt; (SELECT balance FROM Accounts WHERE account_id = NEW.account_id) THEN SIGNAL SQLSTATE '45000' …</code>).</p>
+<details class="more"><summary>Executed (SQLite version of the same trigger)</summary>{{sql:trg_bank}}</details>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.8 -->
+<h3 id="p8">14.8 NoSQL vs SQL</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A social media company needs to store vast amounts of user-generated content, including comments, likes and shares, which vary greatly in structure.
+Explain why a NoSQL database might be more suitable for this task than an RDBMS, and describe the type of NoSQL database model you would recommend.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Why NoSQL suits this workload better than an RDBMS:</b></p>
+<ol>
+<li><b>Variable structure (schema flexibility):</b> a post may have text, images, videos, polls, hashtags, mentions, location; comments can be nested. In an
+RDBMS every new kind of field needs ALTER TABLE or many sparse NULL columns and extra tables. A document store accepts each post as a self-describing
+JSON document with its own fields.</li>
+<li><b>Volume and velocity:</b> billions of posts and millions of likes per minute. NoSQL databases scale <b>horizontally</b> by sharding across cheap servers;
+an RDBMS mainly scales vertically.</li>
+<li><b>Availability over strict consistency:</b> it does not matter if a like count is a few seconds stale (eventual consistency, BASE); it does matter
+that the service never goes down. NoSQL systems are built for replication and partition tolerance (AP in CAP).</li>
+<li><b>Read pattern:</b> a post is usually read together with its comments and counts — storing them together (denormalised) avoids expensive joins.</li>
+<li>Semi-structured/unstructured data (text, media metadata) fits naturally.</li>
+</ol>
+<p><b>Recommended model:</b> a <b>document database</b> (e.g. MongoDB / Couchbase) for posts, comments and profiles:</p>
+<pre>{ "_id": "p9001", "user": "u42", "text": "Sunset at Marine Drive",
+  "media": [ {"type": "image", "url": "…"} ], "tags": ["mumbai", "sunset"],
+  "likes": 1532, "shares": 87,
+  "comments": [ {"user": "u7", "text": "Wow!", "at": "2024-11-02T18:04"} ] }</pre>
+<p>Complemented by a <b>wide-column store</b> (Cassandra) for the huge stream of like/share events and activity feeds, a <b>key-value store</b> (Redis) for
+counters and sessions, and a <b>graph database</b> (Neo4j) for the follower network and friend recommendations. Payments/ads billing, which need ACID,
+remain in an RDBMS.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>You are hired to design the data storage strategy for a large-scale e-commerce platform like Amazon. Compare SQL and NoSQL databases on the basis of
+data model, schema flexibility, scalability, consistency and use-case suitability. Based on this comparison, justify which type of database (or
+combination) would be more appropriate for the e-commerce system and why.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL (RDBMS)</th><th>NoSQL</th></tr>
+<tr><td>Data model</td><td>tables with rows/columns, related by keys and joins</td><td>documents, key-value pairs, wide columns or graphs</td></tr>
+<tr><td>Schema flexibility</td><td>fixed schema; changes need ALTER TABLE</td><td>dynamic schema; each record can have different fields</td></tr>
+<tr><td>Scalability</td><td>vertical (bigger server); sharding is hard</td><td>horizontal (add nodes); built-in sharding and replication</td></tr>
+<tr><td>Consistency</td><td>ACID transactions, strong consistency</td><td>BASE, eventual (tunable) consistency</td></tr>
+<tr><td>Use-case suitability</td><td>transactions with integrity: orders, payments, inventory, accounts</td><td>huge, fast-changing or varied data: catalogue, carts, sessions, reviews, clickstream, recommendations</td></tr>
+</table></div>
+<p><b>Recommendation — a combination (polyglot persistence):</b></p>
+<ul>
+<li><b>RDBMS (MySQL/PostgreSQL/Aurora)</b> for <b>orders, payments, inventory, customer accounts</b>: placing an order must atomically reserve stock, charge the
+customer and create the order — partial failure or double-selling the last item is unacceptable, so ACID and foreign keys are essential.</li>
+<li><b>Document store (MongoDB/DynamoDB)</b> for the <b>product catalogue</b>: a phone has RAM/camera specs, a shirt has size/fabric — different attributes per
+category fit a flexible schema; read-heavy, easily scaled out.</li>
+<li><b>Key-value store (Redis/DynamoDB)</b> for <b>shopping carts and sessions</b>: simple lookups by user id, extremely high request rate, must always be available.</li>
+<li><b>Wide-column (Cassandra)</b> for <b>browsing history, clickstream, logs</b> — massive write volume, analytics later.</li>
+<li><b>Graph database (Neo4j/Neptune)</b> for <b>recommendations</b> — “customers who bought X also bought Y” is a graph traversal.</li>
+</ul>
+<p class="answer-line">Hence neither alone is ideal: SQL guarantees correctness where money and stock are involved, NoSQL provides the flexibility, scale and
+availability for everything else.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2026 Summer</span><span class="chip">Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>An e-commerce platform stores customer reviews, browsing history, product catalogs and transaction records. Explain why a NoSQL database may be
+preferred for some of these data while an RDBMS is suitable for others. Justify your answer with examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Data</th><th>Best store</th><th>Justification</th></tr>
+<tr><td><b>Transaction records</b> (orders, payments, refunds)</td><td>RDBMS</td><td>need ACID: a payment and its order must commit together; referential integrity (order → customer, product); complex reports with joins (GST, revenue per month)</td></tr>
+<tr><td><b>Product catalogue</b></td><td>Document DB (MongoDB)</td><td>attributes differ by category (laptop: CPU, RAM; book: author, ISBN) — flexible schema; nested data (variants, images); read-heavy, scale out</td></tr>
+<tr><td><b>Customer reviews</b></td><td>Document DB</td><td>semi-structured text with optional photos, ratings, helpful-votes, replies; huge volume; eventual consistency is acceptable (a review appearing a second later is fine)</td></tr>
+<tr><td><b>Browsing history / clickstream</b></td><td>Wide-column (Cassandra) or key-value</td><td>enormous write rate, append-only time-series per user, queried by user id + time; horizontal scaling essential; never needs joins</td></tr>
+</table></div>
+<p><b>Example:</b> when a customer buys a phone, the order row, payment row and stock update are written in one ACID transaction in MySQL; the phone’s
+description is fetched from MongoDB as one document; the visit is appended to the user’s history in Cassandra; the review she writes later is stored as a
+MongoDB document.</p>
+<p class="answer-line">Use RDBMS where correctness and relationships matter (transactions), NoSQL where flexibility, volume and availability matter (catalogue, reviews, history).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q5(b)</span><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q5(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>How do SQL and NoSQL databases differ in terms of data storage, structure (schema design), scalability and use cases, and what implications do these
+differences have for choosing one over the other in various application scenarios?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL</th><th>NoSQL</th></tr>
+<tr><td>Data storage</td><td>tables (rows &amp; columns)</td><td>documents, key-value pairs, wide columns, graphs</td></tr>
+<tr><td>Structure / schema</td><td>fixed, predefined, normalised; joins</td><td>dynamic, flexible; denormalised / embedded data</td></tr>
+<tr><td>Scalability</td><td>vertical</td><td>horizontal (sharding, replication)</td></tr>
+<tr><td>Consistency</td><td>ACID</td><td>BASE / eventual</td></tr>
+<tr><td>Query language</td><td>standard SQL</td><td>product-specific APIs</td></tr>
+<tr><td>Use cases</td><td>banking, ERP, inventory, reservations, student records</td><td>social media, IoT, real-time analytics, catalogues, caching, recommendations</td></tr>
+</table></div>
+<p><b>Implications:</b> choose SQL when data is structured, relationships and integrity matter and multi-row transactions must be correct (a bank transfer,
+seat reservation). Choose NoSQL when data is large, fast-growing or of varying structure and availability/scale matter more than immediate consistency
+(sensor readings, user activity, product reviews). Large systems often use both.</p>
+</div></details></div>

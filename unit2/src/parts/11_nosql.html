@@ -1,0 +1,82 @@
+<!-- ============================================================ 11 -->
+<h2 id="s11"><span class="num">11</span>Introduction to NoSQL Databases</h2>
+
+<h3 id="s11-1">11.1 What NoSQL is and why it appeared</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>NoSQL</b> (“<b>Not only SQL</b>”) is a family of non-relational database systems that store data in models other than tables — key-value pairs,
+documents, wide columns or graphs — and are designed for <b>flexible (schema-less) data, very large volumes and horizontal scaling</b> across many
+commodity machines.</p></div>
+<p><b>Why it appeared (mid-2000s, Google BigTable 2006, Amazon Dynamo 2007):</b> web-scale companies faced</p>
+<ul>
+<li><b>Big data — the 3 V’s:</b> huge <b>volume</b>, high <b>velocity</b> (millions of writes per second), great <b>variety</b> (semi-structured and
+unstructured data: JSON, logs, posts, images, sensor readings).</li>
+<li><b>Changing structure</b> — social-media posts with optional photos/videos/polls/tags; product catalogues whose attributes differ by category. A fixed
+relational schema needs ALTER TABLE for every change.</li>
+<li><b>Scaling limits</b> — an RDBMS scales mainly <b>vertically</b> (bigger server); joins and ACID across many machines are expensive.</li>
+<li><b>Availability</b> — a global service must keep answering even when some servers or network links fail.</li>
+</ul>
+{{svg:scaling}}
+
+<h3 id="s11-2">11.2 Features of NoSQL databases</h3>
+<ul>
+<li><b>Flexible / dynamic schema</b> (schema-on-read) — records in the same collection may have different fields; no ALTER needed.</li>
+<li><b>Horizontal scalability</b> — data is <b>sharded</b> (partitioned) across nodes; add nodes to add capacity.</li>
+<li><b>Replication</b> and fault tolerance — copies on several nodes; no single point of failure.</li>
+<li><b>High performance</b> for simple operations by key; data that is read together is stored together (denormalised, aggregate-oriented), so few
+or no joins.</li>
+<li><b>BASE instead of strict ACID</b> (most systems; many now offer ACID for single documents or even multi-document transactions).</li>
+<li>Usually open source, often accessed through APIs rather than SQL (each has its own query language: MongoDB Query Language, CQL for Cassandra, Cypher for Neo4j).</li>
+</ul>
+
+<h3 id="s11-3">11.3 Types of NoSQL databases</h3>
+{{svg:nosql_types}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Type</th><th>Data model</th><th>Examples</th><th>Best for</th><th>Weak at</th></tr>
+<tr><td><b>Key–value store</b></td><td>a giant hash map: unique key → opaque value</td><td>Redis, Amazon DynamoDB, Riak, Memcached</td><td>caching, user sessions, shopping carts, leaderboards, OTPs</td><td>queries on the value’s contents, relationships</td></tr>
+<tr><td><b>Document store</b></td><td>key → self-describing document (JSON/BSON/XML) with nested fields and arrays; documents in <i>collections</i></td><td>MongoDB, CouchDB, Firestore</td><td>content management, catalogues, user profiles, social-media posts, e-commerce product data</td><td>many-to-many joins across documents</td></tr>
+<tr><td><b>Column-family (wide-column)</b></td><td>rows identified by a key, each holding column families with possibly millions of columns; stored column-wise</td><td>Apache Cassandra, HBase, Google Bigtable</td><td>time-series, IoT sensor data, logs, messaging, analytics with huge write rates</td><td>ad-hoc queries, joins, transactions</td></tr>
+<tr><td><b>Graph</b></td><td>nodes (entities) and edges (relationships) both with properties</td><td>Neo4j, Amazon Neptune, ArangoDB</td><td>social networks, recommendations (“friends of friends”), fraud rings, knowledge graphs, route planning</td><td>bulk aggregate queries over everything</td></tr>
+</table></div>
+<p>Same data as a document (MongoDB) vs relational tables:</p>
+<pre>-- Relational: 3 tables + joins
+customer(cust_id, name, city)    orders(order_id, cust_id, date)    order_items(order_id, product, qty)
+
+-- Document: one self-contained document
+{ "_id": 101, "name": "Asha", "city": "Delhi",
+  "orders": [ { "order_id": 9001, "date": "2025-11-02",
+                "items": [ {"product": "Phone", "qty": 1}, {"product": "Cover", "qty": 2} ] } ] }
+
+db.customers.find({ "city": "Delhi", "orders.items.product": "Phone" }, { "name": 1 })</pre>
+
+<h3 id="s11-4">11.4 CAP theorem and BASE</h3>
+{{svg:cap}}
+<div class="grid2">
+<div class="box def"><div class="box-t">ACID (RDBMS)</div><p><b>A</b>tomicity, <b>C</b>onsistency, <b>I</b>solation, <b>D</b>urability — every committed transaction is
+all-or-nothing and immediately visible to everyone. Pessimistic: correctness first.</p></div>
+<div class="box def"><div class="box-t">BASE (most NoSQL)</div><p><b>B</b>asically <b>A</b>vailable — the system always answers (maybe with partial/stale data);
+<b>S</b>oft state — data may change over time even without input, as replicas synchronise; <b>E</b>ventually consistent — if no new updates arrive, all
+replicas eventually hold the same value. Optimistic: availability first.</p></div></div>
+
+<h3 id="s11-5">11.5 SQL (RDBMS) vs NoSQL <span class="chip pur">asked every year</span></h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL / Relational databases</th><th>NoSQL databases</th></tr>
+<tr><td>Data model / storage</td><td>tables of rows and columns (relations)</td><td>key-value, document, column-family or graph</td></tr>
+<tr><td>Schema</td><td><b>fixed, predefined</b> (schema-on-write); change via ALTER TABLE</td><td><b>dynamic / flexible</b> (schema-on-read); each record may differ</td></tr>
+<tr><td>Structure of data</td><td>structured</td><td>structured, semi-structured and unstructured</td></tr>
+<tr><td>Query language</td><td>standard <b>SQL</b>, powerful ad-hoc queries and joins</td><td>no standard; API / product-specific languages; joins limited or absent</td></tr>
+<tr><td>Relationships</td><td>via foreign keys and joins (normalised)</td><td>embedded / denormalised data (graph DBs are the exception — relationships first-class)</td></tr>
+<tr><td>Scalability</td><td><b>vertical</b> (scale up) mainly</td><td><b>horizontal</b> (scale out) by sharding and replication</td></tr>
+<tr><td>Consistency model</td><td><b>ACID</b>, strong consistency</td><td>mostly <b>BASE</b>, eventual (often tunable) consistency</td></tr>
+<tr><td>CAP preference</td><td>C + A (single site)</td><td>CP or AP in a distributed cluster</td></tr>
+<tr><td>Integrity constraints</td><td>enforced by DBMS (PK, FK, CHECK)</td><td>mostly left to the application</td></tr>
+<tr><td>Performance</td><td>good for complex queries and transactions</td><td>very high throughput for simple key/document reads and writes at huge scale</td></tr>
+<tr><td>Maturity &amp; tooling</td><td>decades old, standard, many tools and experts</td><td>newer, varied, fewer standard tools</td></tr>
+<tr><td>Best suited for</td><td>banking, accounting, ERP, inventory, reservations, university records — anything needing multi-row transactions and integrity</td><td>big data, real-time web/mobile apps, catalogues, social feeds, IoT, caching, recommendation</td></tr>
+<tr><td>Examples</td><td>Oracle, MySQL, PostgreSQL, SQL Server</td><td>MongoDB, Cassandra, Redis, Neo4j, DynamoDB, HBase</td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">How to answer “which database would you choose and why?”</div>
+<p>These questions (e-commerce like Amazon, social-media content, product reviews + transactions) almost always have the answer
+<b>polyglot persistence</b> — use <b>both</b>: an RDBMS for data needing ACID and integrity (orders, payments, inventory, user accounts) and NoSQL for
+high-volume, variable or read-heavy data (product catalogue → document store, carts/sessions → key-value, reviews/browsing history/clickstream →
+document or wide-column, recommendations → graph). Justify each choice by one property from the table (schema flexibility, horizontal scaling,
+ACID, joins). Full model answers are in section 14.7.</p></div>

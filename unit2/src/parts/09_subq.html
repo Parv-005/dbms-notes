@@ -1,0 +1,110 @@
+<!-- ============================================================ 9 -->
+<h2 id="s9"><span class="num">9</span>Sub-queries and Correlated Sub-queries</h2>
+
+<h3 id="s9-1">9.1 What a sub-query is</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>sub-query</b> (nested / inner query) is a SELECT statement written inside another SQL statement (the <b>outer</b> query), enclosed in
+parentheses. It can appear in <b>WHERE</b>, <b>HAVING</b>, <b>FROM</b> (derived table), the <b>SELECT</b> list (scalar sub-query), and in
+INSERT / UPDATE / DELETE.</p></div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Kind (by result)</th><th>Returns</th><th>Used with</th></tr>
+<tr><td><b>Scalar</b> (single-row) sub-query</td><td>one value (1 row × 1 column)</td><td><code>= &lt;&gt; &lt; &gt; &lt;= &gt;=</code></td></tr>
+<tr><td><b>Multi-row</b> sub-query</td><td>one column, many rows</td><td><code>IN, NOT IN, ANY / SOME, ALL</code></td></tr>
+<tr><td><b>Table</b> sub-query</td><td>many rows and columns</td><td><code>EXISTS, NOT EXISTS</code>, FROM clause</td></tr>
+</table></div>
+<p>By dependence on the outer query: <b>non-correlated</b> (independent — runs once) vs <b>correlated</b> (refers to the outer row — re-evaluated per outer
+row). Section 9.5.</p>
+
+<h3 id="s9-2">9.2 Scalar sub-queries — comparing with a computed value</h3>
+{{sql:q_scalar}}
+<p>The inner query is evaluated first (AVG = 60750), then the outer query uses that value. If a sub-query used with <code>=</code> returns <b>more than one
+row</b>, the query fails (“single-row sub-query returns more than one row”) — use IN instead.</p>
+<p>Second highest salary — two classic answers:</p>
+<div class="tables">{{sql:q_second1}}{{sql:q_second2}}</div>
+<p>General N-th highest (a correlated sub-query — exactly N − 1 distinct salaries are greater):</p>
+{{sql:q_nth}}
+
+<h3 id="s9-3">9.3 IN, ANY, ALL</h3>
+{{sql:q_in}}
+<div class="tables">{{sql:q_all}}{{sql:q_any}}</div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Expression</th><th>True when</th><th>Equivalent</th></tr>
+<tr><td><code>x IN (sub)</code></td><td>x equals some value</td><td><code>x = ANY (sub)</code></td></tr>
+<tr><td><code>x NOT IN (sub)</code></td><td>x differs from every value (and none is NULL!)</td><td><code>x &lt;&gt; ALL (sub)</code></td></tr>
+<tr><td><code>x &gt; ANY (sub)</code></td><td>x greater than at least one value</td><td><code>x &gt; (SELECT MIN …)</code></td></tr>
+<tr><td><code>x &gt; ALL (sub)</code></td><td>x greater than every value</td><td><code>x &gt; (SELECT MAX …)</code></td></tr>
+<tr><td><code>x &lt; ANY (sub)</code></td><td>x smaller than at least one</td><td><code>x &lt; (SELECT MAX …)</code></td></tr>
+<tr><td><code>x &lt; ALL (sub)</code></td><td>x smaller than every value</td><td><code>x &lt; (SELECT MIN …)</code></td></tr>
+</table></div>
+<p>Edge cases: <code>&gt; ALL</code> of an <b>empty</b> set is TRUE; <code>&gt; ANY</code> of an empty set is FALSE. (MySQL, Oracle, PostgreSQL and SQL Server
+support ANY/ALL; SQLite does not, which is why the equivalent MIN/MAX form is useful.)</p>
+<p>PYQ 2023-style: “Find the ID of each employee who earns more than <b>every</b> employee of Small Bank Corporation” →
+<code>salary &gt; ALL (SELECT salary FROM works WHERE company_name = 'Small Bank Corporation')</code>.</p>
+
+<h3 id="s9-4">9.4 EXISTS / NOT EXISTS — and the NOT IN + NULL trap</h3>
+<p><code>EXISTS (sub)</code> is TRUE if the sub-query returns <b>at least one row</b> (the SELECT list does not matter — <code>SELECT *</code> or <code>SELECT 1</code>).
+It is almost always correlated.</p>
+{{sql:q_exists}}
+<div class="box warn"><div class="box-t">NOT IN with NULLs returns nothing</div>
+<p>“Employees who are nobody’s manager”:</p>
+<div class="tables">{{sql:q_notin_bad}}{{sql:q_notin_good}}</div>
+<p>Why? <code>emp_id NOT IN (NULL, 1, 1, 1, 4, 4, 1, 4, 2)</code> means <code>emp_id &lt;&gt; 1 AND … AND emp_id &lt;&gt; NULL</code>; that comparison is UNKNOWN,
+so the whole condition is never TRUE. <b>Fix:</b> use NOT EXISTS, or add <code>WHERE manager_id IS NOT NULL</code> inside the sub-query.</p></div>
+
+<h3 id="s9-5">9.5 Correlated sub-queries</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>correlated sub-query</b> is a sub-query that <b>refers to a column of the outer query</b>. It cannot be evaluated on its own; logically it is
+<b>executed once for every row</b> processed by the outer query, using that row’s values.</p></div>
+{{svg:correlated}}
+<p>Classic 1 — <b>employees earning more than the average of their own department</b> (PYQ 2026 summer):</p>
+{{sql:q_corr_avg}}
+<p>Trace: for Aarav (dept 20) the inner query computes AVG of dept 20 = (95000 + 72000 + 72000) / 3 = 79667 (Neel’s NULL ignored) → 95000 &gt; 79667 ✔.
+For Diya (dept 20) → 72000 &gt; 79667 ✘. For Meera (dept 10) → AVG dept 10 = 54333 → ✔. For Zoya (dept NULL) the inner WHERE <code>x.dept_id = NULL</code> is
+never true → AVG of nothing = NULL → comparison UNKNOWN → not returned.</p>
+<p>Classic 2 — <b>highest-paid employee(s) in each department</b> (PYQ 2024, Summer Mid-Sem):</p>
+{{sql:q_corr_max}}
+<p>Ties are handled automatically (if two employees share the department maximum both are returned). The same with a non-correlated derived table:</p>
+<pre class="sql">SELECT e.name, e.dept_id, e.salary
+FROM   employee e
+JOIN  (SELECT dept_id, MAX(salary) AS mx FROM employee GROUP BY dept_id) m
+       ON m.dept_id = e.dept_id AND e.salary = m.mx;</pre>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Non-correlated sub-query</th><th>Correlated sub-query</th></tr>
+<tr><td>independent of the outer query — can run alone</td><td>refers to the outer query’s columns — cannot run alone</td></tr>
+<tr><td>executed <b>once</b>; its result is used by the outer query</td><td>executed (logically) <b>once per outer row</b></td></tr>
+<tr><td>inner query runs first, then outer (bottom-up)</td><td>outer row is fetched first, then inner runs for it (top-down, repeated)</td></tr>
+<tr><td>usually faster</td><td>slower on big tables (optimisers often rewrite it as a join)</td></tr>
+<tr><td><code>WHERE salary &gt; (SELECT AVG(salary) FROM employee)</code></td><td><code>WHERE salary &gt; (SELECT AVG(salary) FROM employee x WHERE x.dept_id = e.dept_id)</code></td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">Exam — “frame the question for this query” (Mid-Sem 2026)</div>
+<pre class="sql">SELECT B.BookingID, B.PassengerID, B.Fare
+FROM   BOOKING B
+WHERE  B.Fare &gt; (SELECT AVG(B2.Fare) FROM BOOKING B2 WHERE B2.PassengerID = B.PassengerID);</pre>
+<p>The inner query is correlated on PassengerID, so it computes the average fare <b>of the same passenger</b>. Question: <i>“Display the booking ID,
+passenger ID and fare of every booking whose fare is higher than the average fare of all bookings made by that same passenger.”</i></p></div>
+
+<h3 id="s9-6">9.6 Sub-queries in FROM, SELECT and with WITH</h3>
+<p><b>Derived table (inline view)</b> — a sub-query in FROM must have an alias; lets you aggregate in two levels:</p>
+{{sql:q_derived}}
+<p><b>Scalar sub-query in the SELECT list</b> (correlated) — one value per row:</p>
+{{sql:q_selectlist}}
+<p><b>WITH (Common Table Expression)</b> — names a sub-query so it can be written first and reused; much more readable:</p>
+{{sql:q_cte}}
+
+<h3 id="s9-7">9.7 Ranking with window functions <span class="beyond-tag">beyond syllabus</span></h3>
+<p><code>RANK() / DENSE_RANK() / ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code> compute a rank <b>without collapsing rows</b> (unlike GROUP BY).
+Very useful for “second highest per department”, “top 3 per category”.</p>
+{{sql:q_window}}
+{{sql:q_window2}}
+
+<h3 id="s9-8">9.8 Division in SQL — “for ALL” queries</h3>
+<p>SQL has no division operator. Three standard ways to write <i>“employees who work on every project of department 20”</i>:</p>
+<p><b>(a) Double NOT EXISTS</b> — “there is no IT project that e does not work on” (the TRC ∀ rewritten as ¬∃¬):</p>
+{{sql:q_div_ne}}
+<p><b>(b) Counting</b> — the number of distinct required projects e works on equals the number of required projects:</p>
+{{sql:q_div_cnt}}
+<p><b>(c) EXCEPT</b> — required projects minus e’s projects is empty:</p>
+{{sql:q_div_exc}}
+<div class="box tip"><div class="box-t">Which one to write in the exam?</div>
+<p>(b) is the easiest to get right — but make sure you (1) restrict to the required set before counting and (2) use <code>COUNT(DISTINCT …)</code> if
+duplicates are possible. (a) is the “textbook” answer and maps directly to relational calculus.</p></div>

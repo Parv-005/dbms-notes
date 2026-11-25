@@ -1,0 +1,146 @@
+<!-- ============================================================ 12 -->
+<h2 id="s12"><span class="num">12</span>One-page Revision Sheet</h2>
+<div class="grid2">
+<div class="box key"><div class="box-t">Relational model</div><ul>
+<li>Relation = table = set of tuples; attribute = column; domain = allowed atomic values; degree = #columns; cardinality = #rows.</li>
+<li>Schema (structure) vs instance (current rows).</li>
+<li>No duplicate tuples; order of rows/columns irrelevant; atomic values.</li>
+<li>NULL: unknown / not applicable / not yet available / withheld. Test with IS NULL.</li>
+<li>Super ⊇ candidate (minimal) ⊇ primary (chosen, not NULL); alternate = candidate − primary; FK references PK.</li>
+<li>#super keys with one key of k attrs among n: 2<sup>n−k</sup>; two keys: inclusion–exclusion.</li></ul></div>
+<div class="box key"><div class="box-t">Integrity constraints</div><ul>
+<li>Domain (type, NOT NULL, CHECK, DEFAULT) · Key (PRIMARY KEY, UNIQUE) · Entity (PK ≠ NULL) · Referential (FK = existing PK or NULL).</li>
+<li>Violations: insert/update child FK, delete/update parent PK.</li>
+<li>Actions: RESTRICT/NO ACTION (reject) · CASCADE · SET NULL · SET DEFAULT.</li>
+<li>Column-level vs table-level (composite); ALTER TABLE ADD/DROP CONSTRAINT; checked per statement, or DEFERRED to COMMIT; assertions/triggers for multi-table rules.</li></ul></div>
+<div class="box key"><div class="box-t">Relational algebra</div><ul>
+<li>Fundamental: σ π ρ ∪ − × &nbsp;· derived: ∩ ⋈ ÷ &nbsp;· extended: ⟕⟖⟗ γ.</li>
+<li>∪ ∩ − need union-compatibility.</li>
+<li>⋈θ = σθ(×); natural join drops duplicate column.</li>
+<li>÷ for “all/every”: R ÷ S = π<sub>X</sub>(R) − π<sub>X</sub>((π<sub>X</sub>(R) × S) − R). Project dividend first.</li>
+<li>Patterns: both→∩ of keys; not→−; only→did − did-other; at least 2→self-join ≠; exactly 1→(≥1) − (≥2); max→all − beaten.</li></ul></div>
+<div class="box key"><div class="box-t">Relational calculus</div><ul>
+<li>TRC {t | P(t)} — tuple variables; DRC {⟨x1..xn⟩ | P} — domain variables.</li>
+<li>∃ with ∧, ∀ with ⇒; ∀x P ≡ ¬∃x ¬P.</li>
+<li>Safe = result values come from the database/constants.</li>
+<li>RA ≡ safe TRC ≡ safe DRC (Codd) — relationally complete.</li>
+<li>RA procedural; RC declarative.</li></ul></div>
+<div class="box key"><div class="box-t">SQL</div><ul>
+<li>DDL CREATE ALTER DROP TRUNCATE RENAME · DML SELECT INSERT UPDATE DELETE · DCL GRANT REVOKE · TCL COMMIT ROLLBACK SAVEPOINT.</li>
+<li>Order: FROM → WHERE → GROUP BY → HAVING → SELECT → DISTINCT → ORDER BY → LIMIT.</li>
+<li>WHERE filters rows (no aggregates), HAVING filters groups.</li>
+<li>COUNT(*) counts rows; other aggregates ignore NULL.</li>
+<li>Non-aggregated SELECT columns must be in GROUP BY.</li>
+<li>LIKE: % any string, _ one char. = NULL never true.</li></ul></div>
+<div class="box key"><div class="box-t">Joins &amp; sub-queries</div><ul>
+<li>Inner (matches) · left/right/full outer (+ unmatched, NULL-padded) · cross (all pairs) · natural (same-named columns) · self (aliases).</li>
+<li>Right-table filter of a LEFT JOIN goes in ON, not WHERE.</li>
+<li>Scalar (=), multi-row (IN, ANY, ALL), EXISTS.</li>
+<li>NOT IN + NULL in sub-query ⇒ no rows; use NOT EXISTS.</li>
+<li>Correlated = refers to outer row, runs per row (“above own dept average”, “max per dept”).</li>
+<li>Division in SQL: double NOT EXISTS, or GROUP BY … HAVING COUNT = (SELECT COUNT …).</li></ul></div>
+<div class="box key"><div class="box-t">Triggers</div><ul>
+<li>ECA: event (INSERT/UPDATE/DELETE, DDL, system) · condition (WHEN) · action.</li>
+<li>BEFORE (validate/modify NEW) · AFTER (audit, update others) · INSTEAD OF (views).</li>
+<li>Row-level (FOR EACH ROW, OLD/NEW) vs statement-level.</li>
+<li>Fired automatically; procedures are called explicitly.</li></ul></div>
+<div class="box key"><div class="box-t">NoSQL</div><ul>
+<li>“Not only SQL”: key-value (Redis), document (MongoDB), column-family (Cassandra), graph (Neo4j).</li>
+<li>Flexible schema, horizontal scaling, replication, BASE (basically available, soft state, eventually consistent).</li>
+<li>CAP: at most 2 of consistency, availability, partition tolerance in a partition.</li>
+<li>Choose SQL for transactions/integrity, NoSQL for volume/variety/availability — often both.</li></ul></div>
+</div>
+
+<h3 id="s12-1">12.1 Important differences (ready to write)</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Pair</th><th>First</th><th>Second</th></tr>
+<tr><td>Super key vs candidate key</td><td>any identifying set, may have extra attributes</td><td>minimal identifying set</td></tr>
+<tr><td>Primary key vs unique key</td><td>one per table, never NULL</td><td>many per table, NULL allowed</td></tr>
+<tr><td>Primary key vs foreign key</td><td>identifies tuples of its own table; unique, not NULL</td><td>refers to a PK of another (or same) table; may repeat, may be NULL</td></tr>
+<tr><td>Schema vs instance</td><td>structure; rarely changes</td><td>data at a moment; changes constantly</td></tr>
+<tr><td>Relational algebra vs calculus</td><td>procedural, operators, order fixed</td><td>declarative, logic formulas, order not given</td></tr>
+<tr><td>TRC vs DRC</td><td>variables range over tuples: {t | P(t)}</td><td>variables range over attribute values: {⟨x, y⟩ | P}</td></tr>
+<tr><td>Selection vs projection</td><td>σ chooses rows; degree unchanged</td><td>π chooses columns; removes duplicates</td></tr>
+<tr><td>Natural join vs equi-join</td><td>implicit equality on all same-named attributes; common column once</td><td>explicit equality condition; both columns kept</td></tr>
+<tr><td>Inner vs outer join</td><td>only matching tuples</td><td>matching + unmatched tuples padded with NULL</td></tr>
+<tr><td>Cartesian product vs join</td><td>all |R|·|S| combinations</td><td>only combinations satisfying the join condition</td></tr>
+<tr><td>UNION vs UNION ALL</td><td>removes duplicates</td><td>keeps duplicates (faster)</td></tr>
+<tr><td>UNION vs JOIN</td><td>stacks rows of compatible results (vertical)</td><td>combines columns of two tables (horizontal)</td></tr>
+<tr><td>WHERE vs HAVING</td><td>rows, before grouping, no aggregates</td><td>groups, after grouping, aggregates allowed</td></tr>
+<tr><td>COUNT(*) vs COUNT(col)</td><td>counts rows including NULLs</td><td>counts non-NULL values</td></tr>
+<tr><td>IN vs EXISTS</td><td>compares a value with a list returned by the sub-query</td><td>tests whether the (correlated) sub-query returns any row; NULL-safe</td></tr>
+<tr><td>Correlated vs non-correlated</td><td>refers to outer query; runs per outer row</td><td>independent; runs once</td></tr>
+<tr><td>DELETE vs TRUNCATE vs DROP</td><td colspan="2">DML, selected rows, rollback-able, triggers fire · DDL, all rows, keeps table, fast · DDL, removes table definition too</td></tr>
+<tr><td>DDL vs DML</td><td>defines structure; auto-commit</td><td>manipulates data; can roll back</td></tr>
+<tr><td>CHAR vs VARCHAR</td><td>fixed length, blank-padded</td><td>variable length</td></tr>
+<tr><td>View vs table</td><td>virtual, stored query, no data</td><td>stores data physically</td></tr>
+<tr><td>Trigger vs stored procedure</td><td>fires implicitly on an event, no parameters</td><td>called explicitly, parameters, can return values</td></tr>
+<tr><td>BEFORE vs AFTER trigger</td><td>before change; can modify/reject row</td><td>after change; audit/update others</td></tr>
+<tr><td>Row vs statement trigger</td><td>once per affected row; OLD/NEW</td><td>once per statement</td></tr>
+<tr><td>ACID vs BASE</td><td>strong consistency, transactions</td><td>availability first, eventual consistency</td></tr>
+<tr><td>SQL vs NoSQL</td><td>tables, fixed schema, vertical scaling, ACID, joins</td><td>documents/KV/columns/graphs, flexible schema, horizontal scaling, BASE</td></tr>
+<tr><td>DBMS vs RDBMS</td><td>files/navigational, no constraints/normalisation</td><td>tables, keys, constraints, normalisation, multi-user</td></tr>
+</table></div>
+
+<h3 id="s12-2">12.2 Two-mark questions</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Question</th><th>Answer</th></tr>
+<tr><td>Who proposed the relational model and when?</td><td>E. F. Codd, IBM, 1970.</td></tr>
+<tr><td>Degree and cardinality of R × S if R is 4×3 (rows×cols) and S is 5×2?</td><td>Degree 3 + 2 = 5; cardinality 4 × 5 = 20.</td></tr>
+<tr><td>What is entity integrity?</td><td>No component of a primary key may be NULL.</td></tr>
+<tr><td>Can a foreign key be NULL? Can it repeat?</td><td>Yes (unless declared NOT NULL); yes.</td></tr>
+<tr><td>What is a self-referencing foreign key?</td><td>An FK that references the PK of its own table, e.g. employee.manager_id → employee.emp_id.</td></tr>
+<tr><td>Which operations can violate referential integrity?</td><td>Insert/update of the child FK, delete/update of the referenced parent PK.</td></tr>
+<tr><td>Which RA operators are fundamental?</td><td>σ, π, ρ, ∪, −, ×.</td></tr>
+<tr><td>Express ∩ using −.</td><td>R ∩ S = R − (R − S).</td></tr>
+<tr><td>When are two relations union-compatible?</td><td>Same number of attributes and corresponding attributes have the same domains.</td></tr>
+<tr><td>Which RA operator answers “for all” queries?</td><td>Division ÷ (in calculus: ∀; in SQL: double NOT EXISTS).</td></tr>
+<tr><td>What is the result schema of R(A,B,C) ÷ S(B,C)?</td><td>(A).</td></tr>
+<tr><td>What is a safe expression?</td><td>A calculus expression whose result contains only values from the database or the expression — hence finite.</td></tr>
+<tr><td>What is relational completeness?</td><td>Ability to express every query expressible in relational algebra.</td></tr>
+<tr><td>Free vs bound variable?</td><td>Bound = introduced by ∃/∀; free = not bound (only the result variable may be free).</td></tr>
+<tr><td>Why does <code>WHERE x = NULL</code> return nothing?</td><td>Comparison with NULL is UNKNOWN, and WHERE keeps only TRUE rows; use IS NULL.</td></tr>
+<tr><td>Can WHERE contain an aggregate?</td><td>No — WHERE runs before grouping; use HAVING or a sub-query.</td></tr>
+<tr><td>AVG of (10, NULL, 20)?</td><td>15 (NULL ignored).</td></tr>
+<tr><td>What does COUNT(DISTINCT dept) count?</td><td>Number of different non-NULL dept values.</td></tr>
+<tr><td>Name the four referential actions.</td><td>RESTRICT/NO ACTION, CASCADE, SET NULL, SET DEFAULT.</td></tr>
+<tr><td>Is TRUNCATE DDL or DML?</td><td>DDL (removes all rows, keeps structure, auto-commit in Oracle/MySQL).</td></tr>
+<tr><td>What is a derived table?</td><td>A sub-query in the FROM clause, given an alias.</td></tr>
+<tr><td>What does <code>&gt; ALL (sub)</code> mean?</td><td>Greater than every value returned = greater than the maximum.</td></tr>
+<tr><td>What are OLD and NEW in a trigger?</td><td>Row values before and after the change (UPDATE has both, INSERT only NEW, DELETE only OLD).</td></tr>
+<tr><td>What is an INSTEAD OF trigger?</td><td>A trigger on a view that runs in place of the INSERT/UPDATE/DELETE issued on the view.</td></tr>
+<tr><td>Expand NoSQL and BASE.</td><td>Not only SQL; Basically Available, Soft state, Eventually consistent.</td></tr>
+<tr><td>State the CAP theorem.</td><td>A distributed system cannot simultaneously guarantee consistency, availability and partition tolerance; during a partition it must give up C or A.</td></tr>
+<tr><td>Which NoSQL type for a social network’s friend graph? For shopping carts?</td><td>Graph database; key-value store.</td></tr>
+</table></div>
+
+<!-- ============================================================ 13 -->
+<h2 id="s13"><span class="num">13</span>Quick Self-Test (MCQs)</h2>
+<div class="mcq-list">
+<div class="mcq"><p><b>1.</b> A relation with 5 attributes and 8 tuples has degree</p><ol type="a"><li>8</li><li>5</li><li>40</li><li>13</li></ol><details><summary>Answer</summary><p>(b) 5 — degree counts attributes.</p></details></div>
+<div class="mcq"><p><b>2.</b> Which is always true?</p><ol type="a"><li>every super key is a candidate key</li><li>every candidate key is a primary key</li><li>every primary key is a super key</li><li>a relation has one candidate key</li></ol><details><summary>Answer</summary><p>(c)</p></details></div>
+<div class="mcq"><p><b>3.</b> R(A,B,C,D) has the single candidate key {A,B}. Number of super keys?</p><ol type="a"><li>2</li><li>4</li><li>8</li><li>16</li></ol><details><summary>Answer</summary><p>(b) 2<sup>4−2</sup> = 4.</p></details></div>
+<div class="mcq"><p><b>4.</b> Entity integrity states that</p><ol type="a"><li>FK values must exist in the parent</li><li>PK attributes cannot be NULL</li><li>values must be atomic</li><li>no duplicate columns</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>5.</b> Deleting a parent row whose FK children are declared ON DELETE SET NULL</p><ol type="a"><li>is rejected</li><li>deletes the children</li><li>sets the children’s FK to NULL</li><li>sets the parent PK to NULL</li></ol><details><summary>Answer</summary><p>(c)</p></details></div>
+<div class="mcq"><p><b>6.</b> Which RA operator is NOT fundamental?</p><ol type="a"><li>−</li><li>×</li><li>ρ</li><li>⋈</li></ol><details><summary>Answer</summary><p>(d) join = σ(×).</p></details></div>
+<div class="mcq"><p><b>7.</b> |R| = 3, |S| = 4. |R × S| = ?</p><ol type="a"><li>7</li><li>12</li><li>≤ 12</li><li>1</li></ol><details><summary>Answer</summary><p>(b) exactly 12.</p></details></div>
+<div class="mcq"><p><b>8.</b> R(A,B) ÷ S(B) returns</p><ol type="a"><li>A-values paired with some B of S</li><li>A-values paired with every B of S</li><li>B-values in both</li><li>R − S</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>9.</b> Union-compatibility is NOT required for</p><ol type="a"><li>∪</li><li>∩</li><li>−</li><li>×</li></ol><details><summary>Answer</summary><p>(d)</p></details></div>
+<div class="mcq"><p><b>10.</b> π removes</p><ol type="a"><li>rows failing a condition</li><li>duplicate tuples</li><li>NULLs</li><li>nothing</li></ol><details><summary>Answer</summary><p>(b) — it keeps chosen columns and eliminates duplicates.</p></details></div>
+<div class="mcq"><p><b>11.</b> Relational calculus is</p><ol type="a"><li>procedural</li><li>non-procedural</li><li>a programming language</li><li>a storage structure</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>12.</b> ∀x P(x) is equivalent to</p><ol type="a"><li>∃x P(x)</li><li>¬∃x ¬P(x)</li><li>¬∀x ¬P(x)</li><li>∃x ¬P(x)</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>13.</b> {t | ¬(t ∈ Student)} is</p><ol type="a"><li>safe</li><li>unsafe</li><li>empty</li><li>equal to Student</li></ol><details><summary>Answer</summary><p>(b) infinite result.</p></details></div>
+<div class="mcq"><p><b>14.</b> Which is DDL?</p><ol type="a"><li>UPDATE</li><li>TRUNCATE</li><li>DELETE</li><li>MERGE</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>15.</b> <code>SELECT COUNT(*), COUNT(x) FROM t;</code> on x = (1, NULL, 2, NULL)</p><ol type="a"><li>4, 4</li><li>4, 2</li><li>2, 2</li><li>2, 4</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>16.</b> Which clause can contain an aggregate condition?</p><ol type="a"><li>WHERE</li><li>FROM</li><li>HAVING</li><li>ON</li></ol><details><summary>Answer</summary><p>(c)</p></details></div>
+<div class="mcq"><p><b>17.</b> <code>name LIKE '_a%'</code> matches</p><ol type="a"><li>names ending with a</li><li>names whose second letter is a</li><li>names starting with a</li><li>names containing exactly one a</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>18.</b> <code>WHERE id NOT IN (1, 2, NULL)</code> returns</p><ol type="a"><li>ids other than 1, 2</li><li>no rows</li><li>all rows</li><li>an error</li></ol><details><summary>Answer</summary><p>(b) — the NULL makes every comparison UNKNOWN.</p></details></div>
+<div class="mcq"><p><b>19.</b> A LEFT JOIN of A (5 rows) and B where 2 rows of A have no match and each other row matches exactly one B row gives</p><ol type="a"><li>3 rows</li><li>5 rows</li><li>7 rows</li><li>depends on B’s size only</li></ol><details><summary>Answer</summary><p>(b) 3 matched + 2 NULL-padded.</p></details></div>
+<div class="mcq"><p><b>20.</b> A correlated sub-query</p><ol type="a"><li>runs once</li><li>refers to a column of the outer query</li><li>must be in FROM</li><li>cannot use aggregates</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>21.</b> <code>salary &gt; ALL (SELECT salary FROM emp WHERE dept = 10)</code> is the same as salary &gt;</p><ol type="a"><li>MIN of dept 10</li><li>MAX of dept 10</li><li>AVG of dept 10</li><li>any of dept 10</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>22.</b> Which trigger type is used on views?</p><ol type="a"><li>BEFORE</li><li>AFTER</li><li>INSTEAD OF</li><li>statement-level</li></ol><details><summary>Answer</summary><p>(c)</p></details></div>
+<div class="mcq"><p><b>23.</b> In a DELETE trigger, which is available?</p><ol type="a"><li>NEW only</li><li>OLD only</li><li>both</li><li>neither</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>24.</b> MongoDB is a</p><ol type="a"><li>key-value store</li><li>document store</li><li>graph database</li><li>column-family store</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>25.</b> “Eventually consistent” belongs to</p><ol type="a"><li>ACID</li><li>BASE</li><li>CAP’s C</li><li>2PL</li></ol><details><summary>Answer</summary><p>(b)</p></details></div>
+<div class="mcq"><p><b>26.</b> NATURAL JOIN of two tables with no common column gives</p><ol type="a"><li>an error</li><li>an empty result</li><li>a Cartesian product</li><li>a union</li></ol><details><summary>Answer</summary><p>(c)</p></details></div>
+</div>

@@ -1,0 +1,137 @@
+<!-- ============================================================ 2 -->
+<h2 id="s2"><span class="num">2</span>Integrity Constraints</h2>
+
+<h3 id="s2-1">2.1 What and why</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Integrity constraints</b> are rules, declared as part of the database schema, that every legal database state must satisfy. The DBMS
+checks them automatically whenever data is inserted, updated or deleted, and <b>rejects any operation that would violate them</b>. They
+guard the database against <i>accidental</i> damage by authorised users — wrong, missing, duplicate or dangling data.</p></div>
+<p><b>Integrity vs security:</b> integrity protects against <i>accidental</i> invalid changes by authorised users; security protects against
+<i>unauthorised</i> access (GRANT/REVOKE, Unit 5). <b>Why declare them in the DBMS rather than in programs?</b> Written once instead of in every
+application, cannot be bypassed, and stored in the catalog where everyone can see them (Codd’s rule 10, integrity independence).</p>
+{{svg:ic_tree}}
+
+<h3 id="s2-2">2.2 Domain constraints — data type, NOT NULL, CHECK, DEFAULT</h3>
+<p>A <b>domain constraint</b> specifies the set of values an attribute may take. Every value must be atomic and belong to the attribute’s domain.</p>
+<ul>
+<li><b>Data type</b> — <code>INT</code>, <code>DECIMAL(8,2)</code>, <code>VARCHAR(30)</code>, <code>DATE</code> … A value of the wrong type is rejected
+(storing <code>'A'</code> in an <code>INT</code> age column).</li>
+<li><b>NOT NULL</b> — the attribute must always have a value: <code>name VARCHAR(40) NOT NULL</code>.</li>
+<li><b>CHECK (condition)</b> — the value must satisfy a condition: <code>CHECK (age BETWEEN 16 AND 40)</code>,
+<code>CHECK (color IN ('red','green','blue','black'))</code>, <code>CHECK (salary &gt; 0)</code>. A CHECK may also involve several columns of the same
+row: <code>CHECK (end_date &gt;= start_date)</code> (then it is written at table level).</li>
+<li><b>DEFAULT value</b> — value stored when an INSERT does not give one: <code>building VARCHAR(20) DEFAULT 'Main'</code>.</li>
+<li><b>User-defined domain</b> (standard SQL): <code>CREATE DOMAIN marks_t AS INT CHECK (VALUE BETWEEN 0 AND 100);</code> then use
+<code>marks marks_t</code>.</li>
+</ul>
+<div class="box warn"><div class="box-t">CHECK and NULL</div>
+<p>A CHECK constraint is violated only when the condition is <b>FALSE</b>. If the value is NULL the condition is UNKNOWN, which is <b>accepted</b>.
+So <code>CHECK (age &gt;= 16)</code> still allows a NULL age — add <code>NOT NULL</code> if the value is mandatory.
+(Older MySQL versions, before 8.0.16, parsed CHECK but silently ignored it.)</p></div>
+
+<h3 id="s2-3">2.3 Key constraints and entity integrity — PRIMARY KEY, UNIQUE</h3>
+<ul>
+<li><b>Key constraint:</b> no two tuples may have the same value for a key. Declared with <code>PRIMARY KEY</code> (the chosen key) and
+<code>UNIQUE</code> (alternate keys).</li>
+<li><b>Entity integrity constraint:</b> <b>no attribute of the primary key may be NULL</b>. Reason: the PK is how we identify a tuple (and how other
+tables refer to it); a NULL key would make the row unidentifiable, and two NULL keys could not be told apart.</li>
+</ul>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>PRIMARY KEY</th><th>UNIQUE</th></tr>
+<tr><td>Only <b>one</b> per table (may be composite)</td><td><b>Many</b> per table</td></tr>
+<tr><td><b>NULL not allowed</b> (entity integrity)</td><td>NULL allowed (most DBMSs allow several NULLs; SQL Server allows only one)</td></tr>
+<tr><td>Identifies the row; usual target of foreign keys</td><td>Enforces uniqueness of an alternate key; can also be referenced by an FK</td></tr>
+<tr><td>Automatically indexed (often clustered)</td><td>Automatically indexed (non-clustered)</td></tr>
+<tr><td><code>roll_no INT PRIMARY KEY</code></td><td><code>email VARCHAR(50) UNIQUE</code></td></tr>
+</table></div>
+<p>A <b>composite</b> PK or UNIQUE must be written at <b>table level</b>: <code>PRIMARY KEY (student_id, course_id, semester)</code> — this says the
+<i>combination</i> is unique (a student may take many courses, but not the same course twice in the same semester).</p>
+
+<h3 id="s2-4">2.4 Referential integrity — FOREIGN KEY</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>referential integrity constraint</b> is specified between two relations. If attribute set FK of the <b>referencing (child)</b> relation R<sub>1</sub>
+refers to the primary key PK of the <b>referenced (parent)</b> relation R<sub>2</sub>, then for every tuple t<sub>1</sub> in R<sub>1</sub>, the value
+t<sub>1</sub>[FK] must either be <b>NULL</b> or be equal to t<sub>2</sub>[PK] for some tuple t<sub>2</sub> in R<sub>2</sub>.</p>
+<p>In words: <i>a foreign key may not point to something that does not exist</i> (“no dangling references”).</p></div>
+<h4>Which operations can violate it?</h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Operation</th><th>Can it violate RI?</th><th>What the DBMS does</th></tr>
+<tr><td>INSERT into <b>child</b></td><td>Yes — if the new FK value is not in the parent</td><td>rejects the insert</td></tr>
+<tr><td>UPDATE child’s FK</td><td>Yes — if the new value is not in the parent</td><td>rejects the update</td></tr>
+<tr><td>DELETE from <b>parent</b></td><td>Yes — if child rows refer to the deleted row</td><td>applies the <b>ON DELETE</b> action (below)</td></tr>
+<tr><td>UPDATE parent’s PK</td><td>Yes — child rows would be left pointing at the old value</td><td>applies the <b>ON UPDATE</b> action</td></tr>
+<tr><td>INSERT into parent / DELETE from child</td><td>Never</td><td>—</td></tr>
+</table></div>
+<h4>Referential actions (what to do when a referenced parent row is deleted / its key updated)</h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Action</th><th>Effect on child rows</th><th>Typical use</th></tr>
+<tr><td><b>RESTRICT</b> / <b>NO ACTION</b> (default)</td><td>the delete/update of the parent is <b>rejected</b> while child rows exist
+(NO ACTION checks at end of statement, RESTRICT immediately)</td><td>don’t delete a customer who has orders</td></tr>
+<tr><td><b>CASCADE</b></td><td>child rows are <b>deleted too</b> (ON DELETE) / their FK is <b>changed to the new value</b> (ON UPDATE)</td><td>delete an order ⇒ delete its order-lines</td></tr>
+<tr><td><b>SET NULL</b></td><td>child FK set to NULL (FK column must be nullable)</td><td>department closed ⇒ employees unassigned</td></tr>
+<tr><td><b>SET DEFAULT</b></td><td>child FK set to its DEFAULT (that value must exist in the parent)</td><td>move to a “general” department</td></tr>
+</table></div>
+{{svg:fk_actions}}
+<pre class="sql">CREATE TABLE employee (
+  emp_id   INT PRIMARY KEY,
+  name     VARCHAR(40) NOT NULL,
+  dept_id  INT,
+  CONSTRAINT fk_emp_dept FOREIGN KEY (dept_id)
+      REFERENCES department(dept_id)
+      ON DELETE SET NULL
+      ON UPDATE CASCADE
+);</pre>
+<div class="box ex"><div class="box-t">Cascades can chain — self-referencing table (PYQ End-Sem 2024)</div>
+<p>Table T(A, C): A is the PK, C is an FK referencing A with <code>ON DELETE CASCADE</code>. Tuples: (2,4) (3,4) (4,3) (5,2) (7,2) (9,5) (6,4).
+Deleting (2,4) deletes every tuple whose C = 2, i.e. (5,2) and (7,2); deleting (5,2) in turn deletes the tuple with C = 5, i.e. (9,5); nobody has C = 7
+or C = 9, so the chain stops.</p>
+{{svg:cascade_chain}}
+<p>Verified by running it:</p>
+{{viol:cascade24}}
+<p>Additionally deleted: <b>(5,2), (7,2), (9,5)</b>.</p></div>
+
+<h3 id="s2-5">2.5 Enforcing integrity constraints</h3>
+<p>“Enforcing” = <i>where</i> the constraints are written and <i>how/when</i> the DBMS checks them.</p>
+<ol>
+<li><b>Declaratively, in CREATE TABLE</b> (best). Two styles:
+<ul><li><b>Column-level</b> — written next to the column: <code>age INT CHECK (age &gt;= 16)</code>. Only for single-column constraints. (NOT NULL can only
+be column-level.)</li>
+<li><b>Table-level</b> — written after all columns: <code>PRIMARY KEY (sid, cid)</code>, <code>FOREIGN KEY (sid) REFERENCES student(roll_no)</code>,
+<code>CHECK (end_date &gt;= start_date)</code>. Needed for multi-column constraints.</li></ul>
+Give constraints <b>names</b> with <code>CONSTRAINT name …</code> so error messages are readable and they can be dropped later.</li>
+<li><b>Added / removed later with ALTER TABLE</b>:
+<pre class="sql">ALTER TABLE parts   ADD CONSTRAINT chk_color CHECK (color IN ('green','red','blue','black'));
+ALTER TABLE student ADD CONSTRAINT uq_email UNIQUE (email);
+ALTER TABLE student ADD CONSTRAINT fk_dept FOREIGN KEY (dept_id) REFERENCES department(dept_id);
+ALTER TABLE student DROP CONSTRAINT chk_age;          -- MySQL: DROP CHECK chk_age</pre>
+When a constraint is added to a table that already has data, the DBMS first checks the existing rows; if any violates it, the ALTER fails.</li>
+<li><b>Checking time.</b> By default every constraint is checked <b>immediately</b> — after each SQL statement. If it fails, the
+<b>whole statement is rolled back</b> and an error is returned (the transaction may continue). A constraint declared
+<code>DEFERRABLE INITIALLY DEFERRED</code> is checked only at <b>COMMIT</b> — needed for “chicken-and-egg” cases such as two tables with FKs to
+each other (Oracle, PostgreSQL).</li>
+<li><b>General constraints</b> that span several tables cannot be expressed as column/table constraints:
+<ul><li><b>Assertion</b> (standard SQL, rarely implemented): <code>CREATE ASSERTION max_staff CHECK (NOT EXISTS (SELECT dept_id FROM employee GROUP BY dept_id HAVING COUNT(*) &gt; 50));</code></li>
+<li><b>Triggers</b> (section 11) — procedural code fired on INSERT/UPDATE/DELETE that can check anything and raise an error.</li></ul></li>
+<li><b>Application code</b> — the weakest option: can be bypassed by any other program or by direct SQL.</li>
+</ol>
+<h4>Complete example — every constraint type, and what the DBMS does</h4>
+<pre class="sql">CREATE TABLE department (
+  dept_id    INT          PRIMARY KEY,                      -- key + entity integrity
+  dept_name  VARCHAR(30)  NOT NULL UNIQUE,                  -- domain + alternate key
+  building   VARCHAR(20)  DEFAULT 'Main'                    -- default value
+);
+CREATE TABLE student (
+  roll_no    INT          PRIMARY KEY,
+  name       VARCHAR(40)  NOT NULL,
+  email      VARCHAR(50)  UNIQUE,
+  age        INT          CHECK (age BETWEEN 16 AND 40),
+  dept_id    INT,
+  FOREIGN KEY (dept_id) REFERENCES department(dept_id)      -- referential integrity
+      ON DELETE SET NULL ON UPDATE CASCADE
+);</pre>
+<p>The statements below were executed one after another on these two tables; the “DBMS response” column is the real outcome.</p>
+{{viol:ic1}}
+<div class="box exam"><div class="box-t">Exam — “What are integrity constraints? Explain any four with examples and syntax.”</div>
+<p>Definition (2.1) → classification diagram → for each of domain (NOT NULL/CHECK), key (PRIMARY KEY/UNIQUE), entity integrity, referential integrity:
+one-line meaning + SQL syntax + one violating INSERT and why it is rejected (use the table above). End with “enforced automatically by the DBMS on
+every insert/update/delete; violating statements are rejected”.</p></div>

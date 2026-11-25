@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DBMS Notes</title>
+<meta name="description" content="Unit-wise Database Management System notes (ITITC302) with fully solved previous-year questions.">
+<style>
+:root{--bg:#f7f6f2;--surface:#fff;--surface2:#f1efe8;--ink:#1d1f24;--muted:#5d6370;--border:#dcd8cc;--accent:#2756c5;--accent-bg:#e8eefc;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);--font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15171c;--surface:#1d2027;--surface2:#242832;--ink:#e7e9ee;--muted:#a3a9b6;
+  --border:#343947;--accent:#7ea3ff;--accent-bg:#1e2a47;--shadow:none}}
+:root[data-theme="dark"]{--bg:#15171c;--surface:#1d2027;--surface2:#242832;--ink:#e7e9ee;--muted:#a3a9b6;--border:#343947;--accent:#7ea3ff;
+  --accent-bg:#1e2a47;--shadow:none}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6}
+main{max-width:920px;margin:0 auto;padding:48px 16px 80px}
+h1{font-size:2rem;margin:0 0 6px;letter-spacing:-.3px}
+.sub{color:var(--muted);margin:0 0 32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);
+  color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card.soon{opacity:.55}
+.num{font-size:.75rem;font-weight:750;letter-spacing:.9px;text-transform:uppercase;color:var(--accent)}
+.card h2{font-size:1.15rem;margin:4px 0 6px}
+.card p{margin:0;color:var(--muted);font-size:.9rem}
+.tag{display:inline-block;margin-top:12px;font-size:.75rem;padding:2px 9px;border-radius:999px;background:var(--accent-bg);color:var(--accent)}
+.card.soon .tag{background:var(--surface2);color:var(--muted)}
+footer{margin-top:40px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>DBMS Notes</h1>
+<p class="sub">Database Management System (ITITC302 / INITC302) · unit-wise notes with diagrams and fully solved previous-year questions.</p>
+<div class="grid">
+  <div class="card soon"><div class="num">Unit 1</div><h2>Introduction to Database Systems</h2>
+    <p>File systems vs DBMS, levels of abstraction, data independence, data models.</p><span class="tag">Coming soon</span></div>
+  <a class="card" href="unit2/"><div class="num">Unit 2</div><h2>Relational Model &amp; SQL</h2>
+    <p>Integrity constraints, relational algebra &amp; calculus, SQL queries, joins, sub-queries, triggers, NoSQL.</p><span class="tag">Open notes →</span></a>
+  <div class="card soon"><div class="num">Unit 3</div><h2>Database Design (ER Model)</h2>
+    <p>ER diagrams, participation, specialization, generalization, aggregation, ER to relational.</p><span class="tag">Coming soon</span></div>
+  <div class="card soon"><div class="num">Unit 4</div><h2>Normalization</h2>
+    <p>Functional dependencies, closure, 1NF–BCNF, lossless and dependency-preserving decomposition.</p><span class="tag">Coming soon</span></div>
+  <a class="card" href="unit5/"><div class="num">Unit 5</div><h2>Transactions, Concurrency &amp; Recovery</h2>
+    <p>ACID, schedules, serializability, 2PL family, deadlocks, recovery, database security.</p><span class="tag">Open notes →</span></a>
+</div>
+<footer>Every page works offline and supports light/dark mode.</footer>
+</main>
+</body>
+</html>

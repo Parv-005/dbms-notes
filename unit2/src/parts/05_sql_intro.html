@@ -1,0 +1,178 @@
+<!-- ============================================================ 5 -->
+<h2 id="s5"><span class="num">5</span>Introduction to SQL — DDL, DML, DCL, TCL</h2>
+
+<h3 id="s5-1">5.1 What SQL is</h3>
+<p><b>SQL (Structured Query Language)</b>, pronounced “S-Q-L” or “sequel”, is the standard language for relational databases. It was developed at
+IBM (System R, 1970s, originally SEQUEL) and standardised by ANSI (1986) and ISO (1987); later versions are SQL-92, SQL:1999 (triggers, recursion),
+SQL:2003 (window functions) and onward. Every RDBMS implements the standard plus its own <b>dialect</b> (Oracle PL/SQL, MySQL, SQL Server T-SQL, PostgreSQL).</p>
+<ul>
+<li><b>Declarative / non-procedural</b> — you state <i>what</i> you want; the DBMS’s optimiser decides <i>how</i>.</li>
+<li><b>Set-oriented</b> — one statement can read or change many rows (Codd rule 7).</li>
+<li><b>Comprehensive</b> — one language for definition, manipulation, control and transactions (Codd rule 5).</li>
+<li>Keywords are <b>case-insensitive</b> (<code>SELECT</code> = <code>select</code>); string literals in single quotes are case-sensitive in most systems;
+statements end with <code>;</code>.</li>
+</ul>
+<h4>Procedural vs non-procedural (declarative) languages <span class="chip pur">PYQ</span></h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Procedural (e.g. relational algebra, C, PL/SQL)</th><th>Non-procedural (e.g. SQL, relational calculus, QBE)</th></tr>
+<tr><td>user specifies <b>what</b> data is needed <b>and how</b> to obtain it (step sequence)</td><td>user specifies only <b>what</b> data is needed</td></tr>
+<tr><td>programmer decides the order of operations</td><td>system (query optimiser) decides the order</td></tr>
+<tr><td>harder to write, needs knowledge of the data organisation</td><td>easier, shorter, closer to English</td></tr>
+<tr><td>e.g. <ra>\pi_{name}(\sigma_{dept=10}(Employee))</ra> — first select, then project</td><td>e.g. <code>SELECT name FROM employee WHERE dept = 10;</code></td></tr>
+</table></div>
+
+<h3 id="s5-2">5.2 The SQL sub-languages</h3>
+{{svg:sql_sublang}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>DDL — Data Definition Language</th><th>DML — Data Manipulation Language</th></tr>
+<tr><td>Purpose</td><td>define / change / remove the <b>structure</b> (schema) of database objects</td><td>retrieve and change the <b>data</b> stored in those objects</td></tr>
+<tr><td>Commands</td><td>CREATE, ALTER, DROP, TRUNCATE, RENAME, COMMENT</td><td>SELECT, INSERT, UPDATE, DELETE, MERGE</td></tr>
+<tr><td>Works on</td><td>whole tables, views, indexes, schemas</td><td>rows (tuples)</td></tr>
+<tr><td>WHERE clause</td><td>not used</td><td>used to pick rows</td></tr>
+<tr><td>Rollback</td><td>auto-committed in Oracle/MySQL — cannot be rolled back</td><td>can be rolled back until COMMIT</td></tr>
+<tr><td>Effect on data dictionary</td><td>updates the data dictionary (metadata)</td><td>does not change metadata</td></tr>
+<tr><td>Typical user</td><td>DBA, database designer</td><td>application programs, end users</td></tr>
+<tr><td>Example</td><td><code>CREATE TABLE student(roll INT PRIMARY KEY, name VARCHAR(30));</code></td><td><code>INSERT INTO student VALUES (1, 'Aman');</code></td></tr>
+</table></div>
+<p>DML itself has two styles: <b>procedural DML</b> (user says how to get the data — e.g. record-at-a-time navigation in the network model) and
+<b>declarative / non-procedural DML</b> (SQL).</p>
+
+<h3 id="s5-3">5.3 Data types</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Category</th><th>Types</th><th>Notes</th></tr>
+<tr><td>Exact numeric</td><td><code>INT / INTEGER, SMALLINT, BIGINT, DECIMAL(p,s) / NUMERIC(p,s)</code></td><td>DECIMAL(8,2): 8 digits, 2 after the point — use for money</td></tr>
+<tr><td>Approximate numeric</td><td><code>FLOAT, REAL, DOUBLE PRECISION</code></td><td>rounding errors possible</td></tr>
+<tr><td>Character</td><td><code>CHAR(n)</code>, <code>VARCHAR(n)</code> (Oracle: <code>VARCHAR2</code>), <code>TEXT</code></td><td>CHAR is fixed-length, blank-padded; VARCHAR stores only the actual length</td></tr>
+<tr><td>Date / time</td><td><code>DATE, TIME, TIMESTAMP, INTERVAL</code></td><td>literal: <code>DATE '2025-11-07'</code> or <code>'2025-11-07'</code></td></tr>
+<tr><td>Others</td><td><code>BOOLEAN, BLOB, CLOB, JSON</code></td><td>support varies by DBMS</td></tr>
+</table></div>
+<p><b>CHAR vs VARCHAR:</b> <code>CHAR(10)</code> storing 'Delhi' uses 10 characters ('Delhi␣␣␣␣␣'); <code>VARCHAR(10)</code> uses 5 (+ length bytes).
+CHAR is good for fixed-length codes (PIN, state code), VARCHAR for names and addresses.</p>
+
+<h3 id="s5-4">5.4 DDL commands</h3>
+<h4>CREATE TABLE</h4>
+<pre class="sql">CREATE TABLE table_name (
+    column1  datatype  [column_constraint ...],
+    column2  datatype  [column_constraint ...],
+    ...,
+    [table_constraint ...]
+);</pre>
+<pre class="sql">CREATE TABLE suppliers (
+  sid      INTEGER      PRIMARY KEY,
+  sname    VARCHAR(10)  NOT NULL,
+  address  VARCHAR(10)
+);
+CREATE TABLE parts (
+  pid      INTEGER      PRIMARY KEY,
+  pname    VARCHAR(10),
+  color    VARCHAR(10)
+);
+CREATE TABLE catalog (
+  sid      INTEGER  REFERENCES suppliers(sid),
+  pid      INTEGER  REFERENCES parts(pid),
+  cost     REAL     CHECK (cost &gt; 0),
+  PRIMARY KEY (sid, pid)
+);</pre>
+<p>Create a table from a query (copies structure + data, but <b>not</b> constraints): <code>CREATE TABLE it_emp AS SELECT * FROM employee WHERE dept_id = 20;</code></p>
+<h4>ALTER TABLE — change the structure</h4>
+<pre class="sql">ALTER TABLE customer ADD    phone VARCHAR(15);                    -- add a column (existing rows get NULL)
+ALTER TABLE customer DROP   COLUMN phone;                         -- remove a column
+ALTER TABLE customer MODIFY cust_add CHAR(50);                    -- change type/size  (Oracle, MySQL)
+ALTER TABLE customer ALTER  COLUMN cust_add TYPE CHAR(50);        -- same, PostgreSQL / standard
+ALTER TABLE customer RENAME COLUMN cust_add TO address;           -- rename a column
+ALTER TABLE parts    ADD CONSTRAINT chk_color
+      CHECK (color IN ('green', 'red', 'blue', 'black'));         -- add a constraint
+ALTER TABLE catalog  DROP CONSTRAINT some_name;                   -- drop a constraint</pre>
+<div class="box warn"><div class="box-t">Changing a column’s type or size</div>
+<p>Making a column <i>larger</i> (VARCHAR(20) → VARCHAR(50)) always works. Making it <i>smaller</i>, or changing VARCHAR → INT, fails if existing values do
+not fit. The 2026 summer lab question “change the size of the column salary” is simply
+<code>ALTER TABLE employees MODIFY salary DECIMAL(12,2);</code> (Oracle/MySQL) or <code>ALTER TABLE employees ALTER COLUMN salary TYPE DECIMAL(12,2);</code></p></div>
+<h4>DROP, TRUNCATE, RENAME, COMMENT</h4>
+<pre class="sql">DROP TABLE catalog;                       -- table + data + indexes + constraints gone
+DROP TABLE department CASCADE CONSTRAINTS; -- Oracle: also drop FKs that point to it
+TRUNCATE TABLE works_on;                  -- remove ALL rows, keep the empty table
+RENAME employee TO staff;                 -- Oracle;  MySQL/PostgreSQL: ALTER TABLE employee RENAME TO staff;
+COMMENT ON TABLE staff IS 'All employees';</pre>
+{{svg:three_schema_sql}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr>
+<tr><td>Category</td><td>DML</td><td>DDL</td><td>DDL</td></tr>
+<tr><td>Removes</td><td>selected rows (WHERE) or all rows</td><td>all rows</td><td>all rows <b>and</b> the table definition</td></tr>
+<tr><td>Table structure afterwards</td><td>remains</td><td>remains (empty)</td><td>gone</td></tr>
+<tr><td>WHERE clause</td><td>allowed</td><td>not allowed</td><td>not applicable</td></tr>
+<tr><td>Rollback</td><td>yes (logged row by row)</td><td>no in Oracle/MySQL (implicit commit)</td><td>no (except Oracle recycle bin / FLASHBACK)</td></tr>
+<tr><td>Speed</td><td>slow for many rows</td><td>very fast (deallocates pages)</td><td>fast</td></tr>
+<tr><td>Triggers</td><td>DELETE triggers fire</td><td>do not fire</td><td>do not fire</td></tr>
+<tr><td>Identity / auto-increment counter</td><td>not reset</td><td>reset</td><td>removed</td></tr>
+<tr><td>Space freed</td><td>no (space reused later)</td><td>yes</td><td>yes</td></tr>
+<tr><td>When to use</td><td>remove some rows, need undo / triggers</td><td>empty a staging/log table quickly</td><td>table no longer needed</td></tr>
+</table></div>
+
+<h3 id="s5-5">5.5 DML — INSERT, UPDATE, DELETE</h3>
+<pre class="sql">INSERT INTO department VALUES (50, 'Legal', 'Delhi');                 -- all columns, in table order
+INSERT INTO department (dept_id, dept_name) VALUES (60, 'Finance');   -- named columns; others get DEFAULT/NULL
+INSERT INTO department VALUES (70, 'Ops', 'Pune'), (80, 'QA', 'Noida'); -- several rows at once</pre>
+<p>Insert the result of a query (no VALUES keyword):</p>
+{{sql:dml_insert_select}}
+<p>UPDATE changes existing rows — <b>without WHERE, every row is updated</b>:</p>
+{{sql:dml_update}}
+<p>DELETE removes rows — <b>without WHERE, every row is deleted</b> (table stays):</p>
+{{sql:dml_delete}}
+<p>Update/delete using another table (sub-query in WHERE):</p>
+<pre class="sql">UPDATE employee
+SET    salary = salary + 5000
+WHERE  dept_id = (SELECT dept_id FROM department WHERE dept_name = 'HR');
+
+DELETE FROM employee
+WHERE  emp_id NOT IN (SELECT emp_id FROM works_on);   -- employees on no project</pre>
+<p><b>MERGE</b> (“upsert”): insert a row if it does not exist, otherwise update it (Oracle, SQL Server; MySQL uses
+<code>INSERT … ON DUPLICATE KEY UPDATE</code>).</p>
+
+<h3 id="s5-6">5.6 DCL — GRANT and REVOKE</h3>
+<p>DCL controls <b>who may do what</b> (authorisation). Privileges are of two kinds:</p>
+<ul>
+<li><b>System privileges</b> — the right to perform an action in the database: CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE USER…</li>
+<li><b>Object privileges</b> — the right to act on a particular object: SELECT, INSERT, UPDATE, DELETE, REFERENCES, EXECUTE, ALL PRIVILEGES on a table/view/procedure.</li>
+</ul>
+<pre class="sql">GRANT SELECT, INSERT ON employee TO ravi;               -- give privileges
+GRANT UPDATE (salary) ON employee TO hr_manager;         -- column-level privilege
+GRANT SELECT ON employee TO ravi WITH GRANT OPTION;      -- ravi may pass the privilege on
+GRANT ALL PRIVILEGES ON project TO PUBLIC;               -- every user
+GRANT CREATE TABLE TO ravi;                              -- system privilege
+
+REVOKE INSERT ON employee FROM ravi;                     -- take back
+REVOKE SELECT ON employee FROM ravi CASCADE;             -- also from everyone ravi granted it to</pre>
+<p>Roles group privileges: <code>CREATE ROLE clerk; GRANT SELECT, INSERT ON orders TO clerk; GRANT clerk TO ravi, sita;</code>
+(Details — authorisation graph, CASCADE vs RESTRICT — are in Unit 5, Database Security.)</p>
+
+<h3 id="s5-7">5.7 TCL — COMMIT, ROLLBACK, SAVEPOINT</h3>
+<pre class="sql">UPDATE account SET balance = balance - 500 WHERE acc_no = 'A';
+SAVEPOINT after_debit;
+UPDATE account SET balance = balance + 500 WHERE acc_no = 'B';
+ROLLBACK TO after_debit;      -- undo only the credit
+COMMIT;                       -- make the remaining changes permanent</pre>
+<ul>
+<li><b>COMMIT</b> — makes all changes of the current transaction permanent and visible to others.</li>
+<li><b>ROLLBACK</b> — undoes all changes since the last COMMIT.</li>
+<li><b>SAVEPOINT name</b> / <b>ROLLBACK TO name</b> — partial rollback inside a transaction.</li>
+<li><b>SET TRANSACTION</b> — sets properties (read only, isolation level). Transactions are covered fully in Unit 5.</li>
+<li>In Oracle and MySQL every DDL statement performs an <b>implicit COMMIT</b> before and after itself.</li>
+</ul>
+
+<h3 id="s5-8">5.8 Views</h3>
+<p>A <b>view</b> is a <b>virtual table</b> defined by a stored query; it holds no data of its own — each time it is used, its query runs on the base tables.</p>
+<pre class="sql">CREATE VIEW it_staff_v AS
+SELECT emp_id, name, salary
+FROM   employee
+WHERE  dept_id = 20;
+
+SELECT * FROM it_staff_v WHERE salary &gt; 70000;     -- use it like a table
+DROP VIEW it_staff_v;</pre>
+<ul>
+<li><b>Uses:</b> security (show only some columns/rows — e.g. hide salary), simplicity (hide complex joins), logical data independence (applications
+use the view even if base tables are restructured).</li>
+<li><b>Updatable views:</b> a view on a single table without DISTINCT, GROUP BY, aggregates or set operators, and including the key, can usually be
+updated (the change goes to the base table). Others need an INSTEAD OF trigger (section 11).</li>
+<li><code>WITH CHECK OPTION</code> — rejects inserts/updates through the view that would produce rows the view cannot see.</li>
+<li><b>Materialised view</b> — stores the result physically and is refreshed periodically (faster reads, stale data possible).</li>
+</ul>

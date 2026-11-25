@@ -1,0 +1,185 @@
+<!-- ============================================================ 1 -->
+<h2 id="s1"><span class="num">1</span>Structure of Relational Databases</h2>
+
+<h3 id="s1-1">1.1 The relational model and RDBMS</h3>
+<p>A <b>data model</b> is a set of concepts used to describe the structure of a database (data, relationships, constraints) and the operations
+on it. In Unit 1 you met the hierarchical (tree) and network (graph) models. The <b>relational model</b>, proposed by
+<b>Dr. E. F. Codd (IBM, 1970)</b>, represents <i>everything</i> — both data and the relationships between data — as <b>tables</b>, which
+mathematically are <b>relations</b>.</p>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Relational model:</b> a data model in which the database is a collection of <b>relations</b> (tables); each relation has a fixed set of named
+columns (<b>attributes</b>) and a set of rows (<b>tuples</b>); relationships between relations are represented by <b>matching values</b>
+(keys and foreign keys) rather than by pointers.</p>
+<p><b>RDBMS</b> (Relational DataBase Management System): a DBMS based on the relational model — Oracle, MySQL, PostgreSQL, Microsoft SQL Server,
+IBM DB2, SQLite, MS Access. All of them use <b>SQL</b> as their language.</p></div>
+<p>Why it won over the older models:</p>
+<ul>
+<li><b>Simple</b> — users see only tables, no pointers or physical paths.</li>
+<li><b>Data independence</b> — queries say <i>what</i> data is needed, not <i>how</i> to navigate to it, so the storage can change without
+changing programs.</li>
+<li><b>Solid mathematical foundation</b> — set theory and first-order logic (relational algebra and calculus, sections 3–4), which makes
+query optimisation possible.</li>
+<li><b>Powerful declarative language</b> (SQL) and built-in <b>integrity constraints</b> (section 2).</li>
+</ul>
+
+<h3 id="s1-2">1.2 Terminology</h3>
+{{svg:relation_anatomy}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Formal term</th><th>Informal term</th><th>Meaning</th></tr>
+<tr><td><b>Relation</b></td><td>table</td><td>a set of tuples having the same attributes</td></tr>
+<tr><td><b>Tuple</b></td><td>row, record</td><td>one entry of the relation; describes one entity / one fact</td></tr>
+<tr><td><b>Attribute</b></td><td>column, field</td><td>a named property; every tuple has a value for it (possibly NULL)</td></tr>
+<tr><td><b>Domain</b></td><td>data type + allowed values</td><td>the set of <b>atomic</b> values an attribute may take, e.g. Age ∈ integers 17–60, Gender ∈ {M, F, O}</td></tr>
+<tr><td><b>Degree (arity)</b></td><td>number of columns</td><td>number of attributes in the relation (STUDENT above: 4). A relation of degree 1 is <i>unary</i>, 2 <i>binary</i>, 3 <i>ternary</i>, n <i>n-ary</i></td></tr>
+<tr><td><b>Cardinality</b></td><td>number of rows</td><td>number of tuples at a given time (STUDENT above: 4); cardinality 0 = empty relation</td></tr>
+<tr><td><b>Relation schema</b></td><td>table definition</td><td>relation name + list of attributes (+ domains): <code>STUDENT(Roll_No, Name, Age, City)</code></td></tr>
+<tr><td><b>Relation instance</b></td><td>table contents</td><td>the set of tuples present at a particular moment (also called relation state)</td></tr>
+<tr><td><b>Relational database schema</b></td><td>all table definitions</td><td>set of relation schemas + integrity constraints, e.g. {STUDENT, COURSE, ENROLLMENT}</td></tr>
+<tr><td><b>Data item / cell</b></td><td>field value</td><td>the value at the intersection of one tuple and one attribute — the smallest unit of data</td></tr>
+</table></div>
+<div class="box def"><div class="box-t">Mathematical definition</div>
+<p>Let D<sub>1</sub>, D<sub>2</sub>, …, D<sub>n</sub> be the domains of attributes A<sub>1</sub>, …, A<sub>n</sub>. A <b>relation</b> r on schema
+R(A<sub>1</sub>, …, A<sub>n</sub>) is a <b>subset of the Cartesian product</b> D<sub>1</sub> × D<sub>2</sub> × … × D<sub>n</sub>. Each tuple
+t = ⟨v<sub>1</sub>, …, v<sub>n</sub>⟩ has v<sub>i</sub> ∈ D<sub>i</sub> (or NULL). We write <code>t[A]</code> or <code>t.A</code> for the value of
+attribute A in tuple t.</p>
+<p>This is why the model is called <i>relational</i>: a table <i>is</i> a mathematical relation (a set of ordered n-tuples) — not because tables
+are “related” to each other.</p></div>
+<div class="box tip"><div class="box-t">Schema vs instance — an analogy</div>
+<p>The schema is like the <i>declaration</i> of a variable (<code>int marks[60]</code>), the instance is its <i>current value</i>.
+The schema of STUDENT stays the same all semester; the instance changes every time a student is admitted or leaves.</p></div>
+
+<h3 id="s1-3">1.3 Properties (characteristics) of relations</h3>
+<ol>
+<li><b>Each relation has a distinct name</b> within the database.</li>
+<li><b>Each cell contains exactly one atomic (indivisible) value</b> — no lists, no sets, no nested tables. (This is the <b>First Normal Form</b>,
+studied in Unit 4.) A student’s three phone numbers cannot be stored in one cell.</li>
+<li><b>Attribute names are distinct</b> within a relation, and all values in one column come from the same domain.</li>
+<li><b>No two tuples are identical</b> — a relation is a <i>set</i>, so duplicates are not allowed. Consequence: every relation has at least one key
+(at worst, the set of all its attributes).</li>
+<li><b>The order of tuples is irrelevant</b> — tuples are identified by their values, not by their position (“row 3” has no meaning).</li>
+<li><b>The order of attributes is irrelevant</b> as long as each value is referred to by its attribute name.</li>
+</ol>
+<div class="box note"><div class="box-t">Correction (course PDF p. 70)</div>
+<p>The PDF lists “Attribute domain has no significance” and “Tuple has no duplicate value”. The intended (and correct) properties are
+“the <b>order of attributes</b> has no significance” and “a relation has <b>no duplicate tuples</b>”. A single tuple may of course contain the same
+value twice (e.g. <code>⟨5, 5⟩</code>).</p></div>
+<div class="box warn"><div class="box-t">SQL tables vs relations</div>
+<p>A SQL table is a <b>multiset (bag)</b>: unless you declare a PRIMARY KEY or UNIQUE constraint, it may contain duplicate rows, and
+<code>SELECT</code> keeps duplicates unless you write <code>DISTINCT</code>. Relational algebra (pure theory) never has duplicates.</p></div>
+
+<h3 id="s1-4">1.4 NULL values</h3>
+<p><b>NULL</b> is a special marker meaning “<i>no value is stored here</i>”. It is <b>not</b> zero, <b>not</b> an empty string and <b>not</b> a space.</p>
+<h4>Reasons for the occurrence of NULL values in a relation <span class="chip pur">PYQ Mid-Sem 2024</span></h4>
+<ol>
+<li><b>Value unknown</b> — a value exists but is not known at present. <i>Example:</i> a patient’s date of birth is not known at admission.</li>
+<li><b>Value not applicable / does not exist</b> — the attribute does not apply to this tuple. <i>Example:</i> <code>spouse_name</code> of an
+unmarried employee; <code>apartment_no</code> for someone living in an independent house.</li>
+<li><b>Value not yet available</b> — it will exist later. <i>Example:</i> <code>grade</code> of a course still in progress; <code>return_date</code> of a book
+not yet returned.</li>
+<li><b>Value withheld / not recorded</b> — it exists but has been deliberately left out (privacy, missing information at entry time).
+<i>Example:</i> a customer who refused to give a phone number.</li>
+</ol>
+<p>NULLs also appear <b>mechanically</b>: when a column is added with <code>ALTER TABLE … ADD</code> (existing rows get NULL), when an
+<code>INSERT</code> does not mention a column that has no DEFAULT, and in the result of an <b>outer join</b> (padding).</p>
+<h4>Why NULLs cause trouble</h4>
+<ul>
+<li>Any comparison with NULL (<code>=, &lt;, &gt;, &lt;&gt;</code>) gives <b>UNKNOWN</b>, not TRUE/FALSE ⇒ SQL uses <b>three-valued logic</b>
+(section 6.3). Hence <code>WHERE x = NULL</code> never matches — you must write <code>x IS NULL</code>.</li>
+<li>Aggregate functions ignore NULLs (<code>AVG(salary)</code> averages only the non-NULL salaries) — results may surprise you (section 7.1).</li>
+<li>Ambiguity: a NULL does not tell you <i>which</i> of the four meanings applies.</li>
+<li><code>NOT IN</code> with a sub-query that returns a NULL returns no rows at all (section 9.4).</li>
+</ul>
+<p>Good design therefore avoids NULLs where possible: use <code>NOT NULL</code>, sensible <code>DEFAULT</code>s, or move optional attributes to a
+separate table.</p>
+
+<h3 id="s1-5">1.5 Keys</h3>
+<p>A <b>key</b> is an attribute or a set of attributes whose values <b>uniquely identify each tuple</b> of a relation. Keys also <b>connect</b>
+relations (foreign keys).</p>
+{{svg:keys_venn}}
+<div class="box def"><div class="box-t">Definitions</div>
+<ul>
+<li><b>Super key</b> — any set of attributes that uniquely identifies every tuple: no two distinct tuples can ever have the same values on it.
+It may contain extra, unnecessary attributes.</li>
+<li><b>Candidate key</b> — a <b>minimal</b> super key: no proper subset of it is a super key. A relation may have several candidate keys.</li>
+<li><b>Primary key (PK)</b> — the one candidate key chosen by the designer to identify tuples. Its values must be <b>unique</b> and
+<b>never NULL</b>; there is exactly one PK per relation. Shown <u>underlined</u> in a schema.</li>
+<li><b>Alternate (secondary) key</b> — every candidate key that was not chosen as the primary key. (Alternate = Candidate − Primary.)</li>
+<li><b>Composite (compound) key</b> — a key made of two or more attributes, e.g. <code>(sid, cid)</code> in ENROLLMENT.</li>
+<li><b>Foreign key (FK)</b> — an attribute (set) in one relation whose values must match the primary key (or a UNIQUE key) of another
+(or the same) relation, or be NULL. It implements relationships and is the basis of <b>referential integrity</b> (section 2.4).</li>
+</ul></div>
+<div class="box ex"><div class="box-t">Worked example (from the resource notes)</div>
+<p><code>EMPLOYEE(Emp_Id, Name, Aadhaar_No, Email_Id, Dept)</code> with tuples (01, Aman, 7757…, a@gmail.com, 1), (02, Chirag, 4567…, c@gmail.com, 2),
+(03, Chirag, 8967…, ch@gmail.com, 2), (04, Dev, 7964…, d@gmail.com, 3).</p>
+<ul>
+<li>Super keys: {Emp_Id}, {Aadhaar_No}, {Email_Id}, {Emp_Id, Name}, {Emp_Id, Aadhaar_No}, {Aadhaar_No, Email_Id}, {Emp_Id, Name, Email_Id}, … (any set
+containing at least one of the three unique attributes).</li>
+<li>Candidate keys: {Emp_Id}, {Aadhaar_No}, {Email_Id}. {Name} is not even a super key (two Chirags); {Emp_Id, Name} is a super key but not
+minimal.</li>
+<li>Primary key: Emp_Id (short, stable, never changes). Alternate keys: Aadhaar_No, Email_Id.</li>
+<li>Foreign key: Dept → DEPARTMENT(Dept_No).</li>
+</ul></div>
+<div class="box note"><div class="box-t">Correction (course PDF p. 54)</div>
+<p>The PDF gives “C2 → S_Rollno, S_Name” as a candidate key of STUDENT. Since S_Rollno alone is already a key, {S_Rollno, S_Name} is
+<b>not minimal</b> — it is a super key, not a candidate key. Also, “primary key = the minimum number of candidate keys” should read: the primary
+key is <b>one of</b> the candidate keys, chosen by the designer.</p></div>
+<h4>Facts about foreign keys that exams test</h4>
+<ul>
+<li>An FK may have a <b>different name</b> from the PK it references (<code>Employee.dept</code> → <code>Department.dept_no</code>) but must have the
+<b>same domain</b>.</li>
+<li>An FK value <b>need not be unique</b> (many employees work in one department) and <b>may be NULL</b> (employee not yet assigned) unless declared
+NOT NULL.</li>
+<li>An FK may reference its <b>own</b> relation — a <b>self-referencing</b> (recursive) FK, e.g. <code>Employee.manager_id → Employee.emp_id</code>.</li>
+<li>An FK can be part of a primary key: in <code>ENROLLMENT(<u>sid, cid</u>, grade)</code>, sid and cid are both FKs and together form the PK.</li>
+</ul>
+<h4>Counting super keys <span class="beyond-tag">frequently asked</span></h4>
+<p>For a relation with n attributes:</p>
+<ul>
+<li>If there is a single candidate key with k attributes: every super key = that key + any subset of the other n − k attributes ⇒
+<b>2<sup>n−k</sup></b> super keys.</li>
+<li>With two candidate keys K<sub>1</sub>, K<sub>2</sub> use inclusion–exclusion:
+<b>|S(K<sub>1</sub>)| + |S(K<sub>2</sub>)| − |S(K<sub>1</sub> ∪ K<sub>2</sub>)|</b> = 2<sup>n−|K1|</sup> + 2<sup>n−|K2|</sup> − 2<sup>n−|K1∪K2|</sup>.</li>
+</ul>
+<div class="box ex"><div class="box-t">Example — PYQ Mid-Sem 2021, Q3(b)</div>
+<p>R(A, B, C, D, E) has candidate keys (A) and (BC). Number of super keys?</p>
+<p>Super keys containing A: 2<sup>5−1</sup> = 16. Containing B and C: 2<sup>5−2</sup> = 8. Containing A, B and C (counted twice):
+2<sup>5−3</sup> = 4. <b>Total = 16 + 8 − 4 = 20.</b></p>
+<p>List: the 16 supersets of A — A, AB, AC, AD, AE, ABC, ABD, ABE, ACD, ACE, ADE, ABCD, ABCE, ABDE, ACDE, ABCDE — plus the supersets of BC that do
+not contain A — BC, BCD, BCE, BCDE (4 more). 16 + 4 = 20 ✔.</p></div>
+
+<h3 id="s1-6">1.6 Codd’s 12 rules</h3>
+<p>In 1985 Codd published 12 rules (numbered 1–12, plus a “Rule 0”) that a DBMS must satisfy to be called <i>fully relational</i>. No commercial
+product satisfies all of them; they are a yardstick.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>#</th><th>Rule</th><th>What it says (one line)</th></tr>
+<tr><td>0</td><td>Foundation rule</td><td>The system must manage its databases <b>entirely through its relational capabilities</b>.</td></tr>
+<tr><td>1</td><td>Information rule</td><td>All information — data and metadata — is represented <b>only as values in tables</b>.</td></tr>
+<tr><td>2</td><td>Guaranteed access</td><td>Every value is reachable by <b>table name + primary-key value + column name</b>.</td></tr>
+<tr><td>3</td><td>Systematic treatment of NULL</td><td>NULLs are supported uniformly for “missing / unknown / not applicable”, distinct from 0 or blank.</td></tr>
+<tr><td>4</td><td>Active online catalog</td><td>The description of the database (data dictionary) is stored <b>as tables</b> and queried with the same language.</td></tr>
+<tr><td>5</td><td>Comprehensive data sub-language</td><td>One language must support data definition, manipulation, integrity, authorisation and transactions (SQL).</td></tr>
+<tr><td>6</td><td>View updating</td><td>All views that are theoretically updatable must be updatable by the system.</td></tr>
+<tr><td>7</td><td>High-level insert, update, delete</td><td>Insert/update/delete must work on <b>sets</b> of rows, not just one row at a time.</td></tr>
+<tr><td>8</td><td>Physical data independence</td><td>Changing storage/access methods must not affect applications.</td></tr>
+<tr><td>9</td><td>Logical data independence</td><td>Changing table structure (e.g. splitting a table) must not affect applications that do not use the change.</td></tr>
+<tr><td>10</td><td>Integrity independence</td><td>Integrity constraints are defined in the data sub-language and stored in the catalog, <b>not in application programs</b>
+(PK not NULL, FK values must exist).</td></tr>
+<tr><td>11</td><td>Distribution independence</td><td>Users should not see whether data is distributed over several sites.</td></tr>
+<tr><td>12</td><td>Non-subversion</td><td>A low-level (record-at-a-time) interface must not be able to bypass integrity rules.</td></tr>
+</table></div>
+
+<h3 id="s1-7">1.7 DBMS vs RDBMS</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>DBMS (general, e.g. file/hierarchical/network based)</th><th>RDBMS</th></tr>
+<tr><td>Data storage</td><td>files, hierarchical or navigational form</td><td>tables (relations)</td></tr>
+<tr><td>Relationships</td><td>maintained programmatically / via pointers</td><td>through keys; declared when tables are created</td></tr>
+<tr><td>Normalization</td><td>not supported</td><td>supported (Unit 4)</td></tr>
+<tr><td>Integrity constraints</td><td>not enforced by the system</td><td>PK, FK, UNIQUE, CHECK, NOT NULL enforced (and ACID)</td></tr>
+<tr><td>Users / data volume</td><td>small, often single-user</td><td>large data, many concurrent users</td></tr>
+<tr><td>Client–server</td><td>usually not supported</td><td>supported</td></tr>
+<tr><td>Distributed databases</td><td>no</td><td>supported</td></tr>
+<tr><td>Examples</td><td>file systems, XML stores, early IMS</td><td>Oracle, MySQL, PostgreSQL, SQL Server, DB2</td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">Exam — “Explain the structure of a relational database with an example” (5 marks)</div>
+<p>Write: (1) definition of relational model + Codd; (2) the terminology table above with one example relation drawn and labelled (relation,
+tuple, attribute, domain, degree, cardinality, PK); (3) schema vs instance; (4) properties of relations; (5) keys with a one-line example each.</p></div>

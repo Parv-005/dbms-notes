@@ -1,0 +1,322 @@
+<!-- ============================================================ 3 -->
+<h2 id="s3"><span class="num">3</span>Relational Algebra</h2>
+
+<h3 id="s3-1">3.1 What relational algebra is</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Relational algebra (RA)</b> is a <b>procedural</b>, formal query language consisting of a set of operations that take one or two relations
+as input and produce a <b>new relation</b> as output. A query is written as an expression built from these operations, and the expression also
+describes the <i>order</i> in which the operations are applied (that is what “procedural” means — you say <i>what</i> you want and <i>how</i> to get it).</p></div>
+<ul>
+<li><b>Closure property:</b> the output of every operation is again a relation, so operations can be <b>nested</b> like arithmetic:
+<ra>\pi_{sname}(\sigma_{rating > 7}(Sailors))</ra>. Just as + and × combine numbers, σ, π, ⋈ … combine relations.</li>
+<li><b>Set semantics:</b> relations are sets, so results never contain duplicate tuples.</li>
+<li><b>Why study it:</b> it is the theoretical foundation of SQL; the DBMS internally translates every SQL query into an RA expression (a
+<i>query tree</i>) and optimises it by rewriting the expression.</li>
+</ul>
+{{svg:query_langs}}
+<h4>The operators at a glance</h4>
+<div class="sym-grid">
+<div class="sym"><span class="ra">σ</span> <b>select</b> — rows satisfying a condition <span class="chip">unary</span></div>
+<div class="sym"><span class="ra">π</span> <b>project</b> — chosen columns <span class="chip">unary</span></div>
+<div class="sym"><span class="ra">ρ</span> <b>rename</b> — relation / attributes <span class="chip">unary</span></div>
+<div class="sym"><span class="ra">∪</span> <b>union</b> <span class="chip">binary</span></div>
+<div class="sym"><span class="ra">−</span> <b>set difference</b> <span class="chip">binary</span></div>
+<div class="sym"><span class="ra">×</span> <b>Cartesian product</b> <span class="chip">binary</span></div>
+<div class="sym"><span class="ra">∩</span> <b>intersection</b> <span class="chip warn">derived</span></div>
+<div class="sym"><span class="ra">⋈</span> <b>join</b> (θ, equi, natural) <span class="chip warn">derived</span></div>
+<div class="sym"><span class="ra">÷</span> <b>division</b> <span class="chip warn">derived</span></div>
+<div class="sym"><span class="ra">⟕ ⟖ ⟗</span> <b>outer joins</b> <span class="chip pur">extended</span></div>
+<div class="sym"><span class="ra">γ</span> (or 𝒢) <b>aggregation</b> <span class="chip pur">extended</span></div>
+<div class="sym"><span class="ra">←</span> <b>assignment</b> (temporary result)</div>
+</div>
+<p>The six <b>fundamental</b> operators are σ, π, ρ, ∪, −, ×: every other operator can be written using them (section 3.10).</p>
+
+<h3 id="s3-2">3.2 The sample database used in this section</h3>
+<p>Almost every exam uses this classic “<b>Sailors–Boats–Reserves</b>” schema (it appears in the 2024 and summer-semester mid-sems), so all examples
+use it. Primary keys are underlined. Reserves(sid, bid, day) records that sailor <i>sid</i> reserved boat <i>bid</i> on <i>day</i> (the PYQ calls the
+column <code>date</code>; same thing).</p>
+<div class="tables">{{rel:sb.Sailors}}{{rel:sb.Boats}}{{rel:sb.Reserves}}</div>
+<div class="box tip"><div class="box-t">Look at the data before reading on</div>
+<p>Notice the traps deliberately present: there are <b>two sailors named Horatio</b> (sid 64 and 74), two boats named <i>Interlake</i>, two sailors with
+the top rating 10, and several sailors (Brutus, Zorba, Art, Bob) who never reserved anything. These traps are exactly what separates a correct RA
+answer from a wrong one.</p></div>
+
+<h3 id="s3-3">3.3 Selection (σ) — choose rows</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><ra>\sigma_{P}(R)</ra> returns the tuples of R that satisfy the predicate (condition) P. The condition may use attribute names, constants,
+comparison operators <b>=, ≠, &lt;, ≤, &gt;, ≥</b> and connectives <b>∧ (and), ∨ (or), ¬ (not)</b>.</p></div>
+{{svg:sel_proj}}
+{{ra:sel1}}
+{{ra:sel2}}
+<ul>
+<li><b>Degree</b> of the result = degree of R; <b>cardinality</b> ≤ cardinality of R. (The fraction of tuples selected is called the <i>selectivity</i>.)</li>
+<li>σ is <b>commutative</b>: <ra>\sigma_{c1}(\sigma_{c2}(R)) = \sigma_{c2}(\sigma_{c1}(R))</ra>, and a <b>cascade</b> of selections can be merged:
+<ra>\sigma_{c1}(\sigma_{c2}(R)) = \sigma_{c1 \and c2}(R)</ra>.</li>
+<li>The condition is checked on <b>one tuple at a time</b>. So <ra>\sigma_{color='red' \and color='green'}(Boats)</ra> is always empty — a single boat
+cannot have two colours. (“Sailors who reserved a red <i>and</i> a green boat” needs two different tuples — pattern P6 in section 3.14.)</li>
+</ul>
+
+<h3 id="s3-4">3.4 Projection (π) — choose columns</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><ra>\pi_{A1, A2, \ldots, Ak}(R)</ra> returns a relation with only the listed attributes of R, in the listed order, <b>with duplicate tuples removed</b>.</p></div>
+<div class="side">{{ra:proj2}}{{ra:proj3}}</div>
+<ul>
+<li>Degree = number of attributes listed; cardinality ≤ |R| (equal if the list contains a key).</li>
+<li><ra>\pi_{L1}(\pi_{L2}(R)) = \pi_{L1}(R)</ra> when L1 ⊆ L2. π is <b>not</b> commutative in general.</li>
+<li>σ and π are usually combined: first select the rows, then project the wanted columns:</li>
+</ul>
+{{ra:selproj}}
+<div class="box warn"><div class="box-t">Duplicates and names</div>
+<p>Because π removes duplicates, <ra>\pi_{sname}(Sailors)</ra> has 9 tuples, not 10. When a question asks about <i>sailors</i> (people) do the logic on the
+<b>key</b> (sid) and project the names only at the very end — otherwise the two Horatios get merged and answers go wrong (patterns P6, P7).</p></div>
+
+<h3 id="s3-5">3.5 Rename (ρ) and assignment (←)</h3>
+<p>Results of RA expressions have no name. <b>ρ</b> gives a name to a relation and/or its attributes:</p>
+<ul>
+<li><ra>\rho_{S}(E)</ra> — the result of expression E is named S.</li>
+<li><ra>\rho_{S(B1, B2, \ldots, Bn)}(E)</ra> — named S, and its attributes renamed B1 … Bn.</li>
+<li><ra>\rho_{(B1, \ldots, Bn)}(E)</ra> — only attributes renamed.</li>
+</ul>
+<p>Example: <ra>\rho_{Employee(name, address, phone)}(Student)</ra> renames table Student to Employee and its attributes (course PDF).</p>
+<p><b>Why we need it:</b> (1) to join a relation <b>with itself</b> (self-join) — we need two names, e.g. <ra>\rho_{S1}(Sailors)</ra> and
+<ra>\rho_{S2}(Sailors)</ra>; (2) to make attribute names match for natural join / union; (3) to name intermediate results.</p>
+<p><b>Assignment</b> <ra>T \gets E</ra> stores the result of E in a temporary relation T, so a long query can be written in readable steps:</p>
+<rab>RedBoats \gets \sigma_{color='red'}(Boats) \br RedRes \gets RedBoats \join Reserves \br Answer \gets \pi_{sname}(RedRes \join Sailors)</rab>
+<div class="box tip"><div class="box-t">Exam tip</div><p>In exams, writing a long query as 2–4 numbered assignment steps is perfectly acceptable, easier to get right, and easier for the
+examiner to give marks for.</p></div>
+
+<h3 id="s3-6">3.6 Set operations — union (∪), intersection (∩), difference (−)</h3>
+<p>R and S must be <b>union-compatible</b> (type-compatible): (1) the same number of attributes, and (2) the i-th attribute of R and the i-th
+attribute of S have the same (compatible) domain. The result takes the attribute names of the first relation. Duplicates are removed.</p>
+{{svg:setops}}
+<div class="tables">{{rel:rs.R}}{{rel:rs.S}}{{ra:union}}{{ra:inter}}{{ra:diff1}}{{ra:diff2}}</div>
+<ul>
+<li>∪ and ∩ are <b>commutative and associative</b>; − is <b>neither</b> (R − S ≠ S − R, as the tables show).</li>
+<li><b>∩ is not fundamental:</b> <ra>R \cap S = R \minus (R \minus S)</ra>.</li>
+<li>Typical use: combine results about the <b>same kind of thing</b>, e.g. <ra>\pi_{sid}(\ldots red \ldots) \cap \pi_{sid}(\ldots green \ldots)</ra>.
+You can never take the union of Sailors and Boats directly — they are not union-compatible — but you can of two sid-lists.</li>
+<li>Resource-notes example: <ra>\pi_{Name}(Student) \minus \pi_{Name}(Employee)</ra> = names of persons who are students but not employees.</li>
+</ul>
+
+<h3 id="s3-7">3.7 Cartesian product (×)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><ra>R \x S</ra> pairs <b>every</b> tuple of R with <b>every</b> tuple of S. Formally R × S = { t q | t ∈ R and q ∈ S }.
+Degree(R × S) = degree(R) + degree(S); |R × S| = |R| · |S|. Attributes with the same name are distinguished by prefixing the relation name
+(Emp.dno, Dept.dno).</p></div>
+<div class="tables">{{rel:rs.Emp}}{{rel:rs.Dept}}</div>
+{{ra:prod}}
+<p>Most of these 12 combinations are nonsense (Aman paired with IT and HR). A product is almost always followed by a selection that keeps only the
+<b>matching</b> pairs — and that combination is so common that it has its own operator: the join.</p>
+
+<h3 id="s3-8">3.8 Joins</h3>
+<h4>(a) Theta join and equi-join</h4>
+<p><ra>R \join_{\theta} S = \sigma_{\theta}(R \x S)</ra> where θ is a condition such as <code>R.a = S.b</code> or <code>R.a &lt; S.b</code>. When θ uses
+only <b>equality</b> the join is called an <b>equi-join</b>. Both join columns stay in the result.</p>
+{{ra:theta}}
+<h4>(b) Natural join (⋈)</h4>
+<div class="box def"><div class="box-t">Definition</div>
+<p><ra>R \join S</ra>: (1) form R × S; (2) keep only tuples that have <b>equal values on all attributes with the same name</b> in R and S;
+(3) keep only <b>one copy</b> of each common attribute.</p></div>
+{{ra:natjoin}}
+<ul>
+<li>Special cases: if R and S have <b>no</b> common attribute, R ⋈ S = R × S. If they have <b>all</b> attributes in common, R ⋈ S = R ∩ S.</li>
+<li>Natural join is commutative and associative, so <ra>Boats \join Reserves \join Sailors</ra> needs no brackets.</li>
+<li><b>Danger:</b> natural join matches <i>every</i> pair of same-named columns. If Employee and Department both had a column called <code>name</code>,
+natural join would also require <code>employee.name = department.name</code> — and return almost nothing. Rename first, or use a theta join.</li>
+</ul>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Equi-join</th><th>Natural join</th></tr>
+<tr><td>condition written explicitly (R.a = S.b)</td><td>implicit: equality on <b>all</b> same-named attributes</td></tr>
+<tr><td>join columns may have different names</td><td>join columns must have the same name</td></tr>
+<tr><td>both join columns appear in the result (duplicate column)</td><td>common column appears <b>once</b></td></tr>
+</table></div>
+<h4>(c) Outer joins — keep the unmatched tuples</h4>
+<p>An ordinary (inner) join loses tuples that have no partner — Dev (no department) and HR (no employee) above. Outer joins keep them and fill the
+missing attributes with <b>NULL</b>:</p>
+{{svg:join_venn}}
+<div class="tables">{{ra:ljoin}}{{ra:rjoin}}{{ra:fjoin}}</div>
+<ul>
+<li><b>Left outer join</b> ⟕ — all tuples of the left relation; <b>right outer join</b> ⟖ — all of the right; <b>full outer join</b> ⟗ — all of both
+(= left ⟕ ∪ right ⟖).</li>
+<li>Use them when the question says “<i>list all departments with their employees, including departments with no employee</i>”.</li>
+</ul>
+<h4>(d) Semi-join and anti-join <span class="beyond-tag">beyond syllabus</span></h4>
+<p><ra>R \semi S</ra> = tuples of R that have <i>at least one</i> match in S (only R’s columns) = <ra>\pi_{attrs(R)}(R \join S)</ra>.
+<ra>R \anti S</ra> = tuples of R with <i>no</i> match = <ra>R \minus (R \semi S)</ra>. They correspond to SQL’s EXISTS / NOT EXISTS.</p>
+<div class="tables">{{ra:semij}}{{ra:antij}}</div>
+
+<h3 id="s3-9">3.9 Division (÷) — the “for ALL” operator</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>Let R have attributes X ∪ Y and S have attributes Y. <ra>R \div S</ra> is the set of X-values x such that <b>for every</b> tuple y in S, the
+tuple (x, y) is in R:</p>
+<rab>R \div S = { t[X] | t \in R \and \forall s \in S ( \exists u \in R (u[X] = t[X] \and u[Y] = s[Y]) ) }</rab>
+<p>Result attributes = attributes of R that are <b>not</b> in S.</p></div>
+<div class="box tip"><div class="box-t">When to use division</div><p>Whenever the question contains <b>“all”</b>, <b>“every”</b> or <b>“each”</b> in the
+sense of “related to every one of a set”: <i>students enrolled in all courses</i>, <i>sailors who reserved every red boat</i>, <i>suppliers who supply
+every red part</i>, <i>customers who ordered every product priced above ₹10,000</i>.</p></div>
+<div class="tables">{{rel:rs.Enrolled}}{{rel:rs.Course}}{{ra:div1}}</div>
+{{svg:division_visual}}
+<h4>Division is not fundamental — deriving it step by step</h4>
+<p>Idea: start with all candidates; throw out every candidate that is <i>missing</i> at least one required partner.</p>
+<div class="tables">{{ra:divT1}}{{ra:divT2}}{{ra:divT3}}{{ra:divT4}}{{ra:divT5}}</div>
+<div class="box key"><div class="box-t">Formula to memorise</div>
+<rab>R \div S = \pi_{X}(R) \minus \pi_{X}( (\pi_{X}(R) \x S) \minus R )</rab>
+<p>(read: all x’s, minus those x’s for which some required (x, y) pair is missing).</p></div>
+<h4>Division on the sailors database</h4>
+{{ra:c10}}
+{{ra:c11}}
+<div class="box warn"><div class="box-t">The #1 division mistake — project the dividend first</div>
+<p>The dividend must contain <b>only</b> X ∪ Y. Reserves has (sid, bid, day); dividing it directly by π<sub>bid</sub>(Boats) makes X = {sid, day}, i.e.
+it looks for a sailor who reserved all boats <i>on the same day</i>:</p>
+{{ra:c10wrong}}
+<p>Always write <ra>\pi_{sid, bid}(Reserves) \div \pi_{bid}(\ldots)</ra> — project the dividend onto exactly the “who” and the “what”.</p></div>
+
+<h3 id="s3-10">3.10 Fundamental and derived operators</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Derived operator</th><th>Equivalent expression using fundamental operators</th></tr>
+<tr><td>Intersection</td><td><ra>R \cap S = R \minus (R \minus S)</ra></td></tr>
+<tr><td>Theta join</td><td><ra>R \join_{\theta} S = \sigma_{\theta}(R \x S)</ra></td></tr>
+<tr><td>Natural join</td><td><ra>\pi_{attrs}(\sigma_{R.A1=S.A1 \and \ldots}(R \x S))</ra></td></tr>
+<tr><td>Division</td><td><ra>\pi_{X}(R) \minus \pi_{X}((\pi_{X}(R) \x S) \minus R)</ra></td></tr>
+<tr><td>Left outer join</td><td><ra>(R \join S) \cup ((R \minus \pi_{attrs(R)}(R \join S)) \x {(null, \ldots, null)})</ra></td></tr>
+</table></div>
+<p>A query language that can express everything the six fundamental operators can express is called <b>relationally complete</b>. SQL is relationally
+complete (and more, because of aggregates and recursion).</p>
+
+<h3 id="s3-11">3.11 Extended operators — generalized projection and aggregation</h3>
+<p><b>Generalized projection</b> allows arithmetic expressions in the projection list: <ra>\pi_{F1, F2, \ldots}(E)</ra>.</p>
+{{ra:gp}}
+<p><b>Aggregation</b> (γ in most books; Korth writes a calligraphic 𝒢): <ra>_{G1, \ldots, Gn}\gamma_{F1(A1), \ldots, Fk(Ak)}(E)</ra> partitions E into
+groups having equal values on the <b>grouping attributes</b> G1…Gn (written on the left), and outputs one tuple per group with the aggregate values.
+Aggregate functions: <b>count, sum, avg, min, max</b> (and count-distinct). Without grouping attributes the whole relation is one group.</p>
+<div class="tables">{{ra:c15}}{{ra:c16}}{{ra:c17}}</div>
+<p>To filter on an aggregate (SQL’s HAVING), apply σ <b>after</b> γ:</p>
+{{ra:c18}}
+
+<h3 id="s3-12">3.12 Query trees and writing equivalent expressions</h3>
+{{svg:query_tree}}
+<p>Different expressions can give the same answer. Pushing the selection down (selecting before joining) makes the intermediate relations smaller —
+this is exactly what a query optimiser does:</p>
+<div class="side">{{ra:c1}}{{ra:c1b}}</div>
+<p>Both are correct; the first joins only the 3 reservations of boat 103 with Sailors, the second joins all 12 reservations first.</p>
+
+<h3 id="s3-13">3.13 Degree and cardinality of results — for “how many tuples?” questions</h3>
+<p>Let |R| = number of tuples of R. Exams (e.g. Mid-Sem 2024 Q4a, Mid-Sem 2025 Q5a) ask how many tuples/columns a query returns.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Expression</th><th>Degree (columns)</th><th>Cardinality (rows)</th></tr>
+<tr><td><ra>\sigma_{P}(R)</ra></td><td>deg(R)</td><td>0 … |R|</td></tr>
+<tr><td><ra>\pi_{L}(R)</ra></td><td>|L|</td><td>1 … |R| (exactly |R| if L contains a key; 0 if R empty)</td></tr>
+<tr><td><ra>R \cup S</ra></td><td>deg(R)</td><td>max(|R|,|S|) … |R| + |S|</td></tr>
+<tr><td><ra>R \cap S</ra></td><td>deg(R)</td><td>0 … min(|R|,|S|)</td></tr>
+<tr><td><ra>R \minus S</ra></td><td>deg(R)</td><td>0 … |R|</td></tr>
+<tr><td><ra>R \x S</ra></td><td>deg(R) + deg(S)</td><td>exactly |R| · |S|</td></tr>
+<tr><td><ra>R \join_{\theta} S</ra></td><td>deg(R) + deg(S)</td><td>0 … |R| · |S|</td></tr>
+<tr><td><ra>R \join S</ra> (natural, k common attrs)</td><td>deg(R) + deg(S) − k</td><td>0 … |R| · |S|; = |R| if R’s FK (not NULL) references S’s PK</td></tr>
+<tr><td><ra>R \ljoin S</ra></td><td>deg(R) + deg(S) − k</td><td>≥ |R|</td></tr>
+<tr><td><ra>R \div S</ra></td><td>deg(R) − deg(S)</td><td>0 … |π<sub>X</sub>(R)|</td></tr>
+</table></div>
+
+<h3 id="s3-14">3.14 The pattern cookbook — how to write any RA query</h3>
+<p>Every exam query is one (or a combination) of the patterns below. For each: the English cue, the RA, and the real result on the sample database.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>English cue</th><th>RA tool</th><th>Pattern</th></tr>
+<tr><td>“whose … = …”, “with rating &gt; 7”</td><td>σ then π</td><td>P1</td></tr>
+<tr><td>“who reserved boat 103”, information spread over tables</td><td>⋈ along the FK path</td><td>P2, P3</td></tr>
+<tr><td>“at least one”, “some”, “any”</td><td>⋈ (existence)</td><td>P4</td></tr>
+<tr><td>“A <b>or</b> B”</td><td>∨ inside σ, or ∪</td><td>P5</td></tr>
+<tr><td>“<b>both</b> A and B” (different tuples)</td><td>∩ of key lists</td><td>P6</td></tr>
+<tr><td>“<b>not</b> / never / no”</td><td>− (all minus those who did)</td><td>P7</td></tr>
+<tr><td>“<b>only</b> A”</td><td>(did something) − (did something non-A)</td><td>P8</td></tr>
+<tr><td>“<b>all</b> / every”</td><td>÷</td><td>P9</td></tr>
+<tr><td>“at least two”</td><td>self-join with ≠</td><td>P10</td></tr>
+<tr><td>“exactly one”</td><td>at least one − at least two</td><td>P11</td></tr>
+<tr><td>“highest / oldest / youngest” (no aggregates)</td><td>all − (those beaten by someone)</td><td>P12</td></tr>
+<tr><td>“number of”, “total”, “average”, “more than N times”</td><td>γ (then σ)</td><td>P13</td></tr>
+</table></div>
+
+<h4>P1 — Select and project</h4>
+<p><i>Names and ratings of sailors with rating &gt; 7.</i></p>
+{{ra:selproj}}
+
+<h4>P2 — Follow a foreign key (one join)</h4>
+<p><i>Names of sailors who reserved boat 103.</i> The bid is in Reserves, the name is in Sailors: join them on sid.</p>
+{{ra:c1}}
+
+<h4>P3 — Follow a longer path (two joins)</h4>
+<p><i>Names of sailors who reserved a red boat.</i> colour (Boats) → bid → Reserves → sid → Sailors.</p>
+{{ra:c2}}
+<p><i>Colours of boats reserved by Lubber</i> — the same path walked the other way:</p>
+{{ra:c3}}
+
+<h4>P4 — “At least one”</h4>
+<p><i>Names of sailors who have reserved at least one boat.</i> A sailor survives the join only if he has a reservation.</p>
+{{ra:c4}}
+
+<h4>P5 — OR</h4>
+<p><i>Names of sailors who reserved a red or a green boat.</i> One tuple satisfies one condition or the other ⇒ ∨ inside σ works (equivalently, ∪ of the
+two sid-lists).</p>
+{{ra:c5}}
+
+<h4>P6 — AND across different tuples (“both … and …”)</h4>
+<p><i>Names of sailors who reserved both a red and a green boat.</i> The red reservation and the green reservation are <b>different tuples</b>, so σ with ∧
+cannot work. Compute the two sets of <b>sids</b> separately and intersect:</p>
+{{ra:c6}}
+<div class="box warn"><div class="box-t">Two classic wrong answers</div>
+{{ra:c6empty}}
+{{ra:c6wrong}}
+<p>Intersecting <b>names</b> instead of keys reports Horatio, because one Horatio reserved red and a <i>different</i> Horatio reserved green. Always
+intersect on the key, then project the name.</p></div>
+
+<h4>P7 — NOT / never</h4>
+<p><i>Names of sailors who have not reserved a red boat</i> (PYQ Mid-Sem 2024). “All sailors minus those who did”:</p>
+{{ra:c8}}
+<div class="box warn"><div class="box-t">Wrong: subtracting names</div>{{ra:c8wrong}}</div>
+<p>Note that sailors with <i>no reservations at all</i> (Brutus, Zorba, Art, Bob) correctly appear — they certainly did not reserve a red boat.</p>
+
+<h4>P8 — ONLY</h4>
+<p><i>Sailors who reserved only red boats.</i> “Reserved something” − “reserved some non-red boat”:</p>
+{{ra:c9}}
+<p>Sid 32 (Andy) and 58 (Rusty) reserved red boats and nothing else. (If sailors with no reservations should also count as “only red” — vacuously —
+start from π<sub>sid</sub>(Sailors) instead. State your assumption in the exam.)</p>
+
+<h4>P9 — ALL (division)</h4>
+<p><i>Sailors who reserved all boats</i> (Dustin) and <i>all red boats</i> (Dustin, Lubber) — worked in section 3.9. The divisor decides “all <b>what</b>”:
+all boats = π<sub>bid</sub>(Boats); all red boats = π<sub>bid</sub>(σ<sub>color='red'</sub>(Boats)).</p>
+
+<h4>P10 — At least two (self-join)</h4>
+<p><i>Sailors who reserved at least two different boats.</i> Join Reserves with a renamed copy of itself: same sailor, different boat.</p>
+{{ra:c7}}
+{{ra:c7n}}
+
+<h4>P11 — Exactly one</h4>
+<p>“At least one” minus “at least two” (TwoPlus = result of P10):</p>
+{{ra:c14}}
+
+<h4>P12 — Maximum / minimum without aggregate functions</h4>
+<p><i>Name and age of the oldest sailor</i> (PYQ Mid-Sem 2024). A sailor is <b>not</b> the oldest if some other sailor is older. So: all sailors minus
+those who are “beaten”.</p>
+{{ra:c12}}
+<p><i>Names and ages of sailors having the highest rating</i> (PYQ Summer Mid-Sem) — same idea with rating; note the tie gives two answers:</p>
+{{ra:c13}}
+<p>With the extended operator the oldest age is simply <ra>\gamma_{max(age)}(Sailors)</ra>, then join back:
+<ra>\pi_{sname, age}(Sailors \join_{age = oldest} \gamma_{max(age) \to oldest}(Sailors))</ra>.</p>
+
+<h4>P13 — Counting and aggregates</h4>
+<p>Use γ; filter on the aggregate afterwards with σ.</p>
+{{ra:c18}}
+
+<h3 id="s3-15">3.15 Checklist of common mistakes</h3>
+<ol>
+<li><b>Intersecting / subtracting names instead of keys</b> (P6, P7). Work with sid, project sname last.</li>
+<li><b>One σ with “color = red ∧ color = green”</b> — always empty (P6).</li>
+<li><b>Dividend not projected</b> before ÷ (3.9).</li>
+<li><b>Natural join on unintended common attributes</b> — e.g. two tables both having <code>name</code>. Rename first or use ⋈<sub>θ</sub>.</li>
+<li><b>Union/difference of incompatible relations</b> — both sides must have the same number of attributes with matching domains.</li>
+<li><b>Forgetting ρ in a self-join</b> — you cannot write Sailors.age &lt; Sailors.age.</li>
+<li><b>Using aggregate functions in “basic RA”</b> when the question says “using relational algebra (without aggregates)” — use P12 instead.</li>
+<li><b>Projecting too early</b> — after π<sub>sname</sub> you can no longer join on sid.</li>
+</ol>
+<div class="box exam"><div class="box-t">How to write an RA answer in the exam</div>
+<ol><li>Write the schema abbreviations you will use. 2. If the query is long, use numbered assignment steps (T1 ← …). 3. Put conditions inside the σ
+subscript, attribute lists inside the π subscript. 4. For “all” use ÷ (and say “division because of <i>all</i>”), for “not” use −. 5. One line of explanation
+per step earns method marks even if a small detail is wrong.</li></ol></div>

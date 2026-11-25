@@ -1,0 +1,50 @@
+<!-- ============================================================ 8 -->
+<h2 id="s8"><span class="num">8</span>Joins and their Types</h2>
+
+<h3 id="s8-1">8.1 Why joins</h3>
+<p>A normalised database spreads information over several tables (employee names in <code>employee</code>, department names in <code>department</code>).
+A <b>join</b> combines rows of two (or more) tables into one result row whenever they satisfy a <b>join condition</b> — usually “FK = PK”.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Join type</th><th>SQL</th><th>Returns</th><th>RA</th></tr>
+<tr><td><b>Inner join</b> (equi / theta)</td><td><code>A [INNER] JOIN B ON cond</code></td><td>only matching pairs</td><td><ra>A \join_{cond} B</ra></td></tr>
+<tr><td><b>Natural join</b></td><td><code>A NATURAL JOIN B</code></td><td>equi-join on all same-named columns, shown once</td><td><ra>A \join B</ra></td></tr>
+<tr><td><b>Left outer join</b></td><td><code>A LEFT [OUTER] JOIN B ON cond</code></td><td>matching pairs + unmatched rows of A (NULL-padded)</td><td><ra>A \ljoin B</ra></td></tr>
+<tr><td><b>Right outer join</b></td><td><code>A RIGHT [OUTER] JOIN B ON cond</code></td><td>matching pairs + unmatched rows of B</td><td><ra>A \rjoin B</ra></td></tr>
+<tr><td><b>Full outer join</b></td><td><code>A FULL [OUTER] JOIN B ON cond</code></td><td>matching pairs + unmatched rows of both</td><td><ra>A \fjoin B</ra></td></tr>
+<tr><td><b>Cross join</b></td><td><code>A CROSS JOIN B</code> or <code>FROM A, B</code></td><td>every combination (|A|·|B| rows)</td><td><ra>A \x B</ra></td></tr>
+<tr><td><b>Self join</b></td><td><code>A a1 JOIN A a2 ON …</code></td><td>a table joined with itself (aliases required)</td><td><ra>\rho_{a1}(A) \join_{\theta} \rho_{a2}(A)</ra></td></tr>
+</table></div>
+{{svg:join_venn}}
+
+<h3 id="s8-2">8.2 Inner join</h3>
+{{sql:j_inner}}
+<p>Older “comma” syntax gives the same result: <code>SELECT e.name, d.dept_name FROM employee e, department d WHERE e.dept_id = d.dept_id;</code>
+(forgetting the WHERE turns it into a cross join — 36 rows!). The explicit <code>JOIN … ON</code> form is preferred: join conditions and filter
+conditions stay separate.</p>
+<p><b>Equi-join vs non-equi (theta) join:</b> the condition can be any comparison, e.g. <code>JOIN salary_grade g ON e.salary BETWEEN g.low AND g.high</code>.</p>
+
+<h3 id="s8-3">8.3 Outer joins</h3>
+<div class="tables">{{sql:j_left}}{{sql:j_right}}</div>
+{{sql:j_full}}
+{{sql:j_full_mysql}}
+<p><b>Finding rows with no match</b> (an <i>anti-join</i>) — LEFT JOIN and keep only the NULL-padded rows:</p>
+{{sql:j_anti}}
+<div class="box warn"><div class="box-t">ON vs WHERE in an outer join</div>
+<p>A condition on the <b>right</b> table placed in WHERE throws away the NULL-padded rows and silently turns the LEFT JOIN into an inner join.
+Put it in the ON clause if unmatched left rows must survive.</p>
+<div class="tables">{{sql:j_on_where_bad}}{{sql:j_on_where_good}}</div></div>
+
+<h3 id="s8-4">8.4 Natural join, USING, cross join</h3>
+<div class="tables">{{sql:j_natural}}{{sql:j_using}}{{sql:j_cross}}</div>
+<p><code>NATURAL JOIN</code> silently joins on <b>every</b> common column name — risky if tables later get a column with the same name (e.g. both get
+<code>created_at</code>). <code>USING (col)</code> names the join column explicitly and shows it once — a safer middle ground.</p>
+
+<h3 id="s8-5">8.5 Self join</h3>
+{{sql:j_self}}
+<p>The same table is used twice with different aliases (e = the employee, m = the manager). LEFT JOIN keeps Aarav, who has no manager. Other self-join
+uses: pairs of employees in the same city (<code>e1.city = e2.city AND e1.emp_id &lt; e2.emp_id</code> — the &lt; avoids pairing someone with himself and
+listing each pair twice), “employees earning more than their manager”.</p>
+
+<h3 id="s8-6">8.6 Joining three or more tables</h3>
+{{sql:j_three}}
+<p>Each JOIN adds one table; for n tables you normally need n − 1 join conditions (follow the FK path: employee → works_on → project).</p>

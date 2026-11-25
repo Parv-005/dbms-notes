@@ -1,0 +1,136 @@
+<!-- ============================================================ 10 -->
+<h2 id="s10"><span class="num">10</span>Triggers</h2>
+
+<h3 id="s10-1">10.1 What a trigger is</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>trigger</b> is a named block of procedural code stored in the database that the DBMS <b>executes automatically</b> whenever a specified
+<b>event</b> occurs on a specified table (or view / schema / database). It follows the <b>ECA model</b>:</p>
+<ul><li><b>E</b>vent — what fires it: INSERT, UPDATE (optionally of certain columns), DELETE; or a DDL / system event;</li>
+<li><b>C</b>ondition — optional test (<code>WHEN …</code>); the action runs only if it is true;</li>
+<li><b>A</b>ction — the SQL / PL/SQL statements executed.</li></ul>
+<p>Unlike a stored procedure, a trigger is <b>never called explicitly</b> — the event fires it.</p></div>
+<h4>General syntax (Oracle style; MySQL/PostgreSQL are very similar)</h4>
+<pre class="sql">CREATE [OR REPLACE] TRIGGER trigger_name
+{BEFORE | AFTER | INSTEAD OF}  {INSERT | UPDATE [OF col, ...] | DELETE}  [OR ...]
+ON table_name
+[REFERENCING OLD AS o NEW AS n]
+[FOR EACH ROW]                       -- row-level; omit for statement-level
+[WHEN (condition)]
+BEGIN
+    -- action: SQL statements using :NEW.col and :OLD.col  (MySQL: NEW.col, OLD.col)
+END;</pre>
+<ul>
+<li><b>NEW</b> — the row <i>after</i> the change (available in INSERT and UPDATE triggers). <b>OLD</b> — the row <i>before</i> the change (UPDATE and DELETE).
+INSERT has no OLD, DELETE has no NEW.</li>
+<li>A BEFORE row trigger may <b>modify NEW</b> (e.g. convert a name to upper case) before it is stored.</li>
+<li>To <b>reject</b> the operation, raise an error: Oracle <code>RAISE_APPLICATION_ERROR(-20001, 'msg')</code>, MySQL
+<code>SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'msg'</code>, SQLite <code>SELECT RAISE(ABORT, 'msg')</code>.</li>
+</ul>
+
+<h3 id="s10-2">10.2 Types of triggers</h3>
+{{svg:trigger_flow}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Classification</th><th>Types</th><th>Meaning</th></tr>
+<tr><td rowspan="3"><b>Timing</b></td><td>BEFORE</td><td>fires before the row is changed and before constraints are checked</td></tr>
+<tr><td>AFTER</td><td>fires after the change has been made (and constraints passed)</td></tr>
+<tr><td>INSTEAD OF</td><td>replaces the triggering statement; defined on <b>views</b></td></tr>
+<tr><td rowspan="2"><b>Granularity</b></td><td>Row-level (<code>FOR EACH ROW</code>)</td><td>fires once for <b>every row</b> affected (an UPDATE of 100 rows fires it 100 times); can use OLD/NEW</td></tr>
+<tr><td>Statement-level (default in Oracle)</td><td>fires <b>once per statement</b>, even if it affects 0 or 1000 rows; no OLD/NEW</td></tr>
+<tr><td rowspan="3"><b>Event</b></td><td>DML triggers</td><td>INSERT / UPDATE / DELETE on a table or view</td></tr>
+<tr><td>DDL triggers</td><td>CREATE / ALTER / DROP on schema objects (audit or block schema changes)</td></tr>
+<tr><td>System / database-event triggers</td><td>LOGON, LOGOFF, STARTUP, SHUTDOWN, SERVERERROR</td></tr>
+</table></div>
+<p>Combining timing × event × level gives 12 classic DML trigger kinds (BEFORE INSERT row, AFTER DELETE statement, …).</p>
+
+<h3 id="s10-3">10.3 BEFORE vs AFTER vs INSTEAD OF <span class="chip pur">PYQ 2026</span></h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>BEFORE</th><th>AFTER</th><th>INSTEAD OF</th></tr>
+<tr><td>When it runs</td><td>before the DML changes the row</td><td>after the DML has changed the row</td><td>in place of the DML — the DML itself never runs</td></tr>
+<tr><td>Defined on</td><td>tables</td><td>tables</td><td>views (mainly non-updatable ones)</td></tr>
+<tr><td>Can modify NEW values?</td><td>yes</td><td>no (row already written)</td><td>it decides what to write</td></tr>
+<tr><td>Typical use</td><td>validation, rejecting bad data, deriving/defaulting column values</td><td>auditing/logging, updating other tables (balances, totals, stock), notifications</td><td>making complex views updatable by writing to the underlying base tables</td></tr>
+<tr><td>Example</td><td>reject a salary decrease; set <code>NEW.email = LOWER(NEW.email)</code></td><td>insert into salary_audit; update account balance after a transaction</td><td>insert into a view joining customer and order → insert into both tables</td></tr>
+</table></div>
+
+<h3 id="s10-4">10.4 Examples</h3>
+<h4>(a) BEFORE (validation) and AFTER (audit) — executed</h4>
+<pre class="sql">CREATE TRIGGER trg_no_cut BEFORE UPDATE OF salary ON emp
+FOR EACH ROW WHEN NEW.salary &lt; OLD.salary
+BEGIN
+  SELECT RAISE(ABORT, 'salary cannot be decreased');      -- reject
+END;
+
+CREATE TRIGGER trg_audit AFTER UPDATE OF salary ON emp
+FOR EACH ROW
+BEGIN
+  INSERT INTO salary_audit VALUES (OLD.id, OLD.salary, NEW.salary, CURRENT_DATE);
+END;</pre>
+{{viol:trg_before}}
+<h4>(b) AFTER INSERT — keep a balance up to date (PYQ Mid-Sem 2025)</h4>
+<p>Executed version (SQLite syntax) with test data:</p>
+{{sql:trg_bank}}
+<p>The same trigger in MySQL syntax (what to write in the exam):</p>
+<pre class="sql">DELIMITER //
+CREATE TRIGGER trg_after_txn
+AFTER INSERT ON Transactions
+FOR EACH ROW
+BEGIN
+  IF NEW.trans_type = 'DEPOSIT' THEN
+     UPDATE Accounts SET balance = balance + NEW.amount WHERE account_id = NEW.account_id;
+  ELSEIF NEW.trans_type = 'WITHDRAW' THEN
+     UPDATE Accounts SET balance = balance - NEW.amount WHERE account_id = NEW.account_id;
+  END IF;
+END //
+DELIMITER ;</pre>
+<h4>(c) INSTEAD OF trigger on a view (Oracle)</h4>
+<pre class="sql">CREATE VIEW emp_dept_v AS
+SELECT e.emp_id, e.name, d.dept_name
+FROM   employee e JOIN department d ON d.dept_id = e.dept_id;     -- join view: not directly updatable
+
+CREATE OR REPLACE TRIGGER trg_emp_dept_ins
+INSTEAD OF INSERT ON emp_dept_v
+FOR EACH ROW
+BEGIN
+  INSERT INTO employee(emp_id, name, dept_id)
+  VALUES (:NEW.emp_id, :NEW.name,
+          (SELECT dept_id FROM department WHERE dept_name = :NEW.dept_name));
+END;</pre>
+<h4>(d) DDL trigger (Lab exercise 4: “show the use of DDL triggers in response to DDL events”)</h4>
+<pre class="sql">-- Oracle: log every CREATE / ALTER / DROP in the schema
+CREATE TABLE ddl_log(username VARCHAR2(30), event VARCHAR2(30), obj_name VARCHAR2(60), at_time DATE);
+
+CREATE OR REPLACE TRIGGER trg_ddl_audit
+AFTER CREATE OR ALTER OR DROP ON SCHEMA
+BEGIN
+  INSERT INTO ddl_log VALUES (USER, ORA_SYSEVENT, ORA_DICT_OBJ_NAME, SYSDATE);
+END;
+
+-- SQL Server: prevent dropping tables
+CREATE TRIGGER trg_no_drop ON DATABASE FOR DROP_TABLE
+AS BEGIN
+   PRINT 'Dropping tables is not allowed';
+   ROLLBACK;
+END;</pre>
+
+<h3 id="s10-5">10.5 Use cases, advantages and cautions</h3>
+<div class="grid2">
+<div class="box ex"><div class="box-t">Use cases</div><ul>
+<li>Enforcing complex integrity rules / business rules that CHECK cannot express (multi-table, e.g. “an employee’s salary may not exceed the manager’s”).</li>
+<li>Auditing — recording who changed what and when.</li>
+<li>Maintaining derived data — totals, balances, stock levels, denormalised copies.</li>
+<li>Automatic values — timestamps, generated codes, normalised case.</li>
+<li>Replication / synchronising tables; sending notifications.</li>
+<li>Security — blocking operations outside business hours or by certain users; DDL protection.</li>
+<li>Making views updatable (INSTEAD OF).</li></ul></div>
+<div class="box warn"><div class="box-t">Cautions</div><ul>
+<li><b>Hidden logic</b> — effects are invisible in the application code; hard to debug.</li>
+<li><b>Performance</b> — row-level triggers run for every row of bulk operations.</li>
+<li><b>Cascading / recursive triggers</b> — trigger A updates table B whose trigger updates A… can loop (DBMSs limit the depth).</li>
+<li><b>Mutating-table errors</b> (Oracle) — a row trigger cannot query the table being modified.</li>
+<li>Prefer declarative constraints (CHECK, FK) when they suffice — they are faster and clearer.</li></ul></div>
+</div>
+<p><b>Trigger vs stored procedure:</b> a procedure is called explicitly (<code>CALL p(…)</code> / <code>EXEC</code>), can take parameters and return values, and can
+contain COMMIT; a trigger fires implicitly on an event, takes no parameters, and normally cannot COMMIT/ROLLBACK (it runs inside the triggering
+transaction).</p>
+<p><b>Trigger vs constraint:</b> a constraint (CHECK, FK) is declarative, always enforced on existing and new data, and optimisable; a trigger is
+procedural and only acts on future events.</p>

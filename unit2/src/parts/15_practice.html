@@ -1,0 +1,140 @@
+<!-- ============================================================ 15 -->
+<h2 id="s15"><span class="num">15</span>Practice Set — PYQ pattern, one level harder</h2>
+<p>These follow the exact style of the end-sem questions but each contains a twist (ties, NULLs, “only”, “exactly”, “every … of a subset”, no aggregates
+allowed). <b>Every answer below was solved twice — once in relational algebra and once in SQL — and the two results were checked to be identical</b>
+on the data shown. Attempt on paper first.</p>
+
+<h3 id="pr-db">15.1 Practice database — airline (lab exercise 5 schema)</h3>
+<p>Flights(<u>flno</u>, from, to, distance, departs) · Aircraft(<u>aid</u>, aname, cruisingrange) · Certified(<u>eid, aid</u>) · Employees(<u>eid</u>, ename, salary).
+A <b>pilot</b> is an employee certified on at least one aircraft. An aircraft can fly a route non-stop if its cruising range ≥ the distance. (Columns
+<i>from/to</i> are SQL keywords, so the tables below call them origin/destination.)</p>
+<div class="tables">{{rel:fl.Aircraft}}{{rel:fl.Employees}}{{rel:fl.Certified}}{{rel:fl.Flights}}</div>
+
+<h3 id="pr-ra">15.2 Relational algebra + SQL (5 marks each, like End-Sem Q2)</h3>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 1</span><span class="chip">RA + SQL</span></div>
+<div class="pyq-q"><p>(a) Names of pilots certified on some Boeing aircraft. (b) aids of all aircraft that can fly non-stop from Los Angeles to New York — you do not know
+the distance in advance. (c) Names of pilots who can operate some plane with range &gt; 3000 miles but are <b>not</b> certified on any Boeing.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{ra:ra_f1}}{{sqlc:sql_f1}}
+<p>(b) Join each aircraft with the LA–NY flight using a <b>theta join</b> on range &gt; distance:</p>
+{{ra:ra_f2}}{{sqlc:sql_f2}}
+<p>(c) “can … but not …” = difference of two eid-sets:</p>
+{{ra:ra_f3}}{{sqlc:sql_f3}}
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 2</span><span class="chip">RA without aggregates</span></div>
+<div class="pyq-q"><p>(a) eid(s) of the employee(s) with the <b>second highest</b> salary — relational algebra, no aggregate functions. (b) eids of employees certified on
+<b>exactly three</b> aircraft — relational algebra, no aggregates. Give the SQL too.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>(a) Apply the “maximum” pattern (P12) twice: remove the top earner(s), then take the maximum of the rest.</p>
+{{ra:ra_f4}}{{sqlc:sql_f4}}
+<p>Note the tie: Bob and Fay both earn 205000 → both are “second highest”.</p>
+<p>(b) Exactly three = at least three − at least four. “At least k” = k renamed copies of Certified with the same eid and strictly increasing aids
+(the &lt; makes the aircraft different and avoids counting permutations).</p>
+{{ra:ra_f5}}{{sqlc:sql_f5}}
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 3</span><span class="chip">Division</span></div>
+<div class="pyq-q"><p>(a) Names of pilots certified on <b>every Airbus</b> aircraft. (b) flnos of flights that can be flown by <b>every</b> pilot who earns more than
+₹2,00,000 (i.e. each such pilot is certified on some aircraft whose range ≥ the flight distance).</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{ra:ra_f6}}{{sqlc:sql_f6}}
+<p>(b) Build the relation Can(flno, eid) = “pilot eid can fly flight flno”, then divide by the set of rich pilots:</p>
+{{ra:ra_f7}}{{sqlc:sql_f7}}
+<p>Bob (205000) can fly only up to 3383 miles, so Sydney (7487) and Tokyo (5478) are excluded although Alice and Fay could fly them.</p>
+</div></details></div>
+
+<h3 id="pr-sql">15.3 SQL (GROUP BY / HAVING / correlated)</h3>
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 4</span><span class="chip">SQL</span></div>
+<div class="pyq-q"><p>(a) For every aircraft with cruising range over 1000 miles, its name and the average salary of all pilots certified on it. (b) Names of pilots whose
+salary is above the average salary of <b>pilots</b>, and by how much. (c) For each pilot certified on more than three aircraft, the eid and the maximum
+cruising range of the aircraft he is certified on. (d) The difference between the average salary of a pilot and the average salary of all employees
+(pilots included).</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sql:f8}}{{sql:f9}}{{sql:f10}}{{sql:f11}}
+<p>(d) pilots’ average 161875 − all employees’ average 136500 = 25375.</p>
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 5</span><span class="chip">SQL — “only”, “no”, “top-N with ties”</span></div>
+<div class="pyq-q"><p>(a) Names of pilots all of whose aircraft have range &gt; 2000 and who are certified on at least two aircraft. (b) Routes (from, to) that pilot 102
+cannot fly with any aircraft he is certified on. (c) Employees whose salary is among the top 3 <b>distinct</b> salary values.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{sql:f12}}{{sql:f13}}{{sql:f14}}
+<p>(c) Using the correlated count: an employee is in the top-3 salary levels if fewer than 3 distinct salaries are greater than his. LIMIT 3 would be
+wrong here because of the tie at 205000.</p>
+</div></details></div>
+
+<h3 id="pr-rc">15.4 Relational calculus</h3>
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 6</span><span class="chip">TRC + DRC</span></div>
+<div class="pyq-q"><p>Write in TRC and DRC: (a) names of pilots certified on every Airbus aircraft; (b) names of pilots who are certified only on aircraft with range &gt; 2000.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>(a) TRC:</p>
+<rab>{ t | \exists e \in Employees (t.ename = e.ename \and \exists c \in Certified (c.eid = e.eid) \and \forall a \in Aircraft (a.aname\ LIKE\ 'Airbus\%' \implies \exists c2 \in Certified (c2.eid = e.eid \and c2.aid = a.aid))) }</rab>
+<p>DRC (Employees ⟨E, N, S⟩, Aircraft ⟨A, AN, R⟩, Certified ⟨E, A⟩):</p>
+<rab>{ \langle N \rangle | \exists E, S (\langle E, N, S \rangle \in Employees \and \exists A0 (\langle E, A0 \rangle \in Certified) \and \forall A, AN, R (\langle A, AN, R \rangle \in Aircraft \and AN\ LIKE\ 'Airbus\%' \implies \langle E, A \rangle \in Certified)) }</rab>
+<p>Result: {{rares:ra_f6}}</p>
+<p>(b) “only” = is a pilot, and every certification is for a long-range aircraft:</p>
+<rab>{ t | \exists e \in Employees (t.ename = e.ename \and \exists c \in Certified (c.eid = e.eid) \and \forall c \in Certified (c.eid = e.eid \implies \exists a \in Aircraft (a.aid = c.aid \and a.cruisingrange > 2000))) }</rab>
+<p>RA equivalent and result:</p>{{ra:pr_only}}
+<p>(Jia appears: she is certified on one aircraft only, the 737 with range 3383.)</p>
+</div></details></div>
+
+<h3 id="pr-misc">15.5 Counting, constraints and triggers</h3>
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 7</span><span class="chip">How many tuples?</span></div>
+<div class="pyq-q"><p>R(A, B) = {(1,10), (2,10), (3,20), (4,30), (5,NULL)}, S(B, C) = {(10,x), (10,y), (20,z), (40,w)}. Without computing everything, state the
+number of tuples of: R ⋈ S, R ⟕ S, R ⟗ S, R ⋉ S, π<sub>B</sub>(R) − π<sub>B</sub>(S).</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>R ⋈ S = 5</b>: B = 10 → 2 R-tuples × 2 S-tuples = 4; B = 20 → 1 × 1 = 1; B = 30 and NULL match nothing.</li>
+<li><b>R ⟕ S = 7</b>: the 5 matches + unmatched R-tuples (4,30) and (5,NULL).</li>
+<li><b>R ⟗ S = 8</b>: 7 + unmatched S-tuple (40,w).</li>
+<li><b>R ⋉ S = 3</b>: R-tuples having a partner: 1, 2, 3 (each counted once).</li>
+<li><b>π<sub>B</sub>(R) − π<sub>B</sub>(S) = 2</b>: {10, 20, 30, NULL} − {10, 20, 40} = {30, NULL}. (Set operations treat NULLs as identical values,
+unlike joins/comparisons.)</li>
+</ul>
+<div class="tables">{{rares:cnt_nat}}{{rares:cnt_l}}{{rares:cnt_f}}{{rares:cnt_semi}}{{rares:cnt_pb}}</div>
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 8</span><span class="chip">Referential actions</span></div>
+<div class="pyq-q"><p>dept(<u>dno</u>, dname); emp(<u>eno</u>, dno → dept ON DELETE CASCADE, mgr → emp ON DELETE SET NULL); dependent(eno → emp ON DELETE CASCADE, dname).
+dept = {(1, R&amp;D), (2, Ops)}; emp(eno, dno, mgr) = {(10,1,NULL), (11,1,10), (12,2,10), (13,2,12), (14,1,11)}; dependent = {(10,Ria), (11,Om), (13,Tia), (14,Avi)}.
+What remains in emp and dependent after <code>DELETE FROM dept WHERE dno = 1</code>?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ol class="steps">
+<li>dept 1 deleted ⇒ CASCADE deletes employees of dept 1: 10, 11, 14.</li>
+<li>Deleting 10, 11, 14 ⇒ their dependents Ria, Om, Avi are deleted (CASCADE).</li>
+<li>Employee 12 had mgr = 10 (now deleted) ⇒ SET NULL: 12’s mgr becomes NULL. Employee 13’s manager is 12, still present.</li>
+</ol>
+<p class="answer-line">emp = {(12, 2, NULL), (13, 2, 12)}; dependent = {(13, Tia)}.</p>
+{{viol:pr_casc}}
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 9</span><span class="chip">Trigger</span></div>
+<div class="pyq-q"><p>product(pid, pname, stock), order_item(oid, pid, qty). Write triggers so that (i) an order line is rejected if the quantity exceeds the available
+stock, and (ii) the stock is reduced automatically after a valid order line is inserted. Which timing do you use for each and why?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>(i) must run <b>BEFORE INSERT</b> (so the row can be rejected before it is stored); (ii) <b>AFTER INSERT</b> (update another table only once the row is
+definitely inserted). Both are row-level.</p>
+{{sql:pr_trg}}
+<p>A further <code>INSERT INTO order_item VALUES (504, 2, 1)</code> is rejected with “insufficient stock” (Ink has 0 left) — verified.</p>
+</div></details></div>
+
+<div class="pyq"><div class="pyq-h"><span class="chip pur">Practice 10</span><span class="chip">Frame the question</span></div>
+<div class="pyq-q"><pre class="sql">SELECT e.name
+FROM   employee e
+WHERE  NOT EXISTS (SELECT * FROM project p
+                   WHERE  p.dept_id = 20
+                   AND    NOT EXISTS (SELECT * FROM works_on w
+                                      WHERE w.emp_id = e.emp_id AND w.proj_id = p.proj_id));</pre></div>
+<details><summary>Show answer</summary><div class="ans">
+<p class="answer-line">“Find the names of employees who work on every project of department 20.”</p>
+<p>Reading: there is no project of department 20 that e does not work on (double NOT EXISTS = division). On the company database the answer is Diya
+and Kabir (section 9.8).</p>
+</div></details></div>
+
+<hr>
+<p class="center muted small">End of Unit 2 notes. Sources: the course PDF “DBMS Complete Notes” (Unit 2 pages: RDBMS &amp; Codd’s rules, DBMS languages, keys,
+relational model and integrity constraints, relational algebra), “Unit 2 notes fresources”, the lab list, and Silberschatz–Korth–Sudarshan
+<i>Database System Concepts</i>, Elmasri–Navathe <i>Fundamentals of Database Systems</i> and Ramakrishnan–Gehrke <i>Database Management Systems</i>
+for the topics the class material does not cover. All result tables were generated by executing the queries.</p>

@@ -1,0 +1,155 @@
+<!-- ============================================================ 4 -->
+<h2 id="s4"><span class="num">4</span>Relational Calculus</h2>
+
+<h3 id="s4-1">4.1 The idea</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Relational calculus</b> is a <b>non-procedural (declarative)</b> formal query language based on <b>first-order predicate logic</b>. A query
+describes the <b>properties of the tuples wanted</b> — a condition that the answer must satisfy — and says nothing about how to compute it.</p></div>
+<p>Compare the two ways of asking for “names of sailors with rating &gt; 7”:</p>
+<ul>
+<li><b>RA</b> (a recipe): <i>first</i> select the rows with rating &gt; 7, <i>then</i> project the name → <ra>\pi_{sname}(\sigma_{rating>7}(Sailors))</ra>.</li>
+<li><b>Calculus</b> (a description): “the set of names n such that some sailor with name n has rating &gt; 7” →
+<ra>{ t | \exists s \in Sailors (s.rating > 7 \and t.sname = s.sname) }</ra>.</li>
+</ul>
+<p>There are two kinds:</p>
+<ul>
+<li><b>Tuple Relational Calculus (TRC)</b> — variables stand for <b>whole tuples</b> (rows). SQL is based on TRC.</li>
+<li><b>Domain Relational Calculus (DRC)</b> — variables stand for <b>single attribute values</b> (domain elements). QBE (Query-By-Example) is based on DRC.</li>
+</ul>
+
+<h3 id="s4-2">4.2 Logic you need (5 minutes)</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Symbol</th><th>Read as</th><th>Meaning / rule</th></tr>
+<tr><td><span class="ra">∧ ∨ ¬</span></td><td>and, or, not</td><td>as in Boolean algebra</td></tr>
+<tr><td><span class="ra">P ⇒ Q</span></td><td>if P then Q</td><td>false only when P is true and Q is false; <ra>P \implies Q \equiv \not P \or Q</ra></td></tr>
+<tr><td><span class="ra">∃ x ∈ R (P(x))</span></td><td>there exists a tuple x in R such that P</td><td>true if <b>at least one</b> tuple of R satisfies P</td></tr>
+<tr><td><span class="ra">∀ x ∈ R (P(x))</span></td><td>for all tuples x in R, P</td><td>true if <b>every</b> tuple of R satisfies P (true when R is empty)</td></tr>
+<tr><td colspan="3"><b>Key equivalences:</b> <ra>\forall x (P(x)) \equiv \not \exists x (\not P(x))</ra> &nbsp;·&nbsp; <ra>\not(P \and Q) \equiv \not P \or \not Q</ra>
+&nbsp;·&nbsp; <ra>\not(P \or Q) \equiv \not P \and \not Q</ra></td></tr>
+</table></div>
+<p><b>Free and bound variables.</b> A variable is <b>bound</b> if it is introduced by a quantifier (∃s or ∀s) — it is a local “loop variable”. A variable that
+is not bound is <b>free</b>. In a calculus query the <b>only free variable</b> must be the result variable written to the left of the bar.</p>
+
+<h3 id="s4-3">4.3 Tuple relational calculus (TRC)</h3>
+<div class="box def"><div class="box-t">General form</div>
+<rab>{ t | P(t) }</rab>
+<p>“the set of all tuples t for which the formula P(t) is true”. t is a <b>tuple variable</b>; <code>t.A</code> (also written <code>t[A]</code>) is the
+value of attribute A in t.</p>
+<p><b>Atoms</b> (building blocks of formulas):</p>
+<ol>
+<li><ra>s \in R</ra> — s is a tuple of relation R;</li>
+<li><ra>s.A \theta u.B</ra> — compare attributes of two tuple variables, θ ∈ {=, ≠, &lt;, ≤, &gt;, ≥};</li>
+<li><ra>s.A \theta c</ra> — compare with a constant.</li>
+</ol>
+<p><b>Formulas</b> are built from atoms with ∧, ∨, ¬, ⇒ and the quantifiers <ra>\exists s \in R (F)</ra>, <ra>\forall s \in R (F)</ra>.</p></div>
+<h4>Two ways of describing the result tuple</h4>
+<ul>
+<li><b>Whole tuples of one relation:</b> <ra>{ t | t \in Sailors \and t.rating > 7 }</ra> — t ranges over Sailors, so the result has all four attributes.</li>
+<li><b>New tuples (projection / combining tables):</b> t is <b>not</b> bound to any relation; we state the value of each of its attributes, e.g.
+<ra>{ t | \exists s \in Sailors (s.rating > 7 \and t.sname = s.sname \and t.rating = s.rating) }</ra> — the result has exactly the attributes
+mentioned for t (sname, rating). This is Korth’s style and what most exams expect.</li>
+<li>Short-hand used in many books (Navathe, Ramakrishnan): list the output attributes on the left —
+<ra>{ s.sname, s.rating | s \in Sailors \and s.rating > 7 }</ra>. Accepted in exams; use one style consistently.</li>
+</ul>
+
+<h4>TRC examples — the same patterns as the RA cookbook</h4>
+<p>All results are identical to the RA results in section 3.14 (each formula below was checked by evaluating it literally on the sample data).</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Query</th><th>Tuple relational calculus</th><th>Result</th></tr>
+<tr><td>P1. Sailors with rating &gt; 7 (all attributes)</td><td><ra>{ t | t \in Sailors \and t.rating > 7 }</ra></td><td>5 sailors (31, 32, 58, 71, 74)</td></tr>
+<tr><td>P1′. Their names and ratings</td><td><ra>{ t | \exists s \in Sailors (s.rating > 7 \and t.sname = s.sname \and t.rating = s.rating) }</ra></td><td>Lubber 8, Andy 8, Rusty 10, Zorba 10, Horatio 9</td></tr>
+<tr><td>P2. Names of sailors who reserved boat 103</td><td><ra>{ t | \exists s \in Sailors \exists r \in Reserves (r.sid = s.sid \and r.bid = 103 \and t.sname = s.sname) }</ra></td><td>Dustin, Lubber, Horatio</td></tr>
+<tr><td>P3. … who reserved a red boat</td><td><ra>{ t | \exists s \in Sailors \exists r \in Reserves \exists b \in Boats (r.sid = s.sid \and b.bid = r.bid \and b.color = 'red' \and t.sname = s.sname) }</ra></td><td>Dustin, Lubber, Horatio, Andy, Rusty</td></tr>
+<tr><td>P5. … a red <b>or</b> a green boat</td><td>same as P3 with <ra>(b.color = 'red' \or b.color = 'green')</ra></td><td>Dustin, Lubber, Horatio, Andy, Rusty</td></tr>
+<tr><td>P6. … <b>both</b> a red and a green boat</td><td><ra>{ t | \exists s \in Sailors (t.sname = s.sname \and \exists r1 \in Reserves \exists b1 \in Boats (r1.sid = s.sid \and b1.bid = r1.bid \and b1.color = 'red') \and \exists r2 \in Reserves \exists b2 \in Boats (r2.sid = s.sid \and b2.bid = r2.bid \and b2.color = 'green')) }</ra></td><td>Dustin, Lubber</td></tr>
+<tr><td>P7. … who have <b>not</b> reserved a red boat</td><td><ra>{ t | \exists s \in Sailors (t.sname = s.sname \and \not \exists r \in Reserves \exists b \in Boats (r.sid = s.sid \and b.bid = r.bid \and b.color = 'red')) }</ra></td><td>Brutus, Zorba, Horatio (74), Art, Bob</td></tr>
+<tr><td>P8. sids of sailors who reserved <b>only</b> red boats</td><td><ra>{ t | \exists s \in Sailors (t.sid = s.sid \and \exists r \in Reserves (r.sid = s.sid) \and \forall r \in Reserves (r.sid = s.sid \implies \exists b \in Boats (b.bid = r.bid \and b.color = 'red'))) }</ra></td><td>32, 58</td></tr>
+<tr><td>P9. … who reserved <b>all</b> boats</td><td><ra>{ t | \exists s \in Sailors (t.sname = s.sname \and \forall b \in Boats \exists r \in Reserves (r.sid = s.sid \and r.bid = b.bid)) }</ra></td><td>Dustin</td></tr>
+<tr><td>P9′. … who reserved all <b>red</b> boats</td><td><ra>{ t | \exists s \in Sailors (t.sname = s.sname \and \forall b \in Boats (b.color = 'red' \implies \exists r \in Reserves (r.sid = s.sid \and r.bid = b.bid))) }</ra></td><td>Dustin, Lubber</td></tr>
+<tr><td>P10. … at least two different boats</td><td><ra>{ t | \exists s \in Sailors \exists r1 \in Reserves \exists r2 \in Reserves (r1.sid = s.sid \and r2.sid = s.sid \and r1.bid \ne r2.bid \and t.sid = s.sid \and t.sname = s.sname) }</ra></td><td>22 Dustin, 31 Lubber, 64 Horatio</td></tr>
+<tr><td>P12. Name and age of the oldest sailor</td><td><ra>{ t | \exists s \in Sailors (t.sname = s.sname \and t.age = s.age \and \not \exists s2 \in Sailors (s2.age > s.age)) }</ra></td><td>Bob 63.5</td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">Why calculus is immune to the “two Horatios” trap</div>
+<p>In P6 and P7 every condition is attached to <b>one</b> sailor variable s, so “red” and “green” must both hold for the <i>same</i> sailor. In RA you had
+to remember to intersect sids; in calculus it happens naturally.</p></div>
+<h4>Writing “for all” correctly</h4>
+<p>“s reserved every red boat” = for every boat b: <b>if</b> b is red <b>then</b> s reserved b. Two very common mistakes:</p>
+<ul>
+<li><ra>\forall b \in Boats (b.color = 'red' \and \exists r \ldots)</ra> — wrong: demands that <i>every boat is red</i>; false as soon as one blue boat exists.
+Use <b>⇒</b> with ∀.</li>
+<li><ra>\exists b \in Boats (b.color = 'red' \implies \ldots)</ra> — wrong: true for any blue boat (false ⇒ anything is true). Use <b>∧</b> with ∃.</li>
+</ul>
+<div class="box key"><div class="box-t">Rule of thumb</div><p><b>∃ goes with ∧</b>, <b>∀ goes with ⇒</b>. And to turn ∀ into something SQL can do, use
+<ra>\forall b (P \implies Q) \equiv \not \exists b (P \and \not Q)</ra> — “there is no red boat that s did not reserve” (this is exactly the double
+NOT EXISTS in section 4.6).</p></div>
+
+<h3 id="s4-4">4.4 Safety of expressions</h3>
+<p>A calculus expression may describe an <b>infinite</b> relation. Example: <ra>{ t | \not (t \in Sailors) }</ra> = “every possible tuple that is not a
+sailor” — infinitely many, and meaningless. Such expressions are <b>unsafe</b>.</p>
+<div class="box def"><div class="box-t">Definition</div><p>An expression is <b>safe</b> if every value in its result comes from the <b>domain of the expression</b>
+— the set of constants appearing in the expression plus the values appearing in the relations it mentions. In practice: bind every variable to a
+relation (<ra>\exists s \in R</ra>, <ra>\forall s \in R</ra>) and never let the result variable range over “anything not in R”.</p></div>
+<p>Only safe expressions are allowed; with this restriction calculus has exactly the power of RA (section 4.7).</p>
+
+<h3 id="s4-5">4.5 Domain relational calculus (DRC)</h3>
+<div class="box def"><div class="box-t">General form</div>
+<rab>{ \langle x1, x2, \ldots, xn \rangle | P(x1, x2, \ldots, xn) }</rab>
+<p>x1 … xn are <b>domain variables</b> (each stands for one attribute value). Atoms: <ra>\langle x1, \ldots, xk \rangle \in R</ra> (the values form a tuple
+of R, in attribute order), <ra>x \theta y</ra>, <ra>x \theta c</ra>. Formulas use ∧ ∨ ¬ ⇒ ∃ ∀ as before.</p></div>
+<p>A DRC atom must mention <b>every attribute</b> of the relation (by position). Using the <b>same variable</b> in two atoms expresses a join for free.
+Below: Sailors ⟨I, N, T, A⟩ (sid, sname, rating, age), Boats ⟨B, BN, C⟩, Reserves ⟨I, B, D⟩.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Query</th><th>Domain relational calculus</th></tr>
+<tr><td>Sailors with rating &gt; 7</td><td><ra>{ \langle I, N, T, A \rangle | \langle I, N, T, A \rangle \in Sailors \and T > 7 }</ra></td></tr>
+<tr><td>Names of sailors who reserved boat 103</td><td><ra>{ \langle N \rangle | \exists I, T, A (\langle I, N, T, A \rangle \in Sailors \and \exists D (\langle I, 103, D \rangle \in Reserves)) }</ra></td></tr>
+<tr><td>… a red boat</td><td><ra>{ \langle N \rangle | \exists I, T, A (\langle I, N, T, A \rangle \in Sailors \and \exists B, D, BN (\langle I, B, D \rangle \in Reserves \and \langle B, BN, 'red' \rangle \in Boats)) }</ra></td></tr>
+<tr><td>… all boats</td><td><ra>{ \langle N \rangle | \exists I, T, A (\langle I, N, T, A \rangle \in Sailors \and \forall B, BN, C (\langle B, BN, C \rangle \in Boats \implies \exists D (\langle I, B, D \rangle \in Reserves))) }</ra></td></tr>
+<tr><td>Oldest sailor (name, age)</td><td><ra>{ \langle N, A \rangle | \exists I, T (\langle I, N, T, A \rangle \in Sailors \and \not \exists I2, N2, T2, A2 (\langle I2, N2, T2, A2 \rangle \in Sailors \and A2 > A)) }</ra></td></tr>
+</table></div>
+<p>Notice how “sid of the reservation = sid of the sailor” is written by simply reusing the variable <b>I</b>, and “colour is red” by putting the constant
+<b>'red'</b> in the colour position.</p>
+
+<h3 id="s4-6">4.6 Translating between RA, TRC, DRC and SQL</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Query</th><th>RA</th><th>TRC</th><th>SQL</th></tr>
+<tr><td>Names of sailors who reserved a red boat</td><td><ra>\pi_{sname}(\sigma_{color='red'}(Boats) \join Reserves \join Sailors)</ra></td>
+<td><ra>{ t | \exists s \in Sailors \exists r \in Reserves \exists b \in Boats (\ldots \and b.color='red' \and t.sname = s.sname) }</ra></td>
+<td><code>SELECT DISTINCT s.sname FROM Sailors s, Reserves r, Boats b WHERE r.sid = s.sid AND b.bid = r.bid AND b.color = 'red'</code></td></tr>
+<tr><td>… not reserved a red boat</td><td><ra>\pi_{sid}(Sailors) \minus \pi_{sid}(\ldots red \ldots)</ra>, then ⋈ Sailors</td><td><ra>\ldots \and \not \exists r \exists b (\ldots)</ra></td><td><code>WHERE NOT EXISTS (…)</code></td></tr>
+<tr><td>… reserved all boats</td><td><ra>\pi_{sid,bid}(Reserves) \div \pi_{bid}(Boats)</ra></td><td><ra>\forall b \in Boats \exists r \in Reserves (\ldots)</ra></td><td>double <code>NOT EXISTS</code></td></tr>
+</table></div>
+<p>The SQL forms, executed on the sample data:</p>
+{{sql:sb_both}}
+{{sql:sb_all}}
+<p>Read <code>sb_all</code> as TRC with ∀ rewritten: “there does not exist a boat b for which there does not exist a reservation of b by s” —
+<ra>\not \exists b \in Boats (\not \exists r \in Reserves (r.sid = s.sid \and r.bid = b.bid))</ra>.</p>
+
+<h3 id="s4-7">4.7 Expressive power — Codd’s theorem</h3>
+{{svg:calc_triangle}}
+<ul>
+<li><b>Codd’s theorem:</b> relational algebra, <b>safe</b> tuple relational calculus and <b>safe</b> domain relational calculus are equivalent in expressive
+power — every query in one can be written in the others.</li>
+<li>A language with at least this power is <b>relationally complete</b>. SQL is relationally complete and goes beyond (aggregates, ordering, recursion).</li>
+<li>None of the three (pure forms) can compute aggregates such as SUM, or a transitive closure (“all ancestors”) — that needs extensions.</li>
+</ul>
+
+<h3 id="s4-8">4.8 Relational algebra vs relational calculus <span class="chip pur">PYQ 2025</span></h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Relational Algebra</th><th>Relational Calculus (TRC / DRC)</th></tr>
+<tr><td>Nature</td><td><b>Procedural</b> — specifies what data and the sequence of operations to get it</td><td><b>Non-procedural / declarative</b> — specifies only what data is required</td></tr>
+<tr><td>Based on</td><td>set theory; algebra of operators</td><td>first-order predicate logic</td></tr>
+<tr><td>Query form</td><td>expression of operators: <ra>\pi(\sigma(R \join S))</ra></td><td>set-builder formula: <ra>{ t | P(t) }</ra> or <ra>{ \langle x, y \rangle | P }</ra></td></tr>
+<tr><td>Building blocks</td><td>σ, π, ρ, ∪, −, ×, (⋈, ∩, ÷)</td><td>variables, ∈, comparisons, ∧ ∨ ¬ ⇒, quantifiers ∃ ∀</td></tr>
+<tr><td>Order of evaluation</td><td>fixed by the expression</td><td>not specified (left to the system)</td></tr>
+<tr><td>Variables range over</td><td>— (operates on whole relations)</td><td>tuples (TRC) or attribute values (DRC)</td></tr>
+<tr><td>Safety issue</td><td>none — results always finite</td><td>unsafe (infinite) expressions possible; must be restricted to safe ones</td></tr>
+<tr><td>“For all” queries</td><td>division ÷</td><td>universal quantifier ∀</td></tr>
+<tr><td>Closer to</td><td>query execution plans inside the DBMS</td><td>SQL (TRC) and QBE (DRC)</td></tr>
+<tr><td>Expressive power</td><td colspan="2" class="center">equal (Codd’s theorem) — for safe calculus</td></tr>
+</table></div>
+<div class="box exam"><div class="box-t">How calculus questions are asked</div>
+<p>The 2025 end-sem gave an Event / Topic / EminentSpeaker / Registration schema and asked “write the relational calculus expressions” for queries
+like <i>list topic titles handled by speaker ABC from NSUT</i>, <i>find date and speaker of the event whose topic is “Database Handling”</i>, and even
+<i>rename the relation Event to Event_Detail</i>. Solved answers (TRC, with DRC and RA alternatives) are in section 14.4. Recipe: (1) decide the
+output attributes; (2) introduce one ∃-variable per table you need; (3) write the join conditions (equal keys) and the selection conditions;
+(4) assign the output attributes; (5) use ¬∃ for “not”, ∀ … ⇒ for “all”.</p></div>

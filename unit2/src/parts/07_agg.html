@@ -1,0 +1,64 @@
+<!-- ============================================================ 7 -->
+<h2 id="s7"><span class="num">7</span>Aggregate Functions, GROUP BY and HAVING</h2>
+
+<h3 id="s7-1">7.1 Aggregate functions</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>An <b>aggregate function</b> takes a <b>collection of values</b> (a column of a set of rows) and returns a <b>single value</b> that summarises them.
+SQL has five standard ones: <b>COUNT, SUM, AVG, MIN, MAX</b>.</p>
+<p><b>Syntax:</b> <code>AGG_FUNCTION([DISTINCT | ALL] expression)</code> — e.g. <code>SELECT AVG(salary) FROM employee WHERE dept_id = 10;</code></p></div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Function</th><th>Returns</th><th>Works on</th><th>NULLs</th></tr>
+<tr><td><code>COUNT(*)</code></td><td>number of rows</td><td>any</td><td><b>counted</b> (it counts rows, not values)</td></tr>
+<tr><td><code>COUNT(col)</code></td><td>number of non-NULL values</td><td>any</td><td>ignored</td></tr>
+<tr><td><code>COUNT(DISTINCT col)</code></td><td>number of different non-NULL values</td><td>any</td><td>ignored</td></tr>
+<tr><td><code>SUM(col)</code></td><td>total</td><td>numeric</td><td>ignored</td></tr>
+<tr><td><code>AVG(col)</code></td><td>SUM / COUNT(col)</td><td>numeric</td><td>ignored (not treated as 0!)</td></tr>
+<tr><td><code>MIN(col)</code>, <code>MAX(col)</code></td><td>smallest / largest</td><td>numeric, string, date</td><td>ignored</td></tr>
+</table></div>
+{{sql:a_basic}}
+<p>Read this output carefully: 9 rows but only 8 salaries (Neel’s is NULL); AVG = 486000 / <b>8</b> = 60750, not 486000 / 9. 3 distinct departments
+(NULL is not counted). On an <b>empty</b> set, COUNT returns 0 while SUM/AVG/MIN/MAX return NULL.</p>
+<div class="box warn"><div class="box-t">Rules for aggregates</div>
+<ul>
+<li>Aggregates <b>cannot be used in WHERE</b> (<code>WHERE salary &gt; AVG(salary)</code> is an error) — use a sub-query or HAVING.</li>
+<li>Aggregates cannot be nested directly in most systems (<code>MAX(AVG(x))</code>) — use a derived table.</li>
+<li>If the SELECT list has an aggregate, every <b>other</b> column in it must appear in GROUP BY (next section).</li>
+</ul></div>
+
+<h3 id="s7-2">7.2 GROUP BY</h3>
+<p><code>GROUP BY col</code> partitions the rows (that survived WHERE) into <b>groups with equal values of col</b>; the aggregates are then computed
+<b>per group</b>, and the result has <b>one row per group</b>. (RA: <ra>_{dept\_id}\gamma_{count(*), sum(salary)}(employee)</ra>.)</p>
+{{svg:groupby_visual}}
+{{sql:a_group}}
+<ul>
+<li>All NULL dept_id rows form <b>one group</b> (Zoya).</li>
+<li><b>The golden rule:</b> every column in SELECT must either be inside an aggregate or be listed in GROUP BY. <code>SELECT dept_id, name, AVG(salary) …
+GROUP BY dept_id</code> is <b>invalid</b> — which name should be shown for a group of three people? (MySQL with ONLY_FULL_GROUP_BY disabled returns an
+arbitrary one — never rely on it.)</li>
+<li>You may group by several columns — one group per <b>combination</b>:</li>
+</ul>
+{{sql:a_two_cols}}
+
+<h3 id="s7-3">7.3 HAVING — conditions on groups</h3>
+<p><b>HAVING</b> filters <b>groups</b> after grouping, so it can use aggregates. WHERE filters <b>rows</b> before grouping.</p>
+{{sql:a_having}}
+{{sql:a_where_having}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>WHERE</th><th>HAVING</th></tr>
+<tr><td>filters individual <b>rows</b></td><td>filters <b>groups</b></td></tr>
+<tr><td>applied <b>before</b> GROUP BY</td><td>applied <b>after</b> GROUP BY</td></tr>
+<tr><td>cannot contain aggregate functions</td><td>usually contains aggregate functions</td></tr>
+<tr><td>can be used without GROUP BY (SELECT, UPDATE, DELETE)</td><td>normally used with GROUP BY (without it, the whole table is one group)</td></tr>
+<tr><td><code>WHERE salary &gt; 50000</code></td><td><code>HAVING AVG(salary) &gt; 50000</code></td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">Performance tip</div><p>A condition that does not involve an aggregate (e.g. <code>city &lt;&gt; 'Delhi'</code>) belongs in WHERE, not HAVING: filtering rows early means
+fewer rows to group.</p></div>
+
+<h3 id="s7-4">7.4 COUNT(*) vs COUNT(column) with outer joins — a classic trap</h3>
+<p>“Number of employees in <b>every</b> department (including departments with none)” needs a LEFT JOIN. But:</p>
+<div class="tables">{{sql:a_count_wrong}}{{sql:a_count_right}}</div>
+<p>The LEFT JOIN produces one row for Research with NULL employee columns; <code>COUNT(*)</code> counts that row, <code>COUNT(e.emp_id)</code> does not.</p>
+
+<h3 id="s7-5">7.5 ORDER BY with groups</h3>
+<p>The final result can be sorted by an aggregate or its alias: <code>… GROUP BY dept_id ORDER BY COUNT(*) DESC</code> — “departments, largest first”
+(PYQ 2025: “AreaName and number of sensors per location, highest first”).</p>

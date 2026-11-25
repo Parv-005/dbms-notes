@@ -1,0 +1,585 @@
+<!-- ============================================================ 14 -->
+<h2 id="s14"><span class="num">14</span>Previous Year Questions — Topic-wise, Fully Solved</h2>
+<p>Every Unit-2 question in the papers you provided, grouped by topic, with answers written the way they should be written in the exam.
+<b>Every SQL answer was executed and every RA answer computed</b> on a small test database built from the schema in the question (open
+“test data &amp; output” under an answer to see it). Try each question yourself first.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Paper (as labelled here)</th><th>Source file</th><th>Unit-2 questions</th></tr>
+<tr><td>End-Sem Nov–Dec 2025 (ITITC302)</td><td>endsem 2025.pdf</td><td>Q2(a) SQL, Q2(b) calculus, Q2(c) RA; Q1(c) NoSQL</td></tr>
+<tr><td>End-Sem Nov–Dec 2025 (ITITC05, 40 marks)</td><td>ITITC05.pdf</td><td>Q2(a) SQL, Q2(b) referential integrity, Q2(c) RA vs RC + aggregates; Q1(c)</td></tr>
+<tr><td>End-Sem Nov–Dec 2024</td><td>endsem 2024.pdf</td><td>Q2(a) cascade + triggers, Q2(b) SQL, Q2(c) RA; Q1(c) NoSQL</td></tr>
+<tr><td>End-Sem July 2026 (Summer)</td><td>endsem 2026 summer sem.pdf</td><td>Q2(a) SQL + triggers, Q2(b) RA, Q2(c) SQL; Q1(c) NoSQL</td></tr>
+<tr><td>End-Sem Nov–Dec 2023 (ITITC05)</td><td>PYQ images</td><td>Q2(a) SQL, Q2(b) RA, Q2(c) integrity constraints</td></tr>
+<tr><td>End-Sem Nov–Dec 2022 (COCSC05)</td><td>PYQ images</td><td>Q3(a) RA + SQL</td></tr>
+<tr><td>End-Sem (year not printed)</td><td>PYQ images</td><td>Q1(a) DDL/DML, keys, procedural; Q1(b)(iv) GRANT/REVOKE; Q2(a) SQL; Q2(b) RA</td></tr>
+<tr><td>Mid-Sem Sep 2024</td><td>ITITC302_INITC302_2024.pdf</td><td>Q2(b), Q3(a), Q3(b), Q4(a), Q4(b), Q5(a), Q5(b)</td></tr>
+<tr><td>Mid-Sem Sep 2025</td><td>midsem 2025.pdf</td><td>Q2(b), Q3(a), Q3(b), Q4(a), Q4(b), Q5(a)</td></tr>
+<tr><td>Mid-Sem Sep 2026</td><td>midsem 2026 dbms.pdf</td><td>Q2(a), Q2(b), Q3(a), Q3(b), Q4(a)</td></tr>
+<tr><td>Summer-Semester Mid-Sem</td><td>ITITC302-INITC302-EEITC401.pdf</td><td>Q3(a), Q4(a), Q4(b), Q5(a), Q5(b)</td></tr>
+<tr><td>Mid-Sem Oct 2021 (ITITC05)</td><td>PYQ images</td><td>Q2(a), Q2(b), Q2(c), Q3(b)</td></tr>
+</table></div>
+<p class="small muted">Questions on file systems, data models, ER diagrams and normalization belong to Units 1, 3 and 4 and are not repeated here.</p>
+<div class="box exam"><div class="box-t">What the pattern tells you</div><ul>
+<li><b>Every end-sem</b> has one RA question (5 marks, 4–5 queries, almost always including one “all/every” query → division) and one SQL question
+(5 marks, 3–5 queries with joins, GROUP BY/HAVING, sub-queries; “highest per department” appears in four papers).</li>
+<li><b>Mid-sems</b> ask: foreign keys / referential actions, NULLs, aggregate functions, CREATE TABLE with all constraints, short SQL with a sub-query,
+Sailors–Boats RA, “how many tuples” questions, triggers.</li>
+<li>One calculus question so far (2025) and one RA-vs-RC comparison — easy marks if you know section 4.</li>
+<li>NoSQL appears as a 5-mark “which database for this company and why” question in every end-sem.</li></ul></div>
+
+<!-- ------------------------------------------------ 14.1 -->
+<h3 id="p1">14.1 Relational model, keys and NULL</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q3(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Discuss the four reasons that lead to the occurrence of NULL values in a relation.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>NULL is a special marker meaning “no value is stored”; it is different from 0 or a blank. It occurs because:</p>
+<ol>
+<li><b>Value unknown</b> — it exists but is not known now. E.g. <code>DOB</code> of a patient brought in unconscious.</li>
+<li><b>Value not applicable</b> — the attribute does not apply to that tuple. E.g. <code>spouse_name</code> of an unmarried employee; <code>maiden_name</code> of a man.</li>
+<li><b>Value not yet available / not yet assigned</b> — it will exist later. E.g. <code>grade</code> of a course in progress, <code>dept_id</code> of a newly joined employee.</li>
+<li><b>Value withheld / not recorded</b> — it exists but is intentionally not stored (privacy) or was missed at entry. E.g. a customer who declines to give a phone number.</li>
+</ol>
+<p>(NULLs also arise from outer joins and from adding a new column with ALTER TABLE.) Since a comparison with NULL is UNKNOWN, NULLs must be tested
+with <code>IS NULL</code>, and aggregate functions ignore them.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q1(a)(ii)</span><span class="chip warn">part of 4 marks</span></div>
+<div class="pyq-q"><p>Highlight the key difference between <b>candidate key and super key</b> with the help of a suitable example.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Super key</th><th>Candidate key</th></tr>
+<tr><td>any set of attributes that uniquely identifies each tuple</td><td>a <b>minimal</b> super key — no proper subset is a super key</td></tr>
+<tr><td>may contain extra (redundant) attributes</td><td>no redundant attribute</td></tr>
+<tr><td>a relation has many super keys (every superset of a key)</td><td>a relation has a few candidate keys; one is chosen as primary key</td></tr>
+<tr><td>every candidate key is a super key</td><td>not every super key is a candidate key</td></tr>
+</table></div>
+<p><b>Example:</b> STUDENT(Roll_No, Email, Name, Branch). Roll_No and Email are each unique.</p>
+<ul><li>Super keys: {Roll_No}, {Email}, {Roll_No, Name}, {Email, Branch}, {Roll_No, Email}, {Roll_No, Email, Name, Branch} …</li>
+<li>Candidate keys: {Roll_No} and {Email} only. {Roll_No, Name} is a super key but not a candidate key because its subset {Roll_No} already identifies
+a student. {Name} is not a key at all (two students may share a name).</li></ul>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Oct 2021</span><span class="chip">Q3(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Consider a relation R(A, B, C, D, E). If (A) and (BC) are the candidate keys of R, find the number of super keys and list them.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A super key must contain at least one candidate key.</p>
+<ul>
+<li>Super keys containing A: A is fixed, each of B, C, D, E may be in or out ⇒ 2<sup>4</sup> = <b>16</b>.</li>
+<li>Super keys containing BC: B, C fixed, A, D, E free ⇒ 2<sup>3</sup> = <b>8</b>.</li>
+<li>Counted twice (contain A and BC): A, B, C fixed, D, E free ⇒ 2<sup>2</sup> = <b>4</b>.</li>
+</ul>
+<p class="answer-line">Number of super keys = 16 + 8 − 4 = 20.</p>
+<p><b>List.</b> Containing A (16): A, AB, AC, AD, AE, ABC, ABD, ABE, ACD, ACE, ADE, ABCD, ABCE, ABDE, ACDE, ABCDE.<br>
+Containing BC but not A (4): BC, BCD, BCE, BCDE.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q1(a)(i), (iii)</span><span class="chip warn">part of 4 marks</span></div>
+<div class="pyq-q"><p>Highlight the key difference between (i) <b>DDL and DML</b>, (iii) <b>procedural and non-procedural language</b>, with examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(i) DDL vs DML</h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>DDL (Data Definition Language)</th><th>DML (Data Manipulation Language)</th></tr>
+<tr><td>defines/changes the <b>structure</b> (schema) of database objects</td><td>retrieves/changes the <b>data</b> inside the objects</td></tr>
+<tr><td>CREATE, ALTER, DROP, TRUNCATE, RENAME</td><td>SELECT, INSERT, UPDATE, DELETE</td></tr>
+<tr><td>auto-committed; cannot be rolled back (Oracle/MySQL)</td><td>can be rolled back before COMMIT</td></tr>
+<tr><td>no WHERE clause; affects the whole object</td><td>WHERE selects the rows affected</td></tr>
+<tr><td>updates the data dictionary</td><td>does not change metadata</td></tr>
+<tr><td><code>CREATE TABLE emp(id INT PRIMARY KEY, name VARCHAR(30));</code></td><td><code>INSERT INTO emp VALUES (1,'Asha'); UPDATE emp SET name='Ravi' WHERE id=1;</code></td></tr>
+</table></div>
+<h4>(iii) Procedural vs non-procedural</h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Procedural</th><th>Non-procedural (declarative)</th></tr>
+<tr><td>user specifies <b>what</b> data is needed <b>and how</b> to get it (sequence of operations)</td><td>user specifies only <b>what</b> data is needed</td></tr>
+<tr><td>e.g. relational algebra, PL/SQL, C</td><td>e.g. SQL, relational calculus (TRC, DRC), QBE</td></tr>
+<tr><td>efficiency depends on the programmer</td><td>the query optimiser chooses the method</td></tr>
+<tr><td><ra>\pi_{name}(\sigma_{salary > 50000}(emp))</ra> — first select, then project</td><td><code>SELECT name FROM emp WHERE salary &gt; 50000;</code> / <ra>{ t | \exists e \in emp (e.salary > 50000 \and t.name = e.name) }</ra></td></tr>
+</table></div>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.2 -->
+<h3 id="p2">14.2 Integrity constraints and referential integrity</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2023</span><span class="chip">Q2(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>What are integrity constraints? How are they useful? Explain any 4 integrity constraints with the help of suitable examples and syntax.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Integrity constraints</b> are rules defined on the database schema that every valid database state must satisfy. The DBMS checks them on every
+INSERT, UPDATE and DELETE and rejects any operation that violates them.</p>
+<p><b>Usefulness:</b> keep data accurate and consistent; prevent duplicates, missing mandatory values and dangling references; defined once in the
+schema instead of in every program; cannot be bypassed by applications.</p>
+<ol>
+<li><b>Domain constraint (NOT NULL, CHECK, data type, DEFAULT)</b> — each value must come from the attribute’s domain.
+<pre class="sql">age    INT CHECK (age BETWEEN 16 AND 40),
+name   VARCHAR(40) NOT NULL</pre>
+<code>INSERT … age = 12</code> or a NULL name is rejected.</li>
+<li><b>Key constraint (PRIMARY KEY / UNIQUE)</b> — no two tuples have the same key value.
+<pre class="sql">roll_no INT PRIMARY KEY,
+email   VARCHAR(50) UNIQUE</pre>
+A second student with roll_no 1 is rejected.</li>
+<li><b>Entity integrity</b> — no primary-key attribute may be NULL (a NULL key cannot identify a tuple). Enforced automatically by PRIMARY KEY.</li>
+<li><b>Referential integrity (FOREIGN KEY)</b> — a foreign-key value must match an existing primary-key value of the referenced table, or be NULL.
+<pre class="sql">dept_id INT REFERENCES department(dept_id) ON DELETE SET NULL</pre>
+Inserting a student with dept_id 99 when no department 99 exists is rejected; deleting a department sets its students’ dept_id to NULL.</li>
+</ol>
+<details class="more"><summary>Executed demonstration</summary>{{viol:ic1}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q3(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Discuss the role of a foreign key constraint in maintaining referential integrity. By providing a referential integrity constraint, what
+happens when an update or delete or insert operation is performed on a table?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A <b>foreign key</b> is an attribute of a child (referencing) table whose values must match the primary key of a parent (referenced) table or be
+NULL. It ensures that every reference points to a row that really exists — <b>no dangling references</b> — which is referential integrity.
+E.g. <code>employee.dept_id REFERENCES department(dept_id)</code>.</p>
+<ul>
+<li><b>INSERT into child</b> (or UPDATE of the FK) with a value not present in the parent → <b>rejected</b>. Inserting into the parent is always fine.</li>
+<li><b>DELETE from parent</b> of a row that is referenced → action given by <code>ON DELETE</code>: <b>RESTRICT/NO ACTION</b> (default) rejects the delete;
+<b>CASCADE</b> deletes the child rows too; <b>SET NULL</b> sets the child FKs to NULL; <b>SET DEFAULT</b> sets them to the default. Deleting a child row is always fine.</li>
+<li><b>UPDATE of the parent’s PK</b> that is referenced → action given by <code>ON UPDATE</code> (RESTRICT / CASCADE — child FKs changed to the new value / SET NULL).</li>
+</ul>
+<pre class="sql">FOREIGN KEY (dept_id) REFERENCES department(dept_id)
+    ON DELETE CASCADE ON UPDATE CASCADE</pre>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2026</span><span class="chip">Q2(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>What is the role of a Foreign Key in maintaining referential integrity? How is the referential integrity constraint applied in an SQL query?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Role:</b> a foreign key links a child table to a parent table; the DBMS guarantees every FK value equals some existing PK value of the parent
+(or is NULL). Hence an order cannot belong to a non-existent customer, and a customer who still has orders cannot be silently deleted.</p>
+<p><b>Applying it in SQL</b> — column level, table level, or later with ALTER TABLE, optionally with referential actions:</p>
+<pre class="sql">CREATE TABLE customer (cust_id INT PRIMARY KEY, name VARCHAR(40));
+
+CREATE TABLE orders (
+  order_id INT PRIMARY KEY,
+  cust_id  INT,
+  CONSTRAINT fk_ord_cust FOREIGN KEY (cust_id)
+      REFERENCES customer(cust_id)
+      ON DELETE CASCADE           -- delete a customer ⇒ delete his orders
+      ON UPDATE CASCADE
+);
+
+ALTER TABLE orders ADD CONSTRAINT fk_ord_cust2
+      FOREIGN KEY (cust_id) REFERENCES customer(cust_id);   -- adding it later</pre>
+<p>Then <code>INSERT INTO orders VALUES (1, 999);</code> fails if customer 999 does not exist.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025 (ITITC05)</span><span class="chip">Q2(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Explain referential integrity constraint. Assume that a row in the parent table, whose primary key value = 5, is deleted. Discuss in
+detail what consequence this deletion has on the child table under the referential integrity constraint.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Referential integrity:</b> if FK of child relation R<sub>1</sub> references PK of parent R<sub>2</sub>, then for every tuple t<sub>1</sub> of R<sub>1</sub>,
+t<sub>1</sub>[FK] is NULL or t<sub>1</sub>[FK] = t<sub>2</sub>[PK] for some tuple t<sub>2</sub> of R<sub>2</sub>.</p>
+<p>Let parent <code>department(dept_id PK)</code> and child <code>employee(emp_id, dept_id FK)</code>, and suppose employees E1, E3 have dept_id = 5.
+<code>DELETE FROM department WHERE dept_id = 5;</code></p>
+<ul>
+<li><b>If no child row has FK = 5:</b> the delete simply succeeds; the child table is unaffected.</li>
+<li><b>ON DELETE RESTRICT / NO ACTION</b> (default): the delete is <b>rejected</b> with an error because E1 and E3 still refer to 5; both tables unchanged.
+The user must first delete/reassign those employees.</li>
+<li><b>ON DELETE CASCADE:</b> department 5 is deleted <b>and</b> E1 and E3 are deleted automatically (and, if other tables reference E1/E3 with
+CASCADE, the deletion continues down the chain).</li>
+<li><b>ON DELETE SET NULL:</b> department 5 is deleted; E1 and E3 remain with dept_id = NULL (allowed only if the column is nullable).</li>
+<li><b>ON DELETE SET DEFAULT:</b> E1 and E3 get the column default (e.g. 0 = “unassigned”), which must itself exist in the parent.</li>
+</ul>
+{{svg:fk_actions}}
+<p class="answer-line">In every case the database never ends up with a child row pointing to the deleted key 5 — that is the guarantee of referential integrity.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2024</span><span class="chip">Q2(a)(i)</span><span class="chip warn">2.5 marks</span></div>
+<div class="pyq-q"><p>The following table has two attributes A and C where A is the primary key and C is the foreign key referencing A with on-delete cascade.
+Tuples (A, C): (2,4), (3,4), (4,3), (5,2), (7,2), (9,5), (6,4). Justify the set of all tuples that must be additionally deleted to preserve referential
+integrity when the tuple (2,4) is deleted.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>C references A in the same table with ON DELETE CASCADE, so deleting a tuple with A = x deletes every tuple whose C = x, and so on recursively.</p>
+<ol class="steps">
+<li>Delete (2,4). Tuples with C = 2: <b>(5,2)</b> and <b>(7,2)</b> → deleted.</li>
+<li>(5,2) deleted ⇒ tuples with C = 5: <b>(9,5)</b> → deleted.</li>
+<li>(7,2) deleted ⇒ tuples with C = 7: none. (9,5) deleted ⇒ tuples with C = 9: none. Chain stops.</li>
+</ol>
+{{svg:cascade_chain}}
+<p class="answer-line">Additionally deleted: (5,2), (7,2), (9,5). Remaining: (3,4), (4,3), (6,4).</p>
+<p>(The remaining tuples are consistent: C = 4 and C = 3 refer to A = 4 and A = 3, which still exist.)</p>
+<details class="more"><summary>Verified by executing it in a DBMS</summary>{{viol:cascade24}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Oct 2021</span><span class="chip">Q2(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Explain the concept of referential integrity constraint. Write an SQL query to apply referential integrity constraint on the relations
+Worker(Worker_Id, First_name, salary, joining_date, department) and Title(Worker_ref_id, Worker_title, affected_from).</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Referential integrity requires that a foreign-key value in the referencing table either be NULL or match an existing primary-key value in the
+referenced table, so that no row refers to a non-existent row. Here Title.Worker_ref_id must refer to an existing Worker.Worker_Id.</p>
+<pre class="sql">CREATE TABLE Worker (
+  Worker_Id     INT          PRIMARY KEY,
+  First_name    VARCHAR(30)  NOT NULL,
+  salary        INT          CHECK (salary &gt; 0),
+  joining_date  DATE,
+  department    VARCHAR(20)
+);
+CREATE TABLE Title (
+  Worker_ref_id INT          NOT NULL,
+  Worker_title  VARCHAR(30)  NOT NULL,
+  affected_from DATE,
+  PRIMARY KEY (Worker_ref_id, Worker_title, affected_from),
+  CONSTRAINT fk_title_worker FOREIGN KEY (Worker_ref_id)
+      REFERENCES Worker(Worker_Id)
+      ON DELETE CASCADE ON UPDATE CASCADE
+);
+-- or, if Title already exists:
+ALTER TABLE Title ADD CONSTRAINT fk_title_worker
+      FOREIGN KEY (Worker_ref_id) REFERENCES Worker(Worker_Id) ON DELETE CASCADE;</pre>
+<p>Effect: a title for worker 42 cannot be inserted unless worker 42 exists; deleting a worker deletes his title rows.</p>
+<details class="more"><summary>Executed check</summary>{{viol:wk_ri}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q4(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>A university maintains: Student(StudentID, Name, Email, Phone, DeptID), Department(DeptID, DeptName, HOD), Course(CourseID, Title, Credits,
+DeptID), Enrollment(EnrollID, StudentID, CourseID, Semester, Grade). Rules: every student has a unique StudentID, non-null Name and unique Email;
+each department has a unique DeptID and DeptName not null; every course belongs to exactly one department and Credits are between 1 and 5; a student
+may enroll in many courses but not in the same course in the same semester more than once; Grade ∈ {A, B, C, D, F, I}. Define the integrity
+constraints (PK, FK, UNIQUE, NOT NULL, CHECK) for all four relations by writing CREATE TABLE statements.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<pre class="sql">CREATE TABLE Department (
+  DeptID    VARCHAR(10)  PRIMARY KEY,                -- unique, not null
+  DeptName  VARCHAR(50)  NOT NULL,
+  HOD       VARCHAR(50)
+);
+CREATE TABLE Student (
+  StudentID VARCHAR(10)  PRIMARY KEY,
+  Name      VARCHAR(50)  NOT NULL,
+  Email     VARCHAR(80)  UNIQUE,
+  Phone     VARCHAR(15),
+  DeptID    VARCHAR(10),
+  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+CREATE TABLE Course (
+  CourseID  VARCHAR(10)  PRIMARY KEY,
+  Title     VARCHAR(80)  NOT NULL,
+  Credits   INT          CHECK (Credits BETWEEN 1 AND 5),
+  DeptID    VARCHAR(10)  NOT NULL,                   -- exactly one department
+  FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+);
+CREATE TABLE Enrollment (
+  EnrollID  INT          PRIMARY KEY,
+  StudentID VARCHAR(10)  NOT NULL,
+  CourseID  VARCHAR(10)  NOT NULL,
+  Semester  INT          NOT NULL,
+  Grade     CHAR(1)      CHECK (Grade IN ('A','B','C','D','F','I')),
+  UNIQUE (StudentID, CourseID, Semester),           -- same course only once per semester
+  FOREIGN KEY (StudentID) REFERENCES Student(StudentID) ON DELETE CASCADE,
+  FOREIGN KEY (CourseID)  REFERENCES Course(CourseID)
+);</pre>
+<p>Order of creation matters: Department before Student and Course; Enrollment last. “Exactly one department” = FK + NOT NULL on Course.DeptID.</p>
+<details class="more"><summary>Executed: the constraints really reject bad rows</summary>{{viol:uni25}}</details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q4(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>From the previous question, suppose a student with StudentID = S101 is deleted from the database. What referential action should be
+enforced on the Enrollment table (CASCADE / SET NULL / RESTRICT) to maintain data integrity? Justify your choice.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>ON DELETE CASCADE</b> is the appropriate action (with RESTRICT as the safer alternative if records must be preserved).</p>
+<ul>
+<li>An Enrollment row only describes a relationship between a student and a course; it has no meaning without its student (it is existence-dependent,
+like a weak entity). When S101 is removed, S101’s enrollment rows should go too → CASCADE.</li>
+<li><b>SET NULL is not acceptable:</b> StudentID in Enrollment is NOT NULL and part of the UNIQUE (StudentID, CourseID, Semester) rule; an enrollment
+“of nobody” is meaningless and would violate those constraints.</li>
+<li><b>RESTRICT</b> would refuse to delete S101 while enrollments exist. Use it if the university must keep academic records (transcripts) permanently —
+then students are never physically deleted, only marked inactive.</li>
+</ul>
+<pre class="sql">FOREIGN KEY (StudentID) REFERENCES Student(StudentID) ON DELETE CASCADE</pre>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q3(a)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>Consider STUDENT(StudentID, Name, Age, Department), COURSE(CourseID, CourseName, Credits), ENROLLMENT(StudentID, CourseID, Marks).
+Write SQL DDL statements to create the tables using PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL and CHECK constraints. Explain the integrity
+violation each constraint prevents.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<pre class="sql">CREATE TABLE STUDENT (
+  StudentID   INT          PRIMARY KEY,
+  Name        VARCHAR(50)  NOT NULL,
+  Age         INT          CHECK (Age &gt;= 16),
+  Department  VARCHAR(30)
+);
+CREATE TABLE COURSE (
+  CourseID    VARCHAR(10)  PRIMARY KEY,
+  CourseName  VARCHAR(60)  NOT NULL UNIQUE,
+  Credits     INT          NOT NULL CHECK (Credits BETWEEN 1 AND 5)
+);
+CREATE TABLE ENROLLMENT (
+  StudentID   INT          NOT NULL,
+  CourseID    VARCHAR(10)  NOT NULL,
+  Marks       INT          CHECK (Marks BETWEEN 0 AND 100),
+  PRIMARY KEY (StudentID, CourseID),
+  FOREIGN KEY (StudentID) REFERENCES STUDENT(StudentID),
+  FOREIGN KEY (CourseID)  REFERENCES COURSE(CourseID)
+);</pre>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Constraint</th><th>Violation it prevents</th></tr>
+<tr><td>PRIMARY KEY (StudentID), (CourseID), (StudentID, CourseID)</td><td>duplicate students/courses, a student enrolled twice in the same course, and NULL identifiers (entity integrity)</td></tr>
+<tr><td>FOREIGN KEY in ENROLLMENT</td><td>enrollment of a non-existent student or in a non-existent course (dangling reference)</td></tr>
+<tr><td>UNIQUE (CourseName)</td><td>two different course IDs with the same name</td></tr>
+<tr><td>NOT NULL (Name, Credits)</td><td>missing mandatory information</td></tr>
+<tr><td>CHECK (Age ≥ 16), (Credits 1–5), (Marks 0–100)</td><td>out-of-range / impossible values</td></tr>
+</table></div>
+<details class="more"><summary>Executed: each constraint rejecting its violation</summary>{{viol:sm3}}</details>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.3 -->
+<h3 id="p3">14.3 Relational algebra</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q4(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Sailors(<u>sid</u>, sname, rating, age), Boats(<u>bid</u>, bname, color), Reserves(<u>sid, bid</u>, date). Write in relational algebra:
+1. names of sailors who have not reserved a red boat; 2. names of sailors who have reserved at least two boats; 3. names of sailors who have reserved
+all boats; 4. name and age of the oldest sailor.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>1. Not reserved a red boat</b> (all sailors − those who did; subtract sids, not names):</p>
+<rab>RedSids \gets \pi_{sid}(\sigma_{color='red'}(Boats) \join Reserves) \br Result \gets \pi_{sname}((\pi_{sid}(Sailors) \minus RedSids) \join Sailors)</rab>
+<p><b>2. At least two (different) boats</b> (self-join of Reserves):</p>
+<rab>\pi_{sname}(\pi_{R1.sid}(\rho_{R1}(Reserves) \join_{R1.sid = R2.sid \and R1.bid \ne R2.bid} \rho_{R2}(Reserves)) \join Sailors)</rab>
+<p><b>3. All boats</b> (division):</p>
+<rab>\pi_{sname}((\pi_{sid, bid}(Reserves) \div \pi_{bid}(Boats)) \join Sailors)</rab>
+<p><b>4. Oldest sailor</b> (all sailors − those younger than someone):</p>
+<rab>Younger \gets \pi_{S1.sid}(\rho_{S1}(Sailors) \join_{S1.age < S2.age} \rho_{S2}(Sailors)) \br Result \gets \pi_{sname, age}((\pi_{sid}(Sailors) \minus Younger) \join Sailors)</rab>
+<p>(With aggregation: <ra>\pi_{sname, age}(Sailors \join_{age = m} \gamma_{max(age) \to m}(Sailors))</ra>.)</p>
+<details class="more"><summary>Test data &amp; output (Sailors DB of section 3.2)</summary>
+<div class="tables">{{rares:c8}}{{rares:c7n}}{{rares:c10}}{{rares:c12}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Summer-Sem Mid-Sem</span><span class="chip">Q4(b)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>Sailors–Boats–Reserves database. Write relational algebra for: 1. sailors who reserved both a red boat and a green boat; 2. sailors who
+have reserved all boats; 3. names and ages of sailors having the highest rating.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>1. Both red and green</b> — two different reservations, so intersect the two sets of sids (not names):</p>
+<rab>\pi_{sname}((\pi_{sid}(\sigma_{color='red'}(Boats) \join Reserves) \cap \pi_{sid}(\sigma_{color='green'}(Boats) \join Reserves)) \join Sailors)</rab>
+<p><b>2. All boats:</b> <ra>\pi_{sname}((\pi_{sid, bid}(Reserves) \div \pi_{bid}(Boats)) \join Sailors)</ra></p>
+<p><b>3. Highest rating:</b></p>
+<rab>Lower \gets \pi_{S1.sid}(\rho_{S1}(Sailors) \join_{S1.rating < S2.rating} \rho_{S2}(Sailors)) \br \pi_{sname, age}((\pi_{sid}(Sailors) \minus Lower) \join Sailors)</rab>
+<details class="more"><summary>Test data &amp; output</summary><div class="tables">{{rares:c6}}{{rares:c10}}{{rares:c13}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q2(c)</span><span class="chip acc">End-Sem 2024</span><span class="chip">Q2(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Students: StudentID (PK), Name, Age, Major · Courses: CourseID (PK), CourseName, Credits · Enrollments: StudentID (FK), CourseID (FK), Grade ·
+Professors: ProfessorID (PK), Name, Department · Teaches: ProfessorID (FK), CourseID (FK), Semester.<br>Write relational algebra queries:
+i) names of students who are enrolled in all courses taught by “Dr. Smith”; ii) names and majors of students who have scored an ‘A’ in more than two
+courses; iii) course names and total number of students enrolled in each course taught in the Fall semester; iv) students who are majoring in the same
+department as their professors; v) names of professors who have never taught a course taken by students under 20 years old.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Note:</b> Students and Professors both have an attribute <i>Name</i>, so before a natural join involving both, Professors is renamed:
+<ra>P \gets \rho_{(ProfessorID, PName, Department)}(Professors)</ra>.</p>
+<h4>(i) Enrolled in all courses taught by Dr. Smith — division</h4>
+<rab>SmithCourses \gets \pi_{CourseID}(\sigma_{Name='Dr. Smith'}(Professors) \join Teaches) \br Result \gets \pi_{Name}((\pi_{StudentID, CourseID}(Enrollments) \div SmithCourses) \join Students)</rab>
+<h4>(ii) ‘A’ in more than two courses</h4>
+<p>With aggregation:</p>
+<rab>\pi_{Name, Major}(\sigma_{cnt > 2}(_{StudentID}\gamma_{count(CourseID) \to cnt}(\sigma_{Grade='A'}(Enrollments))) \join Students)</rab>
+<p>Without aggregation (“more than two” = at least three different courses) — three copies of the A-grades:</p>
+<rab>E \gets \pi_{StudentID, CourseID}(\sigma_{Grade='A'}(Enrollments)) \br T \gets \pi_{E1.StudentID}(\rho_{E1}(E) \join_{E1.StudentID=E2.StudentID \and E1.CourseID<E2.CourseID} \rho_{E2}(E) \join_{E2.StudentID=E3.StudentID \and E2.CourseID<E3.CourseID} \rho_{E3}(E)) \br Result \gets \pi_{Name, Major}(T \join Students)</rab>
+<h4>(iii) Fall courses and number of students enrolled</h4>
+<rab>Fall \gets \pi_{CourseID}(\sigma_{Semester='Fall'}(Teaches)) \br Result \gets _{CourseID, CourseName}\gamma_{count(StudentID) \to NumStudents}(Courses \join Fall \join Enrollments)</rab>
+<p>(A Fall course with no enrolment would be missing; to show it with 0, use a left outer join <ra>(Courses \join Fall) \ljoin Enrollments</ra> and count StudentID.)</p>
+<h4>(iv) Students majoring in the same department as their professors</h4>
+<p>Interpretation: a student enrolled in a course taught by a professor whose Department equals the student’s Major.</p>
+<rab>P \gets \rho_{(ProfessorID, PName, Department)}(Professors) \br Result \gets \pi_{StudentID, Name}(\sigma_{Major = Department}(Students \join Enrollments \join Teaches \join P))</rab>
+<p>(If the intended meaning is “<i>all</i> of their professors are from their major”, subtract those who have some professor from another department:
+<ra>\pi_{StudentID}(Students \join Enrollments) \minus \pi_{StudentID}(\sigma_{Major \ne Department}(Students \join Enrollments \join Teaches \join P))</ra>.)</p>
+<h4>(v) Professors who never taught a course taken by a student under 20</h4>
+<rab>Taught \gets \pi_{ProfessorID}(Teaches \join Enrollments \join \sigma_{Age < 20}(Students)) \br Result \gets \pi_{Name}((\pi_{ProfessorID}(Professors) \minus Taught) \join Professors)</rab>
+<details class="more"><summary>Test data &amp; computed outputs</summary>
+<div class="tables">{{rel:uni.Students}}{{rel:uni.Professors}}{{rel:uni.Courses}}{{rel:uni.Teaches}}{{rel:uni.Enrollments}}</div>
+<div class="tables">{{rares:u1}}{{rares:u2}}{{rares:u3}}{{rares:u4}}{{rares:u5}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2026 Summer</span><span class="chip">Q2(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Customer(CustomerID, Name, City), Orders(OrderID, CustomerID, OrderDate, Amount), Products(ProductID, ProductName, Price),
+OrderDetails(OrderID, ProductID, Quantity). Write relational algebra expressions for: i) customers who ordered every product priced above ₹10,000;
+ii) products never ordered; iii) customers whose total purchase exceeds ₹50,000; iv) products ordered by customers from Delhi; v) customers who
+purchased more than three different products.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(i) Ordered every product priced above ₹10,000 — division</h4>
+<rab>CP \gets \pi_{CustomerID, ProductID}(Orders \join OrderDetails) \br Costly \gets \pi_{ProductID}(\sigma_{Price > 10000}(Products)) \br Result \gets \pi_{CustomerID, Name}((CP \div Costly) \join Customer)</rab>
+<h4>(ii) Products never ordered — difference</h4>
+<rab>\pi_{ProductID, ProductName}((\pi_{ProductID}(Products) \minus \pi_{ProductID}(OrderDetails)) \join Products)</rab>
+<h4>(iii) Total purchase exceeds ₹50,000 — aggregation, then selection</h4>
+<rab>Tot \gets _{CustomerID}\gamma_{sum(Amount) \to Total}(Orders) \br Result \gets \pi_{CustomerID, Name, Total}(\sigma_{Total > 50000}(Tot) \join Customer)</rab>
+<p>(If Amount were not stored, compute it: <ra>\gamma_{sum(Quantity \times Price)}</ra> over Orders ⋈ OrderDetails ⋈ Products.)</p>
+<h4>(iv) Products ordered by customers from Delhi — joins</h4>
+<rab>\pi_{ProductName}(\sigma_{City='Delhi'}(Customer) \join Orders \join OrderDetails \join Products)</rab>
+<h4>(v) More than three different products</h4>
+<rab>CP \gets \pi_{CustomerID, ProductID}(Orders \join OrderDetails) \br Result \gets \pi_{CustomerID, Name}(\sigma_{n > 3}(_{CustomerID}\gamma_{count(ProductID) \to n}(CP)) \join Customer)</rab>
+<p>(CP is a set, so count(ProductID) already counts <i>different</i> products. Without aggregation: join four renamed copies of CP with the same
+CustomerID and ProductIDs P1 &lt; P2 &lt; P3 &lt; P4.)</p>
+<details class="more"><summary>Test data &amp; computed outputs</summary>
+<div class="tables">{{rel:shop.Customer}}{{rel:shop.Products}}{{rel:shop.Orders}}{{rel:shop.OrderDetails}}</div>
+<div class="tables">{{rares:s1}}{{rares:s2}}{{rares:s3}}{{rares:s4}}{{rares:s5}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2023</span><span class="chip">Q2(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Suppliers(sid, sname, address), Parts(pid, pname, color), Catalog(sid, pid, cost). Give relational algebra for: 1. names of suppliers who
+supply some red part; 2. sids of suppliers who supply some red or green part; 3. sids of suppliers who supply some red part or are at address
+221 Packer Ave; 4. sids of suppliers who supply every red part.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ol>
+<li><ra>\pi_{sname}(\sigma_{color='red'}(Parts) \join Catalog \join Suppliers)</ra></li>
+<li><ra>\pi_{sid}(\sigma_{color='red' \or color='green'}(Parts) \join Catalog)</ra></li>
+<li><ra>\pi_{sid}(\sigma_{color='red'}(Parts) \join Catalog) \cup \pi_{sid}(\sigma_{address='221 Packer Ave'}(Suppliers))</ra>
+— union, because the two conditions come from different relations (a supplier at 221 Packer Ave need not supply anything).</li>
+<li><ra>\pi_{sid, pid}(Catalog) \div \pi_{pid}(\sigma_{color='red'}(Parts))</ra> — division (“every”); cost projected away first.</li>
+</ol>
+<details class="more"><summary>Test data &amp; computed outputs</summary>
+<div class="tables">{{rel:sp.Suppliers}}{{rel:sp.Parts}}{{rel:sp.Catalog}}</div>
+<div class="tables">{{rares:sp_ra1}}{{rares:sp_ra2}}{{rares:sp_ra3}}{{rares:sp_ra4}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem (year not printed)</span><span class="chip">Q2(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>branch(branch_name, branch_city, assets), customer(ID, customer_name, customer_street, customer_city), loan(loan_number, branch_name, amount),
+borrower(ID, loan_number), account(account_number, branch_name, balance), depositor(ID, account_number). Give relational algebra for: i. each loan
+number with a loan amount greater than 11000; ii. the ID of each depositor who has an account with a balance greater than 18000 at the “Uptown” branch.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>(i) <ra>\pi_{loan\_number}(\sigma_{amount > 11000}(loan))</ra></p>
+<p>(ii) <ra>\pi_{ID}(\sigma_{branch\_name='Uptown' \and balance > 18000}(account) \join depositor)</ra>
+— natural join on account_number links the account to its depositor.</p>
+<details class="more"><summary>Test data &amp; computed outputs</summary>
+<div class="tables">{{rel:bankra.loan}}{{rel:bankra.account}}{{rel:bankra.depositor}}{{rares:bk1}}{{rares:bk2}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Oct 2021</span><span class="chip">Q2(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>For Worker(Worker_Id, First_name, salary, joining_date, department) and Title(Worker_ref_id, Worker_title, affected_from), give RA for:
+1. ids of all workers who have attained the title “Manager” in the department “HR”; 2. details of the workers who are Managers.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>The join attributes have different names (Worker_Id, Worker_ref_id), so use a theta (equi) join.</p>
+<p>1. <ra>\pi_{Worker\_Id}(\sigma_{department='HR'}(Worker) \join_{Worker\_Id = Worker\_ref\_id} \sigma_{Worker\_title='Manager'}(Title))</ra></p>
+<p>2. <ra>\pi_{Worker\_Id, First\_name, salary, joining\_date, department}(Worker \join_{Worker\_Id = Worker\_ref\_id} \sigma_{Worker\_title='Manager'}(Title))</ra>
+(projection keeps only Worker’s attributes = “details of the worker”).</p>
+<details class="more"><summary>Test data &amp; computed outputs</summary>
+<div class="tables">{{rel:wk.Worker}}{{rel:wk.Title}}{{rares:wra1}}{{rares:wra2}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2022</span><span class="chip">Q3(a)</span><span class="chip warn">2 + 2 marks</span></div>
+<div class="pyq-q"><p>Worker(<u>empid</u>, empname, empmagr, dept, birthdate, hiredate, salary), Project(<u>projno</u>, projname, projmgr, budget, startdate, duration),
+Assign(<u>projno, empid</u>, hoursassign, rating). Write the relational algebra expression and SQL for: (i) the projects and names of all workers
+assigned to projects with start date 1 Feb 2022; (ii) the employee names and manager names of the workers who are not assigned to any project.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>(i)</h4>
+<rab>\pi_{projname, empname}(\sigma_{startdate='2022-02-01'}(Project) \join Assign \join Worker)</rab>
+{{sqlc:wp1s}}
+<h4>(ii)</h4>
+<p>empmagr holds the manager’s empid, so the worker table is joined with a renamed copy of itself (self-join). An outer join keeps a worker who has
+no manager (e.g. the top boss).</p>
+<rab>Free \gets (\pi_{empid}(Worker) \minus \pi_{empid}(Assign)) \join Worker \br M \gets \rho_{M(mid, manager\_name)}(\pi_{empid, empname}(Worker)) \br Result \gets \pi_{empname, manager\_name}(Free \ljoin_{Free.empmagr = M.mid} M)</rab>
+{{sqlc:wp2s}}
+<details class="more"><summary>Test data &amp; outputs</summary>
+<div class="tables">{{rel:wp.Worker}}{{rel:wp.Project}}{{rel:wp.Assign}}{{sqlr:wp1s}}{{sqlr:wp2s}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2025</span><span class="chip">Q5(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Loan(loan_number, branch_name, amount) and Borrower(customer_name, loan_num) of a bank are given (tables below).
+Query: <ra>\pi_{branch\_name, customer\_name}(Loan \join Borrower) \div \pi_{branch\_name}(Loan)</ra>. Explain the number of tuples returned with justification.</p>
+<div class="tables">{{rel:lb.Loan}}{{rel:lb.Borrower}}</div></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>The query asks for <b>customers who have a loan at every branch</b>: the divisor is the set of all branches, the dividend pairs each customer with
+the branches where he/she has a loan.</p>
+<ol class="steps">
+<li><b>Divisor</b> <ra>\pi_{branch\_name}(Loan)</ra> = {Banjara Hills, Kondapur, SR Nagar, Balanagar} — 4 branches.</li>
+<li><b>Loan ⋈ Borrower</b> (loan_number = loan_num) and project (branch, customer):
+Anand → {Banjara Hills}; Karteek → {Banjara Hills (L11), Kondapur (L14), SR Nagar (L22), Balanagar (L23)}; Ankita → {SR Nagar};
+Gopal → {SR Nagar}; Sunil → {Balanagar (L23), Kondapur (L25)}.</li>
+<li><b>Division:</b> only Karteek is paired with all 4 branches.</li>
+</ol>
+<p class="answer-line">The query returns 1 tuple: (Karteek).</p>
+<p><b>Remark:</b> strictly, a natural join matches attributes with the <i>same name</i>; here they are named loan_number and loan_num, so taken literally
+Loan ⋈ Borrower degenerates to Loan × Borrower, every customer gets paired with every branch, and the division would return all 5 distinct customers.
+The intended reading (join on the loan number) gives 1 tuple; mention this in the answer.</p>
+<details class="more"><summary>Computed both ways</summary><div class="tables">{{rares:lb_join}}{{rares:lb1}}{{rares:lb_lit}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">Mid-Sem Sep 2024</span><span class="chip">Q4(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>student(roll_no, name, dept_id) and department(dept_id, dept_name). Executed: insert into department values (1,'Mathematics'), (2,'Physics');
+insert into student values (1,'Navin',1), (2,'Mukesh',2), (3,'Gita',1). How many rows and columns will be retrieved by: a) <code>SELECT * FROM student,
+department;</code> b) <code>SELECT * FROM student UNION SELECT * FROM department;</code></p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>(a)</b> A comma in FROM without WHERE is a <b>Cartesian product</b>: rows = 3 × 2 = <b>6</b>, columns = 3 + 2 = <b>5</b>
+(roll_no, name, dept_id, dept_id, dept_name).</p>
+{{sqlr:m24a}}
+<p><b>(b)</b> UNION requires both SELECTs to be <b>union-compatible</b> (same number of columns with compatible types). student has 3 columns, department
+has 2, so the statement <b>fails with an error</b> — 0 rows, 0 columns are retrieved. (SQLite’s actual message: “SELECTs to the left and right of UNION do
+not have the same number of result columns”.)</p>
+</div></details></div>
+
+<!-- ------------------------------------------------ 14.4 -->
+<h3 id="p4">14.4 Relational calculus and RA vs RC</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025</span><span class="chip">Q2(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Schemas for an event “5-day workshop on Qiskit”: Event(EventId, EventName, Organizer, EventDept, Location, Date, Emailid, Phone, Address),
+Topic(TopicId, EventId, TopicTitle, Date, TimeDuration), EminentSpeaker(EventId, TopicId, SpeakerName, Institution, TopicTitle),
+Registration(ParticipantId, ParticipantName, EventId, ParticipantInstitution, Fee, Category). Write the relational calculus expressions for:
+a. renaming the relation “Event” into “Event_Detail” [1M]; b. list Topic-Title handled by the eminent speaker “ABC” who belongs to the institution
+“NSUT” [1M]; c. find date and eminent speaker name of the event reserved for the topic title “Database Handling” [2M]; d. find all the participant
+names who have registered their category as “PG Student” [1M].</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Tuple relational calculus is used; the DRC form is given as an alternative.</p>
+<h4>(a) Rename Event to Event_Detail</h4>
+<p>Relational calculus has no rename operator — a query simply defines a new relation, so we define Event_Detail as the set of all Event tuples:</p>
+<rab>Event\_Detail = { t | t \in Event }</rab>
+<p>(In relational algebra this is <ra>\rho_{Event\_Detail}(Event)</ra>; in SQL <code>ALTER TABLE Event RENAME TO Event_Detail;</code>)</p>
+<h4>(b) Topic titles handled by speaker ABC of NSUT</h4>
+<rab>{ t | \exists s \in EminentSpeaker (s.SpeakerName = 'ABC' \and s.Institution = 'NSUT' \and t.TopicTitle = s.TopicTitle) }</rab>
+<p>DRC: <ra>{ \langle TT \rangle | \exists E, T (\langle E, T, 'ABC', 'NSUT', TT \rangle \in EminentSpeaker) }</ra></p>
+<h4>(c) Date and speaker name for topic “Database Handling”</h4>
+<p>The topic’s date is in Topic, the speaker in EminentSpeaker; join them on TopicId (and EventId):</p>
+<rab>{ t | \exists p \in Topic \exists s \in EminentSpeaker (p.TopicTitle = 'Database Handling' \and s.TopicId = p.TopicId \and s.EventId = p.EventId \and t.Date = p.Date \and t.SpeakerName = s.SpeakerName) }</rab>
+<p>DRC: <ra>{ \langle D, N \rangle | \exists T, E, TD (\langle T, E, 'Database Handling', D, TD \rangle \in Topic \and \exists I, TT (\langle E, T, N, I, TT \rangle \in EminentSpeaker)) }</ra></p>
+<p>(If “date of the event” is meant, take D from Event instead: add <ra>\exists e \in Event (e.EventId = p.EventId \and t.Date = e.Date)</ra>.)</p>
+<h4>(d) Participants registered as “PG Student”</h4>
+<rab>{ t | \exists r \in Registration (r.Category = 'PG Student' \and t.ParticipantName = r.ParticipantName) }</rab>
+<p>DRC: <ra>{ \langle N \rangle | \exists P, E, I, F (\langle P, N, E, I, F, 'PG Student' \rangle \in Registration) }</ra></p>
+<details class="more"><summary>Test data &amp; results (computed with the equivalent RA)</summary>
+<div class="tables">{{rel:ev.Topic}}{{rel:ev.EminentSpeaker}}{{rel:ev.Registration}}</div>
+<div class="tables">{{rares:ev_b}}{{rares:ev_c}}{{rares:ev_d}}</div></details>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip acc">End-Sem 2025 (ITITC05)</span><span class="chip">Q2(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>What is the difference between relational algebra and relational calculus? What are aggregate functions in SQL?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<h4>Relational algebra vs relational calculus</h4>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Relational algebra</th><th>Relational calculus</th></tr>
+<tr><td>procedural — specifies what to retrieve and the sequence of operations</td><td>non-procedural (declarative) — specifies only what to retrieve</td></tr>
+<tr><td>based on set theory / algebra of operators</td><td>based on first-order predicate logic</td></tr>
+<tr><td>queries are expressions of operators σ, π, ρ, ∪, −, ×, ⋈, ÷</td><td>queries are formulas {t | P(t)} (TRC) or {⟨x1..xn⟩ | P} (DRC) with ∃, ∀, ∧, ∨, ¬</td></tr>
+<tr><td>order of evaluation fixed by the expression</td><td>no order specified</td></tr>
+<tr><td>always finite (safe) results</td><td>unsafe expressions possible; restricted to safe ones</td></tr>
+<tr><td>“for all” via division ÷</td><td>“for all” via ∀</td></tr>
+<tr><td>e.g. <ra>\pi_{name}(\sigma_{age>20}(Student))</ra></td><td>e.g. <ra>{ t | \exists s \in Student (s.age > 20 \and t.name = s.name) }</ra></td></tr>
+</table></div>
+<p>Both have the same expressive power (Codd’s theorem, for safe calculus); RA is closer to query execution plans, TRC to SQL.</p>
+<h4>Aggregate functions</h4>
+<p>Functions that take a set of values (a column of a group of rows) and return a single summary value: <b>COUNT, SUM, AVG, MIN, MAX</b>.
+Syntax <code>FUNC([DISTINCT] column)</code>; used in SELECT and HAVING, usually with GROUP BY; all ignore NULLs except COUNT(*).</p>
+<pre class="sql">SELECT dept_id, COUNT(*) AS n, AVG(salary) AS avg_sal, MAX(salary) AS top
+FROM   employee
+GROUP  BY dept_id
+HAVING COUNT(*) &gt;= 3;</pre>
+<p>Output on the sample DB: dept 10 → 3 employees, dept 20 → 4 (section 7.3).</p>
+</div></details></div>

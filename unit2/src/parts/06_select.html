@@ -1,0 +1,82 @@
+<!-- ============================================================ 6 -->
+<h2 id="s6"><span class="num">6</span>Basic SQL Queries — SELECT, WHERE, ORDER BY</h2>
+
+<h3 id="s6-1">6.1 The sample company database</h3>
+<p>All SQL examples in sections 6–10 run on these four tables (outputs shown are real query results). Note the deliberately awkward rows:
+<b>Zoya has no department</b> (dept_id NULL), <b>Neel has no salary</b> (NULL), <b>Research has no employee</b>, Diya and Kabir have the <b>same salary</b>, and
+<code>manager_id</code> is a self-referencing FK.</p>
+<div class="tables">{{rel:co.department}}{{rel:co.employee}}{{rel:co.project}}{{rel:co.works_on}}</div>
+
+<h3 id="s6-2">6.2 Structure of a query and the order it is evaluated</h3>
+<pre class="sql">SELECT   [DISTINCT] column_list / expressions / aggregates   -- 5. which columns
+FROM     table_list / joins                                   -- 1. which tables
+WHERE    row_condition                                        -- 2. which rows
+GROUP BY grouping_columns                                     -- 3. form groups
+HAVING   group_condition                                      -- 4. which groups
+ORDER BY sort_columns [ASC | DESC]                            -- 6. sort
+LIMIT n;                                                      -- 7. how many</pre>
+{{svg:sql_order}}
+<p><b>Relation to RA:</b> <code>SELECT A FROM R, S WHERE P</code> ≡ <ra>\pi_{A}(\sigma_{P}(R \x S))</ra> (but SQL keeps duplicates).</p>
+
+<h3 id="s6-3">6.3 WHERE — operators and NULL logic</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Operator</th><th>Meaning</th><th>Example</th></tr>
+<tr><td><code>= &lt;&gt; (!=) &lt; &lt;= &gt; &gt;=</code></td><td>comparison</td><td><code>salary &gt;= 50000</code></td></tr>
+<tr><td><code>AND, OR, NOT</code></td><td>logical connectives (NOT &gt; AND &gt; OR precedence — use brackets!)</td><td><code>dept_id = 10 AND (city = 'Delhi' OR city = 'Pune')</code></td></tr>
+<tr><td><code>BETWEEN a AND b</code></td><td>a ≤ value ≤ b (inclusive)</td><td><code>salary BETWEEN 45000 AND 64000</code></td></tr>
+<tr><td><code>IN (list)</code></td><td>equal to any value in the list</td><td><code>city IN ('Mumbai', 'Pune')</code></td></tr>
+<tr><td><code>LIKE pattern</code></td><td><code>%</code> = any sequence (0 or more chars), <code>_</code> = exactly one char</td><td><code>name LIKE 'A%'</code>, <code>name LIKE '_a%'</code></td></tr>
+<tr><td><code>IS NULL / IS NOT NULL</code></td><td>test for NULL (the <b>only</b> correct way)</td><td><code>dept_id IS NULL</code></td></tr>
+</table></div>
+<div class="tables">{{sql:s_where}}{{sql:s_between}}{{sql:s_in}}</div>
+<div class="tables">{{sql:s_like1}}{{sql:s_like2}}</div>
+<p>More LIKE patterns: <code>'%travel%'</code> contains “travel”; <code>'%@facebook.com'</code> ends with “@facebook.com”; <code>'____'</code> exactly 4 characters;
+<code>'50\%%' ESCAPE '\'</code> starts with “50%”. LIKE is case-sensitive in PostgreSQL/Oracle, case-insensitive in MySQL by default.</p>
+<h4>Three-valued logic (TRUE, FALSE, UNKNOWN)</h4>
+<p>Any comparison involving NULL yields <b>UNKNOWN</b>. WHERE keeps a row only if the condition is <b>TRUE</b> (UNKNOWN rows are dropped).</p>
+<div class="tbl-wrap" style="max-width:640px"><table class="tbl small center">
+<tr><th>AND</th><th>T</th><th>U</th><th>F</th><th></th><th>OR</th><th>T</th><th>U</th><th>F</th><th></th><th>NOT</th></tr>
+<tr><th>T</th><td>T</td><td>U</td><td>F</td><td></td><th>T</th><td>T</td><td>T</td><td>T</td><td></td><td>T → F</td></tr>
+<tr><th>U</th><td>U</td><td>U</td><td>F</td><td></td><th>U</th><td>T</td><td>U</td><td>U</td><td></td><td>U → U</td></tr>
+<tr><th>F</th><td>F</td><td>F</td><td>F</td><td></td><th>F</th><td>T</td><td>U</td><td>F</td><td></td><td>F → T</td></tr>
+</table></div>
+<div class="tables">{{sql:s_null_wrong}}{{sql:s_null}}</div>
+<p>Also: <code>salary &gt; 50000 OR salary &lt;= 50000</code> does <b>not</b> return Neel (UNKNOWN OR UNKNOWN = UNKNOWN). Use <code>COALESCE(salary, 0)</code>
+to substitute a value for NULL.</p>
+
+<h3 id="s6-4">6.4 SELECT list — DISTINCT, expressions, aliases</h3>
+<div class="tables">{{sql:s_distinct}}{{sql:s_expr}}</div>
+<ul>
+<li><code>SELECT *</code> — all columns. <code>SELECT DISTINCT</code> — remove duplicate rows (applies to the <b>whole row</b>, not one column).</li>
+<li><b>Column alias</b>: <code>salary * 12 AS annual_salary</code>. <b>Table alias</b>: <code>FROM employee e</code> (then <code>e.name</code>).</li>
+<li>An alias defined in SELECT <b>cannot be used in WHERE</b> (WHERE runs before SELECT) but <b>can be used in ORDER BY</b>.</li>
+<li>Useful functions: <code>UPPER, LOWER, LENGTH, SUBSTR, CONCAT / ||, ROUND, COALESCE, CASE WHEN … THEN … ELSE … END</code>, date functions
+<code>YEAR(d), EXTRACT(YEAR FROM d), CURRENT_DATE</code>.</li>
+</ul>
+<pre class="sql">SELECT name,
+       CASE WHEN salary &gt;= 70000 THEN 'High'
+            WHEN salary &gt;= 50000 THEN 'Medium'
+            ELSE 'Low' END AS band
+FROM   employee;</pre>
+
+<h3 id="s6-5">6.5 ORDER BY and LIMIT</h3>
+{{sql:s_order}}
+<ul>
+<li>Default is <code>ASC</code>. Several keys: sort by the first, ties broken by the second, …</li>
+<li>You may sort by a column not in the SELECT list, by an alias, or by position (<code>ORDER BY 2</code>).</li>
+<li>Without ORDER BY the row order is <b>not guaranteed</b> (relations are unordered).</li>
+</ul>
+{{sql:s_limit}}
+<p>Top-N syntax differs: MySQL/PostgreSQL/SQLite <code>LIMIT n [OFFSET k]</code>; SQL Server <code>SELECT TOP n …</code>; Oracle 12c+/standard
+<code>FETCH FIRST n ROWS ONLY</code> (older Oracle: <code>WHERE ROWNUM &lt;= n</code>). Note that LIMIT 3 cut the tie arbitrarily here — for “employees with
+the top 3 salaries” use a sub-query or DENSE_RANK (section 9.7).</p>
+
+<h3 id="s6-6">6.6 Set operations — UNION, INTERSECT, EXCEPT</h3>
+<p>Combine the results of two SELECTs with the same number of columns and compatible types (union-compatible, exactly as in RA).</p>
+<div class="tables">{{sql:s_union}}{{sql:s_intersect}}{{sql:s_except}}{{sql:s_unionall}}</div>
+<ul>
+<li><code>UNION</code>, <code>INTERSECT</code>, <code>EXCEPT</code> remove duplicates; <code>UNION ALL</code> (and <code>INTERSECT ALL</code>, <code>EXCEPT ALL</code>) keep them.
+UNION ALL is faster (no duplicate elimination).</li>
+<li>Oracle writes <code>MINUS</code> for EXCEPT. MySQL supports INTERSECT/EXCEPT only from version 8.0.31 — otherwise use IN / NOT IN / NOT EXISTS.</li>
+<li><b>UNION vs JOIN:</b> UNION stacks rows of two results <i>vertically</i> (same columns); JOIN combines columns of two tables <i>horizontally</i>.</li>
+</ul>
