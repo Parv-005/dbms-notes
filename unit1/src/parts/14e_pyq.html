@@ -1,0 +1,86 @@
+<!-- ===================================================================== 14.5 -->
+<h3 id="s14-5">14.5 SQL vs NoSQL for an application</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2025 Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>You are hired to design the data storage strategy for a large-scale e-commerce platform like Amazon. Compare SQL and NoSQL databases on the basis of data
+model, schema flexibility, scalability, consistency and use-case suitability. Based on this comparison, justify which type of database (or combination) would be
+more appropriate for the e-commerce system and why.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL (RDBMS)</th><th>NoSQL</th></tr>
+<tr><td>Data model</td><td>Tables, rows, columns; relationships by PK–FK; joins</td><td>Key-value, document (JSON), column-family, graph</td></tr>
+<tr><td>Schema flexibility</td><td>Fixed schema defined before inserting; ALTER for changes</td><td>Flexible — each document may have different fields</td></tr>
+<tr><td>Scalability</td><td>Mainly vertical (bigger server); sharding is complex</td><td>Horizontal — add commodity servers; built-in sharding and replication</td></tr>
+<tr><td>Consistency</td><td>Strong; ACID multi-row transactions</td><td>Usually eventual consistency (BASE; CAP favours availability)</td></tr>
+<tr><td>Use-case suitability</td><td>Structured, critical, relational data with complex queries</td><td>Huge volume, high velocity, semi/unstructured data, simple access patterns</td></tr>
+</table></div>
+<p><b>Mapping Amazon’s data:</b></p>
+<ul>
+<li><b>Orders, payments, inventory counts, customer accounts → RDBMS.</b> Money and stock must never be wrong; placing an order must atomically reduce stock, create the
+order and record payment (ACID). Complex reporting (sales by region) needs joins.</li>
+<li><b>Product catalog → document store</b> (MongoDB): a phone has RAM/camera fields, a shirt has size/fabric — a flexible schema avoids hundreds of nullable columns.</li>
+<li><b>Shopping carts, sessions → key-value store</b> (Redis/DynamoDB): very high read/write rate, simple key access, must stay available.</li>
+<li><b>Browsing history, clickstream, logs → column-family store</b> (Cassandra): billions of writes per day, time-ordered, horizontally scalable.</li>
+<li><b>“Customers who bought this also bought” → graph database</b> (Neo4j) or analytics over the above.</li>
+</ul>
+<p><b>Conclusion: a combination (polyglot persistence)</b> — an RDBMS as the system of record for transactional data where consistency matters, and NoSQL stores for
+catalog, carts, activity data and recommendations where scale, flexibility and availability matter. Using only SQL would struggle with scale and schema variety;
+using only NoSQL would risk inconsistent orders and payments.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2026 (summer) Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>An e-commerce platform stores customer reviews, browsing history, product catalogs and transaction records. Explain why a NoSQL database may be preferred
+for some of these data while an RDBMS is suitable for others. Justify your answer with examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Data</th><th>Nature</th><th>Choice and reason</th></tr>
+<tr><td><b>Transaction records</b> (orders, payments, refunds)</td><td>Structured, relational, critical</td><td><b>RDBMS</b> (MySQL/PostgreSQL/Oracle): ACID — an order and its payment must commit together; FK from ORDER to CUSTOMER and PRODUCT; complex
+financial reports with joins and aggregates; strong consistency for audits.</td></tr>
+<tr><td><b>Product catalog</b></td><td>Semi-structured; attributes vary by category; read-heavy</td><td><b>Document DB</b> (MongoDB): each product a JSON document with its own fields and nested variants/images; no schema migration when a new
+category is added; easy horizontal scaling for heavy reads.</td></tr>
+<tr><td><b>Customer reviews</b></td><td>Unstructured text, ratings, images; huge volume; eventual consistency acceptable</td><td><b>Document DB</b> (reviews embedded or stored per product) or wide-column store; a review appearing a second late is fine.</td></tr>
+<tr><td><b>Browsing history</b></td><td>Append-only, time-series, very high write rate</td><td><b>Column-family DB</b> (Cassandra/HBase): fast writes partitioned by user and time across many nodes; used for recommendations.</td></tr>
+</table></div>
+<p><b>Why:</b> NoSQL is preferred where data is <b>high-volume, schema-flexible and tolerant of eventual consistency</b> (scale-out, availability); an RDBMS is
+required where data is <b>structured and must be exactly correct</b> (ACID, constraints, joins). Hence the platform should use both.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2024 Q1(c)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A social media company needs to store vast amounts of user-generated content, including comments, likes and shares, which vary greatly in structure. Explain why a
+NoSQL database might be more suitable for this task than an RDBMS, and describe the type of NoSQL database model you would recommend.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Why NoSQL is more suitable here</b></p>
+<ol>
+<li><b>Varying structure:</b> a post may be text, an image with tags, a video with captions, a poll; comments nest inside comments. A fixed relational schema would need
+many tables or many NULL columns and frequent ALTERs; NoSQL’s <b>flexible schema</b> stores each item with exactly its own fields.</li>
+<li><b>Volume and velocity:</b> billions of likes/comments per day. NoSQL scales <b>horizontally</b> by sharding across commodity servers; an RDBMS mostly scales up one server.</li>
+<li><b>Availability over strict consistency:</b> a like count that is a few seconds stale is acceptable; NoSQL (BASE, eventual consistency) stays available and fast
+during failures and across data centres.</li>
+<li><b>Fewer joins:</b> a post with its comments and like counts can be stored together (denormalized) and read in one access, which is faster than joining
+POST, COMMENT, LIKE tables for every feed load.</li>
+</ol>
+<p><b>Recommended model:</b> a <b>document database</b> (e.g. MongoDB) for posts and comments — each post a JSON document:</p>
+<pre>{ "post_id": 9012, "user": "u45", "type": "image", "url": "…/img.jpg", "tags": ["travel","goa"],
+  "likes": 1532, "shares": 87,
+  "comments": [ { "user": "u7", "text": "Nice!", "replies": [ { "user": "u45", "text": "Thanks" } ] } ] }</pre>
+<p>Complemented by a <b>graph database</b> (Neo4j) for the friend/follower network and recommendations, a <b>wide-column store</b> (Cassandra) for activity feeds and
+like events, and a <b>key-value store</b> (Redis) for counters and sessions. User accounts and payments (ads billing) can remain in an RDBMS.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2024 Q5(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>How do SQL and NoSQL databases differ in terms of data storage, structure and use cases, and what implications do these differences have for choosing one
+over the other in various application scenarios?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL</th><th>NoSQL</th></tr>
+<tr><td>Data storage</td><td>Tables of rows; normalized across tables</td><td>Documents, key-value pairs, wide columns or graphs; often denormalized</td></tr>
+<tr><td>Structure</td><td>Fixed, predefined schema</td><td>Flexible / dynamic schema</td></tr>
+<tr><td>Use cases</td><td>Banking, ERP, inventory, university records</td><td>Social media, IoT, real-time analytics, catalogs, caching</td></tr>
+</table></div>
+<p><b>Implications:</b> choose SQL when data is structured and correctness, complex queries and ACID transactions matter (bank transfers); choose NoSQL when data is
+huge, fast-growing or varied in shape and horizontal scalability/availability matters more than immediate consistency (tweets, sensor readings). Many systems use both.</p>
+</div></details></div>

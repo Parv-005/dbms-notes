@@ -1,0 +1,66 @@
+<h2 id="s1"><span class="num">1</span>Overview: data, database, DBMS</h2>
+
+<h3 id="s1-1">1.1 Basic terms</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Term</th><th>Meaning</th><th>Example</th></tr>
+<tr><td><b>Data</b></td><td>Raw, unprocessed facts that can be recorded and have implicit meaning.</td><td>25, “Suresh”, “Bangalore”</td></tr>
+<tr><td><b>Information</b></td><td>Data processed / organised so that it is meaningful and useful for decisions.</td><td>“Suresh is 25 years old and lives in Bangalore.”</td></tr>
+<tr><td><b>Database</b></td><td>A collection of <b>logically related</b> data, designed for a specific purpose and shared by many users.</td><td>University database: students, courses, marks</td></tr>
+<tr><td><b>Metadata</b></td><td>“Data about data”: the complete definition of the database — tables, data types, constraints, users, storage details.
+Stored in the <b>data dictionary</b> (system catalog).</td><td>“Student.roll is CHAR(11), primary key”</td></tr>
+<tr><td><b>DBMS</b></td><td>A software system (collection of programs) that lets users <b>define, construct, manipulate and share</b> a database, while
+protecting it and keeping it consistent.</td><td>MySQL, Oracle, PostgreSQL, SQL Server, IBM DB2</td></tr>
+<tr><td><b>Database system</b></td><td>Database + DBMS + application programs (+ users).</td><td>NSUT’s IMS portal with its database</td></tr>
+</table></div>
+
+<div class="box def"><div class="box-t">Definition — DBMS (write this)</div>
+<p>A <b>Database Management System</b> is a collection of interrelated data and a set of programs to access that data. Its primary goal is to provide a
+way to store and retrieve database information that is both <b>convenient</b> and <b>efficient</b>. It manages large amounts of data, provides
+mechanisms for defining structures, manipulating data, ensuring <b>safety</b> (security, crash recovery) and <b>sharing</b> (concurrent access) of the data.</p></div>
+
+<p><b>Functions of a DBMS</b> (Elmasri): <b>define</b> (specify data types, structures, constraints — stored as metadata), <b>construct</b> (store data on a
+storage medium), <b>manipulate</b> (query, update, generate reports), <b>share</b> (many users and programs at the same time), and <b>protect</b>
+(against hardware/software failure and unauthorised access) and <b>maintain</b> the database over its long life.</p>
+
+<h3 id="s1-2">1.2 Characteristics of the database approach</h3>
+<ol>
+<li><b>Self-describing nature</b> — the database stores its own definition (metadata in the catalog), so the DBMS works with any database.</li>
+<li><b>Insulation between programs and data (data abstraction)</b> — programs do not depend on the storage format (program–data independence).</li>
+<li><b>Support of multiple views</b> — each user can see a different subset/derivation of the data.</li>
+<li><b>Sharing of data and multi-user transaction processing</b> — concurrency control makes simultaneous updates correct (ACID).</li>
+<li>Plus: controlled redundancy, integrity constraints, security, backup and recovery, efficient query processing.</li>
+</ol>
+
+<h3 id="s1-3">1.3 Applications</h3>
+<p>Banking (accounts, loans, transactions), airlines and railways (reservations, schedules — IRCTC), universities (registration, grades), telecom (call records,
+monthly bills), finance (stock trades), sales and e-commerce (customers, products, orders), manufacturing (inventory, supply chain), HR (payroll),
+healthcare (patient records), government (Aadhaar, electoral rolls), social media (posts, likes — often NoSQL).</p>
+
+<h3 id="s1-4">1.4 Schema and instance</h3>
+<div class="grid2">
+<div class="box def"><div class="box-t">Schema (intension)</div><p>The <b>overall design / description</b> of the database: relation names, attributes, types, constraints.
+Specified at design time; changes rarely. Analogy: the type and variable declarations of a program.</p></div>
+<div class="box def"><div class="box-t">Instance (extension, state)</div><p>The <b>data stored in the database at a particular moment</b>. Changes with every insert, delete, update.
+Analogy: the current values of the variables.</p></div>
+</div>
+<p>There is one schema per level of abstraction: <b>physical schema</b>, <b>logical (conceptual) schema</b> and several <b>sub-schemas (views)</b> — section <a href="#s4">4</a>.</p>
+
+<h3 id="s1-5">1.5 People around a database</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Who</th><th>Role</th></tr>
+<tr><td><b>Database administrator (DBA)</b></td><td>Central control over data and programs (details below).</td></tr>
+<tr><td><b>Database designers</b></td><td>Identify the data to be stored and choose structures (ER design, normalization).</td></tr>
+<tr><td><b>Application programmers</b></td><td>Write programs (Java, Python, PHP…) that embed DML calls.</td></tr>
+<tr><td><b>Sophisticated users</b></td><td>Analysts who write SQL queries directly / use OLAP and data-mining tools.</td></tr>
+<tr><td><b>Naive (parametric) users</b></td><td>Use ready-made interfaces repeatedly: bank tellers, reservation clerks, web shoppers.</td></tr>
+<tr><td><b>Specialised users</b></td><td>Write special-purpose database applications (CAD, expert systems, multimedia).</td></tr>
+</table></div>
+<div class="box key"><div class="box-t">Role of the DBA</div>
+<ul>
+<li><b>Schema definition</b> — creates the original schema with DDL.</li>
+<li><b>Storage structure and access-method definition</b> — chooses file organisation and indexes (physical design).</li>
+<li><b>Schema and physical-organisation modification</b> — changes them as needs change or for performance.</li>
+<li><b>Granting authorisation</b> — decides who can access what (GRANT / REVOKE).</li>
+<li><b>Routine maintenance</b> — periodic <b>backup</b>, ensuring enough disk space, <b>monitoring performance</b> and tuning, recovery after failure,
+installing upgrades.</li>
+</ul></div>

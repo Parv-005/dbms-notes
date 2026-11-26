@@ -1,0 +1,38 @@
+<h2 id="s3"><span class="num">3</span>Advantages and disadvantages of a DBMS</h2>
+<h3 id="s3-1">3.1 Advantages</h3>
+<p>Each advantage is the cure for one file-system problem — write them in that form.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Advantage</th><th>How the DBMS achieves it</th></tr>
+<tr><td><b>Controlled redundancy</b></td><td>All data is integrated in one database; each fact is stored once (normalization). Any deliberate redundancy is kept consistent by the DBMS.</td></tr>
+<tr><td><b>Consistency</b></td><td>One copy + constraints ⇒ no conflicting versions.</td></tr>
+<tr><td><b>Data sharing</b></td><td>Authorised users and many applications share the same data at the same time.</td></tr>
+<tr><td><b>Integrity</b></td><td>Constraints (PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL, CHECK) are declared once and checked on every insert/update.</td></tr>
+<tr><td><b>Security</b></td><td>User accounts, passwords, views and privileges (GRANT/REVOKE); data can be encrypted; audit trails.</td></tr>
+<tr><td><b>Concurrency control</b></td><td>Transactions and locking let many users update simultaneously without lost updates or dirty reads.</td></tr>
+<tr><td><b>Backup and recovery</b></td><td>The recovery subsystem uses the log to undo incomplete transactions and redo committed ones after a crash (atomicity, durability).</td></tr>
+<tr><td><b>Data independence</b></td><td>Three-schema architecture: storage or logical structure can change without rewriting programs.</td></tr>
+<tr><td><b>Efficient data access</b></td><td>Declarative SQL, indexes, query optimisation, buffering.</td></tr>
+<tr><td><b>Multiple user interfaces</b></td><td>Query languages for analysts, forms/menus for naive users, APIs for programmers.</td></tr>
+<tr><td><b>Standards enforcement, reduced development time, easier maintenance</b></td><td>Central control (DBA) enforces naming/format standards; new applications reuse existing data.</td></tr>
+</table></div>
+
+<h3 id="s3-2">3.2 Disadvantages</h3>
+<ul>
+<li><b>Cost</b> of software licences, faster hardware, more memory and disk.</li>
+<li><b>Complexity</b> — design and administration need trained staff (DBA); a bad design harms everyone.</li>
+<li><b>Size</b> — the DBMS itself occupies a lot of disk and memory.</li>
+<li><b>Performance overhead</b> for small, simple applications (security checks, logging, concurrency control).</li>
+<li><b>Higher impact of failure</b> — data is centralised, so a failure or corruption affects every application (single point of failure, unless replicated).</li>
+<li><b>Conversion cost</b> — migrating old files and retraining users.</li>
+</ul>
+
+<h3 id="s3-3">3.3 Responsibilities of a DBMS (and what goes wrong without them)</h3>
+<p>This is Korth’s list of what the <b>database manager</b> (storage manager) is responsible for — asked as End-sem 2023 Q1(b).</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Responsibility</th><th>If it is not discharged…</th></tr>
+<tr><td><b>Interaction with the file manager</b> — translating DML into low-level file-system commands, storing/retrieving/updating data</td><td>Data could not be stored or found; every program would manage raw files itself — back to all the file-system problems.</td></tr>
+<tr><td><b>Integrity enforcement</b></td><td>Invalid data enters: negative balances, marks &gt; 100, enrolments for non-existent students (dangling references).</td></tr>
+<tr><td><b>Security enforcement</b></td><td>Any user could read or change any data: salaries leaked, grades altered.</td></tr>
+<tr><td><b>Backup and recovery</b></td><td>A disk crash or power failure loses data permanently or leaves it half-updated (₹ debited but not credited).</td></tr>
+<tr><td><b>Concurrency control</b></td><td>Simultaneous users corrupt data: lost updates, dirty reads, two passengers booked on the same seat.</td></tr>
+</table></div>

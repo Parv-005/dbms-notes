@@ -1,0 +1,29 @@
+<h2 id="s9"><span class="num">9</span>SQL vs NoSQL for an application</h2>
+<p>NoSQL is in the Unit-2 syllabus (full notes: <a href="../unit2/#s11">Unit 2 §11</a>), but end-sem Q1(c) of 2024, 2025 and 2026 and mid-sem 2024 Q5(b)
+ask it as a “which database for this application” question. This page is the short version you need for those answers.</p>
+<div class="box def"><div class="box-t">NoSQL</div>
+<p><b>NoSQL (“Not only SQL”)</b> databases store data in models other than tables, usually with a <b>flexible schema</b>, built to <b>scale horizontally</b>
+across many cheap servers and to handle huge volumes of semi-structured or unstructured data at high speed. Most trade strict consistency for availability
+(<b>BASE</b>: Basically Available, Soft state, Eventually consistent) instead of ACID.</p></div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>NoSQL type</th><th>Data model</th><th>Good for</th><th>Examples</th></tr>
+<tr><td><b>Key-value</b></td><td>Hash table: key → opaque value</td><td>Sessions, shopping carts, caches, user preferences</td><td>Redis, Amazon DynamoDB</td></tr>
+<tr><td><b>Document</b></td><td>JSON/BSON documents, each with its own fields, nested</td><td>Product catalogs, user profiles, posts with comments, content management</td><td>MongoDB, CouchDB, Firestore</td></tr>
+<tr><td><b>Column-family (wide-column)</b></td><td>Rows with dynamic columns grouped in families; written fast, distributed</td><td>Time-series, logs, clickstreams, browsing history, IoT, messaging</td><td>Cassandra, HBase, Bigtable</td></tr>
+<tr><td><b>Graph</b></td><td>Nodes and edges with properties</td><td>Social networks (friends, followers), recommendations, fraud rings</td><td>Neo4j, Amazon Neptune</td></tr>
+</table></div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>SQL (RDBMS)</th><th>NoSQL</th></tr>
+<tr><td>Data model</td><td>Tables with rows and columns</td><td>Key-value, document, column-family, graph</td></tr>
+<tr><td>Schema</td><td>Fixed, predefined (schema-on-write); ALTER for changes</td><td>Dynamic / flexible (schema-on-read)</td></tr>
+<tr><td>Data type suited</td><td>Structured</td><td>Semi-structured and unstructured</td></tr>
+<tr><td>Scalability</td><td>Vertical (bigger server); horizontal is hard</td><td>Horizontal (add servers, sharding, replication)</td></tr>
+<tr><td>Consistency / transactions</td><td>Strong, ACID, multi-table transactions</td><td>Usually eventual consistency, BASE (CAP: favours availability + partition tolerance); some offer limited ACID</td></tr>
+<tr><td>Query language</td><td>Standard SQL, joins, complex queries</td><td>Database-specific APIs; joins limited — data is denormalized/embedded</td></tr>
+<tr><td>Relationships / integrity</td><td>Foreign keys, constraints enforced by DBMS</td><td>Mostly handled by the application</td></tr>
+<tr><td>Best use cases</td><td>Banking, payments, orders, inventory, ERP, university records</td><td>Big data, real-time feeds, social media, catalogs, IoT, caching</td></tr>
+<tr><td>Examples</td><td>MySQL, PostgreSQL, Oracle, SQL Server</td><td>MongoDB, Cassandra, Redis, Neo4j</td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">Decision rule for scenario questions</div>
+<p><b>Money, stock counts, anything that must never be wrong or half-done → RDBMS (ACID).</b> Huge volume, fast-changing structure, read-heavy feeds,
+user-generated content, logs, relationships-as-graph → the matching NoSQL type. Large real systems use <b>both</b> (<i>polyglot persistence</i>).</p></div>

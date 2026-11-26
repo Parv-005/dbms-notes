@@ -1,0 +1,128 @@
+<!-- ===================================================================== 14.2 -->
+<h3 id="s14-2">14.2 Levels of abstraction and data independence</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2022 Q1(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>What is data abstraction? Explain in brief with the help of a suitable diagram.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Data abstraction</b> is the process of hiding the complex, irrelevant details of how data is stored and maintained from users, showing each user only
+the data relevant to them. Since many database users are not computer-trained, the DBMS provides abstraction at <b>three levels</b>:</p>
+<ol>
+<li><b>Physical (internal) level</b> — lowest level; describes <i>how</i> data is actually stored: record formats, file organisation, indexes, block placement.
+<br><span class="small">e.g. STUDENT records stored as 60-byte records in stu.dat with a B+ tree index on Roll.</span></li>
+<li><b>Logical (conceptual) level</b> — describes <i>what</i> data is stored and the relationships among the data, for the whole database, in terms of simple
+structures (tables). <br><span class="small">e.g. STUDENT(Roll, Name, Dept, CGPA), COURSE(CID, Title), ENROLLED(Roll, CID, Grade).</span></li>
+<li><b>View (external) level</b> — highest level; describes only <i>part</i> of the database for a particular user group; many views for one database.
+<br><span class="small">e.g. a student sees only their results; the accounts office sees only fee data.</span></li>
+</ol>
+<p><i>Diagram:</i> draw the three-schema figure of section <a href="#s4">4</a> — View 1, View 2, … View n at the top, connected to the logical level, connected to the
+physical level, connected to the disk; label the external/conceptual and conceptual/internal mappings.</p>
+<p><b>Benefits:</b> simplicity for users, security (users see only their view), and <b>data independence</b> — physical changes do not affect the logical level,
+logical changes need not affect views.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2023 Q1(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>How is data abstraction ensured in DBMS?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Through the <b>three-schema architecture</b>: the DBMS keeps a separate <b>internal</b>, <b>conceptual</b> and several <b>external</b> schemas in its
+catalog. Users and programs work only with an external schema (view) or the conceptual schema; the DBMS translates every request through the
+<b>external/conceptual</b> and <b>conceptual/internal mappings</b> into operations on stored files, and translates results back. Declarative SQL (what, not
+how), views and privileges on views hide storage details and irrelevant data. Hence users never see how or where data is physically stored.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2023 Q1(b)</span><span class="chip warn">1 mark</span></div>
+<div class="pyq-q"><p>What is a data model? Explain the concept of data independence.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A <b>data model</b> is a collection of conceptual tools for describing data, relationships, data semantics and consistency constraints (e.g. relational,
+ER, hierarchical, network). <b>Data independence</b> is the ability to change the schema at one level without changing the schema at the next higher level:
+<b>physical</b> (change storage/indexes without changing the conceptual schema) and <b>logical</b> (change the conceptual schema, e.g. add a column, without
+changing external views or programs).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2024 Q2(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Describe the concept of data abstraction using an example of a database schema and how it helps in simplifying database management.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Data abstraction hides storage details and shows each user only what they need, at three levels. Example — a library database:</p>
+<ul>
+<li><b>Physical:</b> BOOK records in a heap file with a B+ tree index on ISBN and a hash index on Author.</li>
+<li><b>Logical:</b> BOOK(ISBN, Title, Author, Copies), MEMBER(MemID, Name), ISSUE(ISBN, MemID, IssueDate, DueDate).</li>
+<li><b>View:</b> members see <code>Available(Title, Author, Copies)</code>; the librarian sees <code>Overdue(MemID, Name, Title, DueDate)</code>.</li>
+</ul>
+<p><b>How it simplifies management:</b> users and programmers work with simple tables/views and need not know files or indexes; the DBA can re-organise storage
+or add indexes without touching applications (physical data independence); views restrict access (security); each user group gets an interface suited to it.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2026 Q1(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Explain the three levels of data abstraction in DBMS. For a university database, give one suitable example of information represented at each level.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Level</th><th>What it describes</th><th>University example</th></tr>
+<tr><td>Physical</td><td>How data is stored</td><td>STUDENT stored in file stu.dat, 60-byte records, B+ tree index on Roll, on SSD.</td></tr>
+<tr><td>Logical</td><td>What data and relationships exist (whole DB)</td><td>STUDENT(Roll, Name, DeptID, CGPA), COURSE(CID, Title, Credits), ENROLLED(Roll, CID, Grade) with keys.</td></tr>
+<tr><td>View</td><td>Part of DB for one user group</td><td>Student portal view: MyGrades(CID, Title, Grade) for the logged-in student only.</td></tr>
+</table></div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2025 Q1(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>A hospital management system stores detailed patient records. Doctors want to see only medical history, while the billing department requires payment
+details, not medical history. Using levels of abstraction (physical, logical, view), explain how DBMS provides these different perspectives without
+duplicating data.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Physical level:</b> one set of stored files — PATIENT, TREATMENT and BILL records on disk with indexes on PatientID. Stored <b>once</b>.</li>
+<li><b>Logical level:</b> PATIENT(PatientID, Name, DOB, Phone), MEDICAL_HISTORY(PatientID, Date, Diagnosis, Prescription), BILL(BillID, PatientID, Amount, Mode, Status).</li>
+<li><b>View level:</b> <code>DoctorView</code> = Name + diagnosis/prescription history (join of PATIENT and MEDICAL_HISTORY); <code>BillingView</code> = Name + bill
+details only. Each department is granted access only to its view.</li>
+</ul>
+<p>Views are <b>virtual</b>: they are definitions stored in the catalog and computed from the same base tables through the external/conceptual mapping, so the
+two perspectives exist without any duplication, and a change (new phone number) is seen in both.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem (summer) Q2(a)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>Consider a university database whose storage structure is modified from HDD-based storage to SSD-based storage. Explain whether application
+programs will require modification. Relate your answer to logical and physical data independence with examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>No.</b> Moving from HDD to SSD changes only the <b>internal (physical) schema</b> — where and how blocks are stored. The DBMS updates the
+conceptual/internal mapping; the conceptual schema (STUDENT, COURSE … tables) is unchanged, so views and application programs need no change. This is
+<b>physical data independence</b> (other examples: adding an index, changing file organisation).</p>
+<p>By contrast, <b>logical data independence</b> is needed when the conceptual schema changes — e.g. adding an Email column to STUDENT or splitting STUDENT
+into STUDENT and ADDRESS; programs keep working if views are redefined over the new tables. Logical independence is harder to achieve than physical.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem (summer) Q2(b)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>A banking database is accessed by customers, clerks, managers and auditors. Explain how the three-schema architecture (External, Conceptual,
+Internal) supports data abstraction and security for these users.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Internal schema:</b> account and transaction files, indexes on AccountNo, encryption at rest — hidden from all four user groups.</li>
+<li><b>Conceptual schema:</b> CUSTOMER, ACCOUNT, TRANSACTION, LOAN, BRANCH, EMPLOYEE with keys and constraints — managed by the DBA.</li>
+<li><b>External schemas:</b> <i>customer</i> — own accounts, balance and statement only; <i>clerk</i> — customer details and deposit/withdrawal entry for their branch,
+no salaries; <i>manager</i> — branch-wide accounts, loans and reports; <i>auditor</i> — read-only view of all transactions and logs.</li>
+</ul>
+<p><b>Abstraction:</b> each user sees a simple view and none sees files. <b>Security:</b> privileges are granted on the views (GRANT SELECT to auditor, no UPDATE),
+so data outside a user’s view is invisible and unchangeable to them.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2021 Q1(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>How are data independence and data abstraction achieved in DBMS?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Data abstraction</b> is achieved by the <b>three-schema architecture</b>: internal schema (how data is stored), conceptual schema (what data and relationships),
+external schemas (user views). Users interact only with views/conceptual schema; the DBMS uses <b>mappings</b> to convert requests down to the stored data and
+results back. [Draw the three-schema diagram.]</p>
+<p><b>Data independence</b> is achieved <b>because of these mappings</b>: when one level changes, only the mapping to the level above is changed.</p>
+<ul>
+<li><b>Physical data independence</b> — internal schema changes (new index, new file organisation, new disk) are absorbed in the conceptual/internal mapping;
+the conceptual schema and programs do not change.</li>
+<li><b>Logical data independence</b> — conceptual schema changes (new attribute, new table, splitting a table) are absorbed in the external/conceptual mapping by
+redefining views; external schemas and programs do not change. It is harder, because programs depend on the logical structure.</li>
+</ul>
+<p class="answer-line">Abstraction = separate schemas at three levels; independence = changes absorbed in the mappings between them.</p>
+</div></details></div>

@@ -1,0 +1,46 @@
+<h2 id="s2"><span class="num">2</span>File-processing system vs DBMS</h2>
+<p>Before DBMSs, organisations kept data in <b>separate files</b> (today: Excel/CSV sheets), each created and managed by its own application program.
+New needs meant new files and new programs. This is the <b>file-processing system</b>.</p>
+{{svg:file_vs_db}}
+
+<h3 id="s2-1">2.1 Problems of the file-processing system (Korth’s list — learn all eight)</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Problem</th><th>What it means</th><th>Example (university)</th></tr>
+<tr><td><b>1. Data redundancy and inconsistency</b></td><td>The same data is stored in several files (redundancy). When one copy is updated and others are not,
+the copies disagree (inconsistency).</td><td>Address in admissions file changed, fees file still has the old one — which is correct?</td></tr>
+<tr><td><b>2. Difficulty in accessing data</b></td><td>Every new question needs a new program; no general query language.</td><td>“Students in Delhi with CGPA &gt; 8” — no program exists; write one or do it by hand.</td></tr>
+<tr><td><b>3. Data isolation</b></td><td>Data is scattered in files of different formats, so writing programs that combine them is hard.</td><td>marks.dat is binary, fees.xls is Excel — joining them needs custom code.</td></tr>
+<tr><td><b>4. Integrity problems</b></td><td>Constraints (balance ≥ 0, marks ≤ 100) are buried in program code; adding or changing one means changing many programs.</td><td>One program forgets the check and stores marks = 120.</td></tr>
+<tr><td><b>5. Atomicity problems</b></td><td>A failure in the middle of an operation leaves data half-updated; files cannot “undo”.</td><td>Transfer ₹500 A→B: A debited, power fails, B never credited.</td></tr>
+<tr><td><b>6. Concurrent-access anomalies</b></td><td>Two users updating the same file at once interfere (lost update); files have no concurrency control.</td><td>Two clerks read balance 1000 and each withdraws 100 — final 900 instead of 800.</td></tr>
+<tr><td><b>7. Security problems</b></td><td>Hard to give each user access to only part of the data; whoever can open a file sees all of it.</td><td>A fees clerk can open the whole marks sheet.</td></tr>
+<tr><td><b>8. No backup / recovery, poor sharing</b></td><td>Backup is manual; a corrupted file is lost; a file locked by one user cannot be shared.</td><td>Excel file “locked for editing by another user”.</td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">Memory hook</div><p><b>R I D I A C S B</b> — Redundancy/Inconsistency, Difficult access, Isolation, Integrity, Atomicity, Concurrency, Security, Backup.</p></div>
+
+<h3 id="s2-2">2.2 Comparison table</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>File system</th><th>DBMS</th></tr>
+<tr><td>What it is</td><td>Software that manages files on a storage medium (part of the OS)</td><td>Software that manages a database</td></tr>
+<tr><td>Redundancy</td><td>High, uncontrolled</td><td>Controlled / minimised (normalization)</td></tr>
+<tr><td>Consistency</td><td>Copies become inconsistent</td><td>Maintained by constraints and single copy</td></tr>
+<tr><td>Data access</td><td>A program for every request</td><td>Declarative query language (SQL), query optimiser</td></tr>
+<tr><td>Data independence</td><td>None — programs know the file format</td><td>Physical and logical independence (three-schema architecture)</td></tr>
+<tr><td>Integrity constraints</td><td>Coded in every program</td><td>Declared once (PK, FK, CHECK), enforced by DBMS</td></tr>
+<tr><td>Concurrency</td><td>No control; one user at a time</td><td>Many users; locking/2PL, ACID transactions</td></tr>
+<tr><td>Security</td><td>File-level OS permissions only</td><td>User accounts, views, GRANT/REVOKE at table/column level</td></tr>
+<tr><td>Backup and recovery</td><td>Manual</td><td>Automatic: logs, checkpoints, crash recovery</td></tr>
+<tr><td>Sharing</td><td>Difficult</td><td>Easy, centralised</td></tr>
+<tr><td>Structure / cost</td><td>Simple, cheap, little overhead</td><td>Complex, costly (software, hardware, trained staff)</td></tr>
+<tr><td>Examples</td><td>COBOL/C programs with flat files, Excel/CSV sheets</td><td>Oracle, MySQL, PostgreSQL, SQL Server</td></tr>
+</table></div>
+
+<h3 id="s2-3">2.3 When a file system is still the better choice</h3>
+<p>A DBMS has overhead (cost, setup, administration, CPU for security/concurrency/recovery). Use plain files when:</p>
+<ul>
+<li>the data is <b>small and simple</b> and will not change structure (a personal contact list, a to-do app);</li>
+<li>there is a <b>single user / single application</b>, no concurrent updates (a programme’s configuration file);</li>
+<li><b>real-time / embedded</b> systems with tight memory or time limits (a washing-machine controller, a car ECU, sensor loggers);</li>
+<li>data is written once and read sequentially (log files, scientific instrument dumps, video/audio streams);</li>
+<li>a one-time job where the cost of designing a database is not justified.</li>
+</ul>

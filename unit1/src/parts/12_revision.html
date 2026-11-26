@@ -1,0 +1,47 @@
+<h2 id="s12"><span class="num">12</span>One-page revision sheet</h2>
+<div class="grid2">
+<div class="box key"><div class="box-t">Basics</div>
+<ul class="small">
+<li>Data = raw facts; information = processed data; metadata = data about data (data dictionary).</li>
+<li>DBMS = interrelated data + programs to access it; goal: convenient and efficient; define, construct, manipulate, share, protect.</li>
+<li>Schema = design (rarely changes); instance = data at a moment.</li>
+<li>DBA: schema definition, storage/access methods, modification, authorisation, routine maintenance (backup, space, performance).</li>
+</ul></div>
+<div class="box key"><div class="box-t">File system problems → DBMS cures</div>
+<ul class="small">
+<li>RIDIACSB: Redundancy/Inconsistency, Difficult access, Isolation, Integrity, Atomicity, Concurrency, Security, Backup.</li>
+<li>Cures: single integrated copy, SQL, constraints, transactions (ACID), locking, GRANT/views, log-based recovery.</li>
+<li>Files still fine: small, single-user, embedded/real-time, sequential logs.</li>
+<li>DBMS cons: cost, complexity, size, overhead, central failure impact.</li>
+</ul></div>
+</div>
+<div class="grid2">
+<div class="box key"><div class="box-t">Abstraction and independence</div>
+<ul class="small">
+<li>Physical (how stored) → logical (what is stored, relationships) → view (part for one user).</li>
+<li>Three-schema (ANSI/SPARC): internal, conceptual, external schemas + two mappings.</li>
+<li>Physical DI: change internal, conceptual unaffected (index, SSD) — easy.</li>
+<li>Logical DI: change conceptual, views/programs unaffected (add column, split table) — hard.</li>
+</ul></div>
+<div class="box key"><div class="box-t">Models</div>
+<ul class="small">
+<li>Hierarchical: tree, one parent, pointers, 1:N, M:N by duplication, IMS.</li>
+<li>Network: graph, owner–member sets, M:N via link records, navigational, CODASYL/IDMS.</li>
+<li>Relational: tables, values (PK–FK), declarative SQL, high DI, Codd 1970.</li>
+<li>Relational won: simple, DI, SQL + optimiser, theory, ACID, standard.</li>
+</ul></div>
+</div>
+<div class="grid2">
+<div class="box key"><div class="box-t">Structure and tiers</div>
+<ul class="small">
+<li>Query processor: DDL interpreter, DML compiler/optimiser, embedded DML precompiler, evaluation engine.</li>
+<li>Storage manager: authorisation &amp; integrity, transaction, file, buffer managers. Disk: data, indices, dictionary, statistics.</li>
+<li>1-tier local · 2-tier client ↔ DB (ODBC/JDBC) · 3-tier client ↔ app server ↔ DB (web apps).</li>
+</ul></div>
+<div class="box key"><div class="box-t">Languages, NoSQL</div>
+<ul class="small">
+<li>DDL (CREATE, ALTER, DROP, TRUNCATE) · DML (SELECT, INSERT, UPDATE, DELETE) · DCL (GRANT, REVOKE) · TCL (COMMIT, ROLLBACK, SAVEPOINT).</li>
+<li>Procedural = what + how (RA, PL/SQL); non-procedural = what (SQL, RC).</li>
+<li>NoSQL: key-value, document, column-family, graph; flexible schema, horizontal scale, BASE. Money → SQL.</li>
+</ul></div>
+</div>

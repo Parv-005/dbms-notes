@@ -1,0 +1,37 @@
+<h2 id="s5"><span class="num">5</span>Data independence</h2>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Data independence</b> is the capacity to change the schema at one level of the database system <b>without having to change the schema at the next
+higher level</b> (and hence without changing application programs). Only the <b>mapping</b> between the two levels changes.</p></div>
+
+<div class="grid2">
+<div class="box key"><div class="box-t">Physical data independence</div>
+<p>Change the <b>internal schema</b> without changing the <b>conceptual schema</b> (or views/programs).</p>
+<p class="small">Examples: move data from HDD to SSD; add or drop an index; change file organisation (heap → B+ tree / hashing); compress or partition a table;
+move files to another disk. Only the conceptual/internal mapping changes.</p>
+<p class="small">Comparatively <b>easy</b> to achieve; all modern DBMSs provide it.</p></div>
+<div class="box key"><div class="box-t">Logical data independence</div>
+<p>Change the <b>conceptual schema</b> without changing <b>external schemas</b> or application programs.</p>
+<p class="small">Examples: add a new attribute (Student.Email) or a new table; split STUDENT into STUDENT and ADDRESS; merge two tables. Views are redefined on the
+new tables so programs still see the old shape. Only the external/conceptual mapping changes.</p>
+<p class="small"><b>Harder</b> to achieve.</p></div>
+</div>
+
+<h3 id="s5-1">5.1 Why logical data independence is harder</h3>
+<ul>
+<li>Applications depend heavily on the <b>logical structure</b> — names of tables and columns, their meaning and relationships — far more than on storage details.</li>
+<li>Removing an attribute or changing its meaning cannot be hidden: a program that needs that data must change.</li>
+<li>Views that join split tables are not always <b>updatable</b>, so programs that write through the view may break.</li>
+</ul>
+
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Physical data independence</th><th>Logical data independence</th></tr>
+<tr><td>Change made in</td><td>Internal (physical) schema</td><td>Conceptual (logical) schema</td></tr>
+<tr><td>Protected level</td><td>Conceptual schema</td><td>External schemas / application programs</td></tr>
+<tr><td>Mapping changed</td><td>Conceptual / internal</td><td>External / conceptual</td></tr>
+<tr><td>Difficulty</td><td>Easier</td><td>Harder</td></tr>
+<tr><td>Concerned with</td><td>Storage, performance tuning</td><td>Structure / meaning of data</td></tr>
+<tr><td>Example</td><td>New index, HDD → SSD</td><td>Add column, split a table</td></tr>
+</table></div>
+<div class="box tip"><div class="box-t">Why it matters</div>
+<p>Without data independence (file systems), every change in storage format or record structure means finding and rewriting every program that touches the
+file. With it, the DBA can tune and evolve the database while applications keep running — lower maintenance cost, faster evolution.</p></div>

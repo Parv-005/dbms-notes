@@ -1,0 +1,119 @@
+<!-- ===================================================================== 14.4 -->
+<h3 id="s14-4">14.4 DBMS structure, architecture, languages and short definitions</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2022 Q1(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Draw and explain the detailed structure of a database management system.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><i>Diagram:</i> the structure figure of section <a href="#s7-1">7.1</a> — users at the top, then their interfaces, then the query processor, the storage manager and disk storage.</p>
+<p><b>1. Users and interfaces:</b> naive users (application interfaces/forms), application programmers (programs compiled with embedded DML), sophisticated users
+(query tools/SQL), DBA (administration tools, DDL).</p>
+<p><b>2. Query processor</b></p>
+<ul>
+<li><b>DDL interpreter</b> — interprets DDL statements and records definitions in the data dictionary.</li>
+<li><b>DML compiler</b> — translates DML queries into an evaluation plan of low-level instructions; performs <b>query optimisation</b> (picks the cheapest plan).</li>
+<li><b>Embedded DML pre-compiler</b> — converts DML embedded in host programs into procedure calls.</li>
+<li><b>Query evaluation engine</b> — executes the low-level instructions.</li>
+</ul>
+<p><b>3. Storage manager</b> — interface between stored data and the queries/programs; translates DML into file-system commands.</p>
+<ul>
+<li><b>Authorization and integrity manager</b> — checks access rights and integrity constraints.</li>
+<li><b>Transaction manager</b> — ensures consistency despite failures (recovery) and concurrency (concurrency control).</li>
+<li><b>File manager</b> — allocates disk space and manages on-disk data structures.</li>
+<li><b>Buffer manager</b> — moves data between disk and main memory; decides what to cache.</li>
+</ul>
+<p><b>4. Disk storage:</b> <b>data files</b> (the database), <b>data dictionary</b> (metadata — schemas, constraints, users), <b>indices</b> (fast access), <b>statistical data</b>
+(used by the optimiser).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2021 Q1(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Does an e-commerce application follow a three-tier architecture? Justify your answer.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Yes.</b> An e-commerce application (Amazon, Flipkart) is a classic three-tier system:</p>
+<ol>
+<li><b>Presentation tier (client):</b> the web browser or mobile app shows product pages, cart and checkout forms; it only sends HTTP requests and displays responses.
+It never connects to the database.</li>
+<li><b>Application tier (middle):</b> web/application servers hold the <b>business logic</b> — user authentication, search, price and discount calculation, stock check,
+order placement, payment-gateway calls; they issue SQL/NoSQL requests to the database through connection pools.</li>
+<li><b>Data tier:</b> database servers store customers, products, inventory, orders and payments; they enforce constraints and run transactions.</li>
+</ol>
+<p><b>Justification — why 3-tier and not 2-tier:</b></p>
+<ul>
+<li><b>Security:</b> millions of untrusted clients must not hold database credentials or send SQL; the middle tier validates every request.</li>
+<li><b>Scalability:</b> app servers can be replicated behind a load balancer; the DB serves pooled connections instead of one per user.</li>
+<li><b>Maintainability:</b> a pricing rule changes once on the server, not in every customer’s app; thin clients.</li>
+<li><b>Independence:</b> the database can be changed or replicated without affecting the clients.</li>
+</ul>
+<p class="small">(In practice it is often <i>n-tier</i> — separate web, application, caching and database layers — which is an extension of 3-tier.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2023 Q2(b)</span><span class="chip warn">1 mark</span></div>
+<div class="pyq-q"><p>Give an example of 1-tier architecture. How is it different from 2-tier architecture?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Example of 1-tier:</b> a student using MS Access or SQLite on their own laptop, or a DBA working directly at the database server console — user interface,
+application and database on the same machine.</p>
+<p><b>Difference:</b> in 1-tier everything is local and changes go straight to the database (single user, no network). In 2-tier the client machine runs the user
+interface and application, and connects over a network to a <b>separate database server</b> through APIs such as ODBC/JDBC; many clients share one database.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2026 Q5(a)(a)</span><span class="chip warn">1 mark</span></div>
+<div class="pyq-q"><p>Give differences between 2-tier and 3-tier architecture.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>2-tier</th><th>3-tier</th></tr>
+<tr><td>Client ↔ database server</td><td>Client ↔ application server ↔ database server</td></tr>
+<tr><td>Client talks to DB directly (ODBC/JDBC)</td><td>Client never accesses DB directly</td></tr>
+<tr><td>Business logic on client (fat client)</td><td>Business logic in middle tier (thin client)</td></tr>
+<tr><td>Less secure; suits small LAN user base</td><td>More secure, scalable to millions (web apps)</td></tr>
+<tr><td>e.g. desktop library app + Oracle server</td><td>e.g. Amazon, IRCTC, NSUT IMS</td></tr>
+</table></div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2023 (COCSC05) Q1(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Highlight the key difference between the following with the help of suitable examples: (i) DDL and DML (ii) candidate key and super key
+(iii) procedural and non-procedural language (iv) strong and weak entities.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>(i) DDL vs DML.</b> DDL defines/changes the <b>structure</b> (schema) of the database — CREATE, ALTER, DROP, TRUNCATE; its result is stored in the data
+dictionary and it is auto-committed. DML accesses and changes the <b>data</b> — SELECT, INSERT, UPDATE, DELETE; it can be rolled back.
+<br><span class="small">e.g. <code>CREATE TABLE emp(id INT PRIMARY KEY, name VARCHAR(30))</code> is DDL; <code>INSERT INTO emp VALUES (1,'Asha')</code> is DML.</span></p>
+<p><b>(ii) Candidate key vs super key.</b> A <b>super key</b> is any set of attributes that uniquely identifies a tuple; a <b>candidate key</b> is a <b>minimal</b> super key
+(no proper subset is a super key). Every candidate key is a super key, not vice-versa.
+<br><span class="small">e.g. STUDENT(Roll, Email, Name): {Roll}, {Email} are candidate keys; {Roll, Name} is a super key but not a candidate key.</span></p>
+<p><b>(iii) Procedural vs non-procedural.</b> Procedural: the user specifies <b>what</b> data and <b>how</b> to get it (sequence of operations) — relational algebra,
+PL/SQL, CODASYL DML. Non-procedural (declarative): the user specifies only <b>what</b> — SQL SELECT, relational calculus; the DBMS decides how.
+<br><span class="small">e.g. RA: π<sub>name</sub>(σ<sub>dept='IT'</sub>(emp)) is a sequence of steps; TRC {t.name | t ∈ emp ∧ t.dept = 'IT'} just describes the result.</span></p>
+<p><b>(iv) Strong vs weak entity.</b> A <b>strong</b> entity has its own primary key (single rectangle). A <b>weak</b> entity has no key of its own; it is identified by its
+<b>partial key (discriminator)</b> together with the key of its owner (identifying) entity, and has total participation in the identifying relationship (double rectangle,
+double diamond).
+<br><span class="small">e.g. EMPLOYEE(EmpID) is strong; DEPENDENT(Name, Age) is weak, identified by (EmpID, DependentName). Details: <a href="../unit3/">Unit 3</a>.</span></p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2023 (COCSC05) Q1(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Briefly describe the following terms with the help of an example: (i) ACID properties (ii) data abstraction (iii) role of DBA (iv) GRANT and REVOKE.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>(i) ACID</b> — properties of a transaction. Example: transfer ₹500 from A to B. <b>Atomicity</b>: both debit and credit happen or neither. <b>Consistency</b>:
+A + B is the same before and after. <b>Isolation</b>: another transaction does not see A debited but B not yet credited. <b>Durability</b>: once committed, the
+transfer survives a crash.</p>
+<p><b>(ii) Data abstraction</b> — hiding storage details through three levels: physical (how stored — files, indexes), logical (what is stored — tables such as
+ACCOUNT(AccNo, Balance)), view (what a user sees — a customer sees only their own balance).</p>
+<p><b>(iii) Role of DBA</b> — the person with central control of the database: defines the schema (DDL), decides storage structures and access methods, modifies
+schema and physical organisation, grants authorisation to users, and does routine maintenance (backups, disk space, performance monitoring, recovery).</p>
+<p><b>(iv) GRANT / REVOKE</b> — DCL commands. GRANT gives privileges; REVOKE takes them back.</p>
+<pre class="sql">GRANT SELECT, UPDATE ON account TO clerk1;   -- clerk1 may read and modify account
+REVOKE UPDATE ON account FROM clerk1;        -- now clerk1 can only read</pre>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2023 Q5(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>Is every superkey a candidate key? Give reasons to justify your answer.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>No.</b> A candidate key is a <b>minimal</b> superkey; a superkey may contain extra attributes. Every candidate key is a superkey, but a superkey is a candidate
+key only if no proper subset of it is also a superkey.</p>
+<p><i>Example:</i> STUDENT(Roll, Name, Phone) with Roll unique: {Roll} is a candidate key; {Roll, Name} is a superkey (it identifies tuples) but not a candidate key,
+because its subset {Roll} already identifies tuples.</p>
+</div></details></div>

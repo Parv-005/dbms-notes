@@ -1,0 +1,46 @@
+<h2 id="s4"><span class="num">4</span>Levels of abstraction and the three-schema architecture</h2>
+<div class="box def"><div class="box-t">Definition — data abstraction</div>
+<p><b>Data abstraction</b> is hiding the complex details of how data is stored and maintained, and showing each user only what they need. Database users
+are often not computer experts, so the DBMS hides complexity through <b>three levels of abstraction</b>.</p></div>
+
+<h3 id="s4-1">4.1 The three levels</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Level</th><th>Describes</th><th>Who works here</th></tr>
+<tr><td><b>Physical (internal) level</b> — lowest</td><td><b>How</b> the data is actually stored: files, record layouts, byte offsets, indexes (B+ trees, hashing), compression, block placement.</td><td>DBMS developers, DBA (tuning)</td></tr>
+<tr><td><b>Logical (conceptual) level</b></td><td><b>What</b> data is stored and the <b>relationships</b> among it, for the whole database: entities/tables, attributes, data types, keys, constraints. Hides physical details.</td><td>DBA, database designers, programmers</td></tr>
+<tr><td><b>View (external) level</b> — highest</td><td>Only the <b>part</b> of the database a particular user group needs; many views exist for one database. Hides the rest (also for security).</td><td>End users, applications</td></tr>
+</table></div>
+
+<div class="box ex"><div class="box-t">Example — university database at all three levels (fits most PYQs)</div>
+<p><b>Physical:</b> STUDENT records are stored in file <code>stu.dat</code> as fixed-length 60-byte records — Roll CHAR(11) at offset 0, Name 30 bytes at
+offset 11, DeptID 4 bytes at offset 41, CGPA REAL at offset 45 … — with a B+ tree index on Roll and a hash index on DeptID.</p>
+<p><b>Logical:</b> <code>STUDENT(Roll, Name, DOB, DeptID, CGPA, Phone)</code>, <code>COURSE(CID, Title, Credits)</code>,
+<code>ENROLLED(Roll, CID, Sem, Grade)</code>, <code>FEE(Roll, Sem, Amount, Paid)</code>; Roll is the primary key, ENROLLED.Roll is a foreign key.</p>
+<p><b>View:</b> a student sees <code>MyResult(CID, Title, Grade)</code> for their own roll only; the accounts office sees <code>FeeStatus(Roll, Name, Amount, Paid)</code>
+but no grades; a faculty member sees <code>ClassList(Roll, Name, Grade)</code> for their own course.</p></div>
+
+{{svg:three_schema}}
+
+<h3 id="s4-2">4.2 Three-schema (ANSI/SPARC) architecture</h3>
+<p>Proposed by the ANSI/SPARC committee (1975) to separate user applications from the physical database. One schema is defined at each level:</p>
+<ul>
+<li><b>Internal schema</b> — physical storage structure and access paths (uses a physical data model).</li>
+<li><b>Conceptual schema</b> — structure of the whole database for the whole community of users (uses a representational model, e.g. relational).</li>
+<li><b>External schemas (sub-schemas / user views)</b> — one per user group.</li>
+</ul>
+<p><b>Mappings:</b> the DBMS transforms requests and results between levels. The <b>external/conceptual mapping</b> relates each view to the conceptual
+schema; the <b>conceptual/internal mapping</b> relates the conceptual schema to the stored files. The levels themselves are only descriptions — the only
+data that really exists is at the physical level.</p>
+
+<h3 id="s4-3">4.3 How data abstraction is ensured (achieved) in a DBMS</h3>
+<ol>
+<li>The DBMS keeps a <b>separate schema for each level</b> in the data dictionary.</li>
+<li>Users and programs are written against an <b>external schema</b> (a view) or the conceptual schema, never against files.</li>
+<li>The DBMS automatically converts every request through the <b>two mappings</b> down to physical operations, and converts results back.</li>
+<li>Declarative languages (SQL says <i>what</i>, not <i>how</i>), views, and the query optimiser hide access paths; GRANT on views hides the rest of the data.</li>
+</ol>
+<p><b>Benefits:</b> users see a simple model; different users get different views; security (hide what a user must not see); and, most importantly,
+<b>data independence</b> (next section).</p>
+<div class="box warn"><div class="box-t">Common mistake</div>
+<p>Do not confuse the <b>three levels of abstraction</b> (physical / logical / view — about <i>description</i> of data) with <b>1/2/3-tier architecture</b>
+(about where the <i>machines/programs</i> run — section <a href="#s7-2">7.2</a>).</p></div>

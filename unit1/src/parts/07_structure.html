@@ -1,0 +1,48 @@
+<h2 id="s7"><span class="num">7</span>Structure of a DBMS and database architecture</h2>
+
+<h3 id="s7-1">7.1 Detailed structure (components) of a DBMS</h3>
+{{svg:dbms_structure}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Component</th><th>Job</th></tr>
+<tr><td colspan="2"><b>Query processor</b></td></tr>
+<tr><td>DDL interpreter</td><td>Interprets DDL statements and records the definitions (metadata) in the data dictionary.</td></tr>
+<tr><td>DML compiler (and query optimiser)</td><td>Translates DML queries into an evaluation plan of low-level instructions and chooses the cheapest plan.</td></tr>
+<tr><td>Embedded DML pre-compiler</td><td>Converts DML statements embedded in a host-language program into procedure calls.</td></tr>
+<tr><td>Query evaluation engine</td><td>Executes the low-level instructions produced by the DML compiler.</td></tr>
+<tr><td colspan="2"><b>Storage manager</b> — interface between low-level data and application programs / queries</td></tr>
+<tr><td>Authorization and integrity manager</td><td>Checks integrity constraints and users’ authority to access data.</td></tr>
+<tr><td>Transaction manager</td><td>Keeps the database consistent despite failures (recovery) and concurrent transactions (concurrency control).</td></tr>
+<tr><td>File manager</td><td>Allocates disk space and manages the data structures that represent data on disk.</td></tr>
+<tr><td>Buffer manager</td><td>Fetches data from disk into main memory and decides what to cache; lets the DB be larger than memory.</td></tr>
+<tr><td colspan="2"><b>Disk storage</b></td></tr>
+<tr><td>Data files</td><td>The database itself.</td></tr>
+<tr><td>Data dictionary</td><td>Metadata: schema, constraints, users, privileges.</td></tr>
+<tr><td>Indices</td><td>Fast access to records with given values.</td></tr>
+<tr><td>Statistical data</td><td>Sizes, value distributions — used by the optimiser.</td></tr>
+</table></div>
+
+<h3 id="s7-2">7.2 1-tier, 2-tier and 3-tier architecture</h3>
+<p>The design of a DBMS depends on its architecture: how the user, the application and the database are split across machines.</p>
+{{svg:tiers}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>1-tier</th><th>2-tier</th><th>3-tier</th></tr>
+<tr><td>Layers</td><td>User, application and DB on one machine</td><td>Client (UI + application) ↔ DB server</td><td>Client (presentation) ↔ application server (business logic) ↔ DB server</td></tr>
+<tr><td>Client talks to DB</td><td>Directly, locally</td><td>Directly, via ODBC/JDBC APIs</td><td>Never — only through the application server</td></tr>
+<tr><td>Business logic</td><td>Local</td><td>On the client (fat client) or in stored procedures</td><td>Middle tier</td></tr>
+<tr><td>Security</td><td>None needed (single user)</td><td>Lower — DB credentials/SQL on every client</td><td>Higher — DB hidden behind app server; validation in middle tier</td></tr>
+<tr><td>Scalability</td><td>Single user</td><td>Tens–hundreds of users; each client holds a connection</td><td>Thousands–millions; app servers replicated, connection pooling, load balancing</td></tr>
+<tr><td>Maintenance</td><td>Simple</td><td>Change in logic ⇒ update every client</td><td>Change logic once on the server; thin clients</td></tr>
+<tr><td>Performance</td><td>Fastest for one user</td><td>Fast for small user base</td><td>Extra hop, but scales; caching possible</td></tr>
+<tr><td>Examples</td><td>MS Access/SQLite on a laptop, DBA at the console</td><td>Desktop banking/library app connected to an Oracle server in the same LAN</td><td>Web apps: Amazon, IRCTC, Instagram, NSUT IMS</td></tr>
+</table></div>
+<div class="box ex"><div class="box-t">Example — e-commerce is 3-tier</div>
+<p>Browser/mobile app (presentation: product pages, cart) → web/application servers (business logic: pricing, discounts, stock check, payment, authentication)
+→ database servers (customers, products, orders). The customer’s browser never sends SQL to the database.</p></div>
+
+<h3 id="s7-3">7.3 Centralised, client–server, distributed (types of database systems)</h3>
+<ul>
+<li><b>Centralised</b> — the database lives at one site (e.g. a college library database); simple control, single point of failure.</li>
+<li><b>Distributed</b> — data spread over several sites connected by a network but seen as one database; homogeneous (same DBMS everywhere) or heterogeneous.</li>
+<li><b>Cloud</b> — DBMS offered as a service (Amazon RDS, Azure SQL, Google Cloud SQL).</li>
+<li>By model: relational, NoSQL, object-oriented, hierarchical, network (section 6).</li>
+</ul>

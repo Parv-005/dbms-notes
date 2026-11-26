@@ -1,0 +1,17 @@
+<h2 id="s11"><span class="num">11</span>Useful extras <span class="beyond-tag">beyond syllabus</span></h2>
+<div class="box beyond"><div class="box-t">History in five lines</div>
+<p>1960s: file systems, then navigational DBMSs — IBM <b>IMS</b> (hierarchical, built for the Apollo programme) and <b>CODASYL/IDMS</b> (network).
+1970: Codd’s relational paper. Late 1970s–80s: System R, Ingres, Oracle, DB2; SQL standardised (1986). 1990s: object-relational, data warehouses.
+2000s onward: web scale → NoSQL (Bigtable, Dynamo, MongoDB, Cassandra) and later NewSQL (distributed SQL with ACID: Spanner, CockroachDB).</p></div>
+<div class="box beyond"><div class="box-t">ACID in one line each (used in many Unit-1 answers; full treatment in Unit 5)</div>
+<p><b>Atomicity</b> — all or nothing. <b>Consistency</b> — a transaction takes the DB from one valid state to another. <b>Isolation</b> — concurrent transactions
+do not see each other’s partial work. <b>Durability</b> — committed changes survive crashes. A file system gives none of these (mid-sem 2024 Q1a).</p></div>
+<div class="box beyond"><div class="box-t">Codd’s 12 rules and DBMS vs RDBMS</div>
+<p>Codd’s rules (information rule, guaranteed access, systematic NULLs, active online catalog, comprehensive sub-language, view updating, high-level
+insert/update/delete, physical and logical data independence, integrity independence, distribution independence, non-subversion) define what a truly
+relational DBMS is. Rules 8 and 9 are exactly physical and logical data independence. Covered in <a href="../unit2/#s1-6">Unit 2 §1.6</a>; DBMS vs RDBMS in
+<a href="../unit2/#s1-7">Unit 2 §1.7</a>.</p></div>
+<div class="box beyond"><div class="box-t">Database security vs integrity (asked in end-sem 2025 Q1b)</div>
+<p><b>Security</b> = protecting the database from <i>unauthorised</i> access, malicious change or destruction (authentication, authorisation/GRANT, views,
+encryption, auditing). <b>Integrity</b> = keeping data <i>accurate and consistent</i> against accidental errors by authorised users (domain, entity, referential
+integrity, CHECK). One protects against the wrong <i>people</i>, the other against wrong <i>values</i>.</p></div>

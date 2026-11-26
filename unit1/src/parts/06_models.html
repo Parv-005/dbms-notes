@@ -1,0 +1,93 @@
+<h2 id="s6"><span class="num">6</span>Data models and their comparison</h2>
+<div class="box def"><div class="box-t">Definition — data model</div>
+<p>A <b>data model</b> is a collection of conceptual tools for describing <b>data, relationships between data, data semantics (meaning) and consistency
+constraints</b>. It gives the structure of the database, and usually a set of basic operations for retrieving and updating it.</p></div>
+
+<h3 id="s6-1">6.1 Categories of data models</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Category</th><th>Level</th><th>Examples</th></tr>
+<tr><td><b>High-level / conceptual (object-based)</b></td><td>Close to how users see data: entities, attributes, relationships</td><td>ER model, object-oriented model</td></tr>
+<tr><td><b>Representational / implementation (record-based)</b></td><td>Understood by users but also directly implemented; data is in fixed-format records</td><td><b>Relational, network, hierarchical</b></td></tr>
+<tr><td><b>Low-level / physical</b></td><td>How data is stored: record formats, orderings, access paths</td><td>Unifying model, frame-memory model, index structures</td></tr>
+<tr><td>Self-describing / semi-structured</td><td>Data and schema stored together</td><td>XML, JSON / NoSQL document and key-value stores</td></tr>
+</table></div>
+<p>The syllabus compares the three <b>record-based</b> models. Use the same data in all three — Department IT, courses DBMS and OS, teacher Rao, students
+Asha (takes both courses), Vikram (DBMS) and Neha (OS).</p>
+
+<h3 id="s6-2">6.2 Hierarchical model</h3>
+{{svg:hier_model}}
+<ul>
+<li>Data is organised as a <b>tree</b> of record types; each record has exactly <b>one parent</b> (except the root) and any number of children → represents <b>1:N</b>.</li>
+<li>Relationships are physical <b>pointers</b>; access starts at the root and goes down (pre-order traversal). Languages are procedural (e.g. DL/I in IBM IMS, 1960s).</li>
+<li><b>Advantages:</b> simple and fast for naturally hierarchical data accessed top-down (organisation charts, bill of materials, file directories, XML,
+Windows registry); parent–child integrity is automatic (deleting a parent deletes children); efficient for 1:N.</li>
+<li><b>Limitations:</b> cannot represent <b>M:N</b> or multiple parents without duplicating records (redundancy → inconsistency); rigid — access path is fixed, so queries
+not following the tree are slow; insertion of a child without a parent is impossible, deletion of a parent loses children (anomalies); little data independence —
+restructuring the tree breaks programs.</li>
+</ul>
+
+<h3 id="s6-3">6.3 Network model</h3>
+{{svg:net_model}}
+<ul>
+<li>Data is a <b>graph</b>: records connected by <b>set types</b> (owner → member, each a 1:N link). A member record can belong to <b>many owners</b>, so
+<b>M:N</b> is modelled with a link (junction) record. Standardised by <b>CODASYL / DBTG</b> (1971); e.g. IDMS, IDS.</li>
+<li><b>Advantages:</b> represents M:N and complex relationships <b>without duplication</b>; faster than hierarchical for such data; more flexible access (start anywhere);
+data integrity through owner–member rules.</li>
+<li><b>Limitations:</b> <b>navigational</b> — programmers must know the pointer structure and write record-at-a-time code (“find owner, get next member …”);
+complex to design and maintain; changing the structure means rewriting programs (poor data independence); no declarative query language.</li>
+</ul>
+
+<h3 id="s6-4">6.4 Relational model</h3>
+<div class="tbl-wrap"><table class="tbl small center" style="max-width:640px;margin:auto">
+<tr><th colspan="2">STUDENT</th><th></th><th colspan="2">COURSE</th><th></th><th colspan="2">ENROLLED</th></tr>
+<tr><td><b>Roll</b></td><td>Name</td><td></td><td><b>CID</b></td><td>Title</td><td></td><td><b>Roll</b></td><td><b>CID</b></td></tr>
+<tr><td>1</td><td>Asha</td><td></td><td>C1</td><td>DBMS</td><td></td><td>1</td><td>C1</td></tr>
+<tr><td>2</td><td>Vikram</td><td></td><td>C2</td><td>OS</td><td></td><td>2</td><td>C1</td></tr>
+<tr><td>3</td><td>Neha</td><td></td><td></td><td></td><td></td><td>1</td><td>C2</td></tr>
+<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>3</td><td>C2</td></tr>
+</table></div>
+<ul>
+<li>Proposed by <b>E. F. Codd (IBM, 1970)</b>. All data is in <b>relations (tables)</b> of rows (tuples) and columns (attributes). Relationships are represented
+by <b>values</b> — matching keys (primary key / foreign key), not pointers. M:N uses a separate table (ENROLLED).</li>
+<li>Based on set theory and predicate logic; manipulated with <b>declarative</b> languages — relational algebra/calculus, SQL (“what”, not “how”).</li>
+<li><b>Advantages:</b> simple tabular structure; <b>high data independence</b>; powerful ad-hoc queries in SQL with optimisation; any relationship (1:1, 1:N, M:N);
+integrity constraints declared (PK, FK, CHECK); normalization theory removes redundancy; strong ACID transactions; a standard (SQL) supported by every vendor.</li>
+<li><b>Limitations:</b> joins can be slow on very large data; rigid schema — awkward for unstructured / rapidly changing data; harder to scale horizontally
+across many servers; object–relational impedance mismatch with OOP code; needs more hardware than navigational systems for the same simple access.
+(These are where NoSQL comes in — section <a href="#s9">9</a>.)</li>
+</ul>
+
+<h3 id="s6-5">6.5 Comparison table (learn this)</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Hierarchical</th><th>Network</th><th>Relational</th></tr>
+<tr><td>Structure</td><td>Tree (parent–child)</td><td>Graph (owner–member sets)</td><td>Tables (relations)</td></tr>
+<tr><td>Relationship representation</td><td>Physical pointers; one parent per child</td><td>Physical pointers; many owners per member</td><td>Logical: common values (PK–FK)</td></tr>
+<tr><td>Relationships supported</td><td>1:1, 1:N (M:N only by duplication)</td><td>1:1, 1:N, M:N (via link records)</td><td>All, M:N via a relationship table</td></tr>
+<tr><td>Data access / navigation</td><td>Navigational, top-down from root; fixed path</td><td>Navigational, record-at-a-time along pointers</td><td>Declarative, set-at-a-time (SQL); any path</td></tr>
+<tr><td>Query language</td><td>Procedural (DL/I)</td><td>Procedural (CODASYL DML)</td><td>Non-procedural (SQL, RA, RC)</td></tr>
+<tr><td>Redundancy</td><td>High for M:N</td><td>Low</td><td>Low (normalization)</td></tr>
+<tr><td>Data independence</td><td>Very little</td><td>Little</td><td>High (physical and logical)</td></tr>
+<tr><td>Flexibility / ease of design</td><td>Rigid, simple</td><td>Flexible but complex</td><td>Flexible and simple</td></tr>
+<tr><td>Insert / delete anomalies</td><td>Child cannot exist without parent; deleting parent deletes children</td><td>Fewer; owner–member rules</td><td>Controlled by keys and FK actions (CASCADE, SET NULL)</td></tr>
+<tr><td>Scalability</td><td>Good for fixed, top-down access</td><td>Poor to restructure</td><td>Vertical scaling well; horizontal harder</td></tr>
+<tr><td>Examples</td><td>IBM IMS, Windows registry, XML</td><td>IDMS, IDS, CODASYL DBTG</td><td>Oracle, MySQL, PostgreSQL, SQL Server</td></tr>
+<tr><td>Best suited for</td><td>Strictly hierarchical data: org charts, file systems, bill of materials</td><td>Many-to-many networks needing fast fixed traversal: telecom, legacy airline/banking</td><td>General business data with many queries: banking, university, e-commerce orders</td></tr>
+</table></div>
+
+<h3 id="s6-6">6.6 Why the relational model became dominant</h3>
+<ol>
+<li><b>Simplicity</b> — everything is a table; easy to understand for users and designers.</li>
+<li><b>Data independence</b> — no physical pointers in the model, so storage can change freely.</li>
+<li><b>Declarative querying</b> — SQL says what is wanted; the optimiser finds the access path. Ad-hoc queries need no new programs.</li>
+<li><b>Mathematical foundation</b> — relational algebra, calculus, FD/normalization theory make design and optimisation rigorous.</li>
+<li><b>Integrity and transactions</b> — declarative constraints, ACID.</li>
+<li><b>Standardisation and ecosystem</b> — SQL is an ANSI/ISO standard; tools, skills and vendors are everywhere; hardware became fast enough for joins.</li>
+</ol>
+
+<h3 id="s6-7">6.7 Other models (brief)</h3>
+<ul>
+<li><b>ER model</b> — conceptual model of entities, attributes and relationships, drawn as diagrams; used for design and then mapped to tables (Unit 3).</li>
+<li><b>Object-oriented model</b> — data as objects with attributes and methods, classes, inheritance (db4o, ObjectDB); good for CAD, multimedia.</li>
+<li><b>Object-relational model</b> — relational + user-defined types, arrays, inheritance (PostgreSQL, Oracle).</li>
+<li><b>Semi-structured / NoSQL models</b> — key-value, document, column-family, graph (section <a href="#s9">9</a>).</li>
+</ul>

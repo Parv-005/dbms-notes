@@ -1,0 +1,170 @@
+<!-- ===================================================================== 14.3 -->
+<h3 id="s14-3">14.3 Data models — compare and recommend</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2023 (ITITC05) Q1(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Explain the key differences between the three main types of data models: hierarchical, network and relational. Provide examples of scenarios where
+each model is most suitable and discuss their advantages and limitations.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Hierarchical:</b> data as a tree of records, each child has one parent; relationships are pointers (1:N). <b>Network:</b> data as a graph; records linked
+by owner–member sets, a record may have many owners (M:N via link records). <b>Relational:</b> data as tables; relationships through common values
+(primary key – foreign key); queried declaratively with SQL.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Hierarchical</th><th>Network</th><th>Relational</th></tr>
+<tr><td>Structure</td><td>Tree</td><td>Graph</td><td>Tables</td></tr>
+<tr><td>Relationships</td><td>1:N; M:N by duplication</td><td>1:N, M:N</td><td>All, via keys</td></tr>
+<tr><td>Access</td><td>Navigational from root</td><td>Navigational via pointers</td><td>Declarative SQL</td></tr>
+<tr><td>Data independence</td><td>Very low</td><td>Low</td><td>High</td></tr>
+<tr><td>Example DBMS</td><td>IBM IMS</td><td>IDMS (CODASYL)</td><td>Oracle, MySQL</td></tr>
+</table></div>
+<p><b>Most suitable scenarios</b></p>
+<ul>
+<li><b>Hierarchical:</b> naturally tree-shaped data accessed top-down — organisation chart (CEO → managers → staff), file/folder directory, bill of materials,
+Windows registry, XML documents.</li>
+<li><b>Network:</b> many-to-many data with fixed, high-speed traversal — legacy airline reservation, telecom networks, supply chains (parts ↔ suppliers).</li>
+<li><b>Relational:</b> general business data with ad-hoc queries and integrity needs — banking, university, hospital, e-commerce orders.</li>
+</ul>
+<p><b>Advantages / limitations:</b> Hierarchical — simple, fast for 1:N top-down access, automatic parent–child integrity / cannot model M:N without redundancy,
+rigid access path, insert/delete anomalies, poor independence. Network — models M:N without duplication, flexible paths / complex, navigational record-at-a-time
+programming, restructuring breaks programs. Relational — simple tables, high data independence, powerful SQL, constraints, normalization, ACID /
+joins can be costly on huge data, rigid schema, harder horizontal scaling.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2024 Q1(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A healthcare organization is deciding whether to use a hierarchical, network or relational data model to manage patient records. Analyze the key
+characteristics of each model, and recommend the most suitable model for managing complex relationships (such as patients, treatments and medical staff)
+effectively. Justify your choice.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Relationships in the scenario:</b> a patient sees <b>many doctors</b> and a doctor treats <b>many patients</b> (M:N); a treatment involves a patient, a doctor,
+nurses and medicines (many-to-many and multi-way); staff belong to departments (1:N). Queries are varied: a patient’s full history, a doctor’s schedule,
+all patients given drug X, billing summaries.</p>
+<ul>
+<li><b>Hierarchical:</b> e.g. Department → Doctor → Patient → Treatment. Because each child has one parent, a patient treated by three doctors must be stored three
+times (redundant, inconsistent medical history); “all doctors who treated patient P” needs a scan of the entire tree. Unsuitable.</li>
+<li><b>Network:</b> Patient and Doctor records linked by TREATMENT link records with two owners — M:N is possible without duplication. But every query must be
+written as pointer navigation, structure changes (adding a lab-test record type) require rewriting programs, and there is no ad-hoc query language.
+Workable but hard to maintain.</li>
+<li><b>Relational:</b> PATIENT(PID, …), DOCTOR(DID, …, DeptID), DEPARTMENT(DeptID, …), TREATMENT(TID, PID, DID, Date, Diagnosis), PRESCRIPTION(TID, MedID, Dose),
+MEDICINE(MedID, …). Every M:N is a table of foreign keys; any question is one SQL query.</li>
+</ul>
+<p><b>Recommendation: relational model</b>, because</p>
+<ol>
+<li>it represents all the M:N and multi-way relationships cleanly with no duplication of patient data (normalization);</li>
+<li>declarative SQL supports the many unforeseen queries doctors, administrators and auditors ask;</li>
+<li>integrity constraints (FK: a prescription must refer to an existing treatment; CHECK on dosage) protect safety-critical data;</li>
+<li>ACID transactions and recovery are essential for medical and billing records; views and GRANT protect patient privacy;</li>
+<li>high data independence — new tests, departments or fields can be added without rewriting applications; standard SQL tools and skills are widely available.</li>
+</ol>
+<p class="small">(Unstructured parts such as scan images or doctor notes may additionally be stored in a document/object store, but the core records should be relational.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2026 (summer) Q1(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A logistics company wants to manage information about warehouses, delivery vehicles, routes and shipments. Compare the hierarchical, network and
+relational data models, and recommend the most suitable model with proper justification.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Relationships:</b> a warehouse stores many shipments (1:N); a shipment may pass through several warehouses and a warehouse handles many shipments (M:N);
+a vehicle runs many routes and a route is served by many vehicles (M:N); a route connects many warehouses. The data is a <b>network</b> of many-to-many links,
+and queries are varied (where is shipment S? which vehicles are free on route R? load per warehouse today?).</p>
+<ul>
+<li><b>Hierarchical</b> (Warehouse → Vehicle → Shipment): a shipment passing through two warehouses or carried by two vehicles must be duplicated; queries like
+“all warehouses on route R” do not follow the tree. Not suitable.</li>
+<li><b>Network:</b> Warehouse, Vehicle, Route, Shipment records connected by set types (ROUTE_STOP, ASSIGNMENT link records) — M:N without duplication and fast
+fixed traversals; but programs navigate pointers, schema changes are costly, and ad-hoc tracking reports need new programs.</li>
+<li><b>Relational:</b> WAREHOUSE(WID, City, Capacity), VEHICLE(VID, Type, Capacity), ROUTE(RID, Source, Dest), ROUTE_STOP(RID, WID, Seq), SHIPMENT(SID, Weight, Src, Dst, Status),
+TRIP(TripID, VID, RID, Date), CARRIES(TripID, SID). All M:N are tables; every question is a join.</li>
+</ul>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Hierarchical</th><th>Network</th><th>Relational</th></tr>
+<tr><td>Fit for M:N (routes, shipments)</td><td>Poor (duplication)</td><td>Good</td><td>Good (junction tables)</td></tr>
+<tr><td>Ad-hoc queries (tracking, reports)</td><td>Poor</td><td>Poor, navigational</td><td>Excellent (SQL)</td></tr>
+<tr><td>Adding new data (drivers, fuel logs)</td><td>Restructure tree</td><td>Rewrite programs</td><td>ALTER/CREATE table, views keep apps working</td></tr>
+<tr><td>Integrity, transactions</td><td>Parent–child only</td><td>Set rules</td><td>PK/FK/CHECK, ACID</td></tr>
+</table></div>
+<p><b>Recommendation: relational</b> — it models all the M:N relationships without redundancy, supports real-time tracking and analytics through SQL, enforces
+integrity (a shipment cannot be assigned to a non-existent vehicle), handles concurrent updates from many depots with ACID transactions, and evolves easily.
+(For route optimisation over a road graph, a graph database could complement it.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2025 Q2(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>A music streaming platform stores information about Songs, Artists and Playlists. Each playlist can have multiple songs, and each song can appear in
+multiple playlists. Compare how the hierarchical, network and relational models would represent this data, and explain why the relational model is preferred.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Hierarchical:</b> Playlist → Song (→ Artist). A song in 1000 playlists is stored 1000 times; renaming the song means 1000 updates; “playlists containing song S”
+needs a scan of all trees.</li>
+<li><b>Network:</b> Playlist and Song records joined by a PLAYLIST_ENTRY link record owned by both — no duplication, but queries navigate pointers and changes
+(adding position, added-on date) require program changes.</li>
+<li><b>Relational:</b> SONG(SongID, Title, ArtistID), ARTIST(ArtistID, Name), PLAYLIST(PID, Name, User), PLAYLIST_SONG(PID, SongID, Position) with foreign keys.</li>
+</ul>
+<p><b>Relational is preferred:</b> the M:N is a simple junction table with no duplication; any query (top songs in playlists, playlists of artist A) is one SQL
+statement; FKs prevent dangling entries; new attributes can be added without breaking apps (data independence).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2024 Q1(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>What are the potential drawbacks of using a network data model for complex queries in a database with many-to-many relationships, and how does the
+relational model address these challenges?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Drawbacks of the network model:</b> (i) queries are <b>navigational</b> — the programmer must follow owner/member pointers record-at-a-time (“find owner, get
+next member…”) and know the physical structure; (ii) each M:N needs extra link records and set types, making the schema complex; (iii) a new kind of query
+needs a new program; (iv) changing the structure breaks existing programs (little data independence); (v) no query optimiser — performance depends on the
+programmer’s chosen path.</p>
+<p><b>Relational solution:</b> M:N becomes a junction table of foreign keys; queries are <b>declarative</b> (SQL joins state <i>what</i> is wanted), so complex queries
+are short and ad hoc; the optimiser chooses the access path; relationships are by values, not pointers, giving physical and logical data independence.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem (summer) Q1(b)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>Compare hierarchical, network and relational data models with respect to structure, relationship representation, navigational complexity, data
+independence and scalability. Justify why the relational model became dominant.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>Hierarchical</th><th>Network</th><th>Relational</th></tr>
+<tr><td>Structure</td><td>Tree</td><td>Graph</td><td>Tables</td></tr>
+<tr><td>Relationship representation</td><td>Parent–child pointers, one parent</td><td>Owner–member sets, many owners</td><td>Matching key values (PK–FK)</td></tr>
+<tr><td>Navigational complexity</td><td>Fixed top-down path; other paths very costly</td><td>High — programmer navigates pointers</td><td>None — declarative SQL</td></tr>
+<tr><td>Data independence</td><td>Very low</td><td>Low</td><td>High (physical and logical)</td></tr>
+<tr><td>Scalability / evolution</td><td>Poor to restructure</td><td>Poor to restructure</td><td>Easy to extend; scales vertically, distributed SQL horizontally</td></tr>
+</table></div>
+<p><b>Why relational became dominant:</b> simple table structure; declarative SQL with automatic optimisation; high data independence; solid mathematical
+foundation (RA, normalization); declarative integrity and ACID; ANSI/ISO standard SQL and a large vendor/tool ecosystem.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2025 Q1(b)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Discuss the terms “security of a database” and “integrity of a database” with the help of appropriate examples. Also, critically compare the relative
+advantages and disadvantages of a relational database over a hierarchical database.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Security</b> means protecting the database against <b>unauthorised</b> access, modification or destruction — intentional or accidental. Mechanisms:
+authentication (user/password), authorisation (privileges — <code>GRANT SELECT ON marks TO student_role</code>, <code>REVOKE</code>), views that hide columns,
+encryption, auditing. <i>Example:</i> in a bank, a clerk can read customer balances of their branch but cannot see employees’ salaries; a customer can see only
+their own account.</p>
+<p><b>Integrity</b> means the data is <b>accurate, valid and consistent</b> — protecting it from invalid changes by <i>authorised</i> users. Mechanisms: integrity
+constraints — domain (data type, <code>CHECK (age BETWEEN 18 AND 120)</code>), <code>NOT NULL</code>, entity integrity (primary key unique and not null),
+referential integrity (foreign keys), transactions. <i>Example:</i> an ENROLLED row cannot refer to a roll number that is not in STUDENT; a balance cannot become
+negative.</p>
+<p class="small">Difference in one line: security keeps the wrong <i>users</i> out; integrity keeps wrong <i>data</i> out.</p>
+<p><b>Relational vs hierarchical</b></p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Relational — advantages over hierarchical</th><th>Relational — disadvantages compared to hierarchical</th></tr>
+<tr><td>
+<ul class="small">
+<li>Represents M:N and any relationship without duplication (hierarchical needs copies).</li>
+<li>Declarative SQL and ad-hoc queries along any path; hierarchical only along the fixed tree path.</li>
+<li>High physical and logical data independence; hierarchical programs depend on the tree structure.</li>
+<li>No insertion/deletion anomalies from parent–child dependence (a child can exist without a parent record; FK actions are controlled).</li>
+<li>Strong theory (normalization), declarative constraints, standard SQL.</li>
+</ul></td>
+<td>
+<ul class="small">
+<li>Joins make naturally hierarchical, top-down access slower (pointer traversal in IMS is very fast).</li>
+<li>Needs more processing power and memory; optimiser adds overhead.</li>
+<li>Recursive tree queries (all descendants) need recursive SQL — awkward compared with a tree.</li>
+<li>For a fixed, high-volume 1:N workload (e.g. bank transaction processing on IMS), hierarchical can give higher throughput.</li>
+</ul></td></tr>
+</table></div>
+<p class="answer-line">Overall, the relational model’s flexibility, independence and query power outweigh the hierarchical model’s speed on fixed tree-shaped access.</p>
+</div></details></div>

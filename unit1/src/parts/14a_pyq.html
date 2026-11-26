@@ -1,0 +1,273 @@
+<h2 id="s14"><span class="num">14</span>Previous-year questions, solved</h2>
+<p>Every Unit-1 question from the papers in the folder, grouped by type. Answers are written the way they should be written in the exam; for 2-mark
+mid-sem parts the answer is deliberately short. Near-duplicate questions are each answered for <b>their own scenario</b>, because that is where the marks are.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Paper</th><th>Unit-1 questions</th></tr>
+<tr><td>End-sem Nov–Dec 2025</td><td>Q1(a) SIR voter rolls: files → DBMS · Q1(b) security vs integrity; relational vs hierarchical · Q1(c) SQL vs NoSQL for e-commerce</td></tr>
+<tr><td>End-sem July 2026 (summer)</td><td>Q1(a) university spreadsheets → DBMS · Q1(b) logistics: compare models · Q1(c) e-commerce: NoSQL vs RDBMS</td></tr>
+<tr><td>End-sem Nov–Dec 2024</td><td>Q1(a) small company: files → DBMS · Q1(b) healthcare: choose a model · Q1(c) social media: NoSQL</td></tr>
+<tr><td>End-sem Nov–Dec 2023 (ITITC05)</td><td>Q1(a) applications; when files are better · Q1(b) five responsibilities of a DBMS · Q1(c) three data models</td></tr>
+<tr><td>End-sem Nov–Dec 2023 (COCSC05)</td><td>Q1(a) four differences (DDL/DML, keys, procedural, entities) · Q1(b) ACID, abstraction, DBA, GRANT/REVOKE</td></tr>
+<tr><td>End-sem Nov–Dec 2022 (COCSC05)</td><td>Q1(a) data abstraction with diagram · Q1(b) structure of a DBMS · Q1(c) merits and demerits</td></tr>
+<tr><td>Mid-sem Sep 2026</td><td>Q1(a) three levels for a university · Q1(b) hospital files · Q5(a)(a) 2-tier vs 3-tier</td></tr>
+<tr><td>Mid-sem (summer semester)</td><td>Q1(a) three file-system limitations · Q1(b) compare models, why relational dominant · Q2(a) HDD → SSD, data independence · Q2(b) banking three-schema</td></tr>
+<tr><td>Mid-sem Sep 2025</td><td>Q1(a) college Excel files · Q1(b) hospital levels of abstraction · Q2(a) music streaming: compare models</td></tr>
+<tr><td>Mid-sem Sep 2024</td><td>Q1(a) no ACID in file systems · Q1(b) network model drawbacks · Q2(a) data abstraction with schema · Q5(b) SQL vs NoSQL</td></tr>
+<tr><td>Mid-sem Sep 2023</td><td>Q1(a) how abstraction is ensured · Q1(b) data model, data independence · Q2(b) 1-tier vs 2-tier · Q5(a) superkey vs candidate key · Q5(b) redundancy and security</td></tr>
+<tr><td>Mid-sem Oct 2021</td><td>Q1(a) DBMS and disadvantages · Q1(b) e-commerce three-tier · Q1(c) data independence and abstraction</td></tr>
+</table></div>
+<p class="muted small">Mid-sem 2021 Q5 (MIS — advantages, challenges, management hierarchy) is from an older syllabus and is not part of ITITC302, so it is not solved here.</p>
+
+<!-- ===================================================================== 14.1 -->
+<h3 id="s14-1">14.1 File system vs DBMS</h3>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2025 Q1(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>During the Special Intensive Revision (SIR) of electoral rolls, the Election Commission needs to update, verify and correct lakhs of voter records
+across districts. Currently the data is stored in multiple Excel/CSV files maintained separately by different officers. Analyze the risks of continuing with a
+file-based system for SIR and justify how adopting a DBMS can improve accuracy, security, deduplication and faster roll revision. Provide five strong arguments.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Current situation.</b> Each district / booth officer keeps a separate Excel or CSV file of voters. This is a <b>file-processing system</b>: no common
+schema, no central control, no constraints, no concurrency control.</p>
+<p><b>Risks of continuing with files</b></p>
+<ul>
+<li><b>Duplicate voters (redundancy):</b> a person who moved from Rohini to Dwarka can appear in both districts’ files; nothing stops the same EPIC or
+Aadhaar-linked voter being entered twice.</li>
+<li><b>Inconsistency:</b> a correction (spelling, address, deceased status) made in one copy is not made in others; different officers hold different “truths”.</li>
+<li><b>No validation (integrity):</b> wrong ages (&lt; 18), invalid constituency codes, blank mandatory fields are accepted.</li>
+<li><b>Security:</b> files are e-mailed and copied on pen drives; anyone with the file can read or alter every voter’s personal data; no audit trail.</li>
+<li><b>Slow revision and lost updates:</b> merging lakhs of rows by hand is slow; two officers editing the same file overwrite each other; a crash corrupts the file with no recovery.</li>
+</ul>
+<p><b>Five arguments for a DBMS</b></p>
+<ol>
+<li><b>Deduplication by design.</b> One central VOTER table with <code>EPIC_No PRIMARY KEY</code> and <code>UNIQUE (Aadhaar_ref)</code>; the DBMS rejects a second entry.
+SQL can also find near-duplicates (<code>GROUP BY name, father_name, dob HAVING COUNT(*) &gt; 1</code>) across all districts at once.</li>
+<li><b>Accuracy through integrity constraints.</b> <code>CHECK (age &gt;= 18)</code>, <code>NOT NULL</code> on name/address, <code>FOREIGN KEY (constituency_id)
+REFERENCES constituency</code> — invalid data cannot be stored, whoever enters it.</li>
+<li><b>Security.</b> Each officer logs in with an account; <code>GRANT UPDATE</code> only on their district’s view, read-only access for observers;
+encryption and audit logs show who changed which record and when.</li>
+<li><b>Consistency and concurrent access.</b> All officers work on <b>one copy</b>; transactions and locking let thousands update simultaneously without
+lost updates; a correction is instantly visible everywhere.</li>
+<li><b>Faster revision, backup and recovery.</b> Indexed SQL queries (e.g. all voters aged 18 by 1 January, all records flagged deceased) run in seconds instead
+of days of manual merging; automatic backups and log-based recovery protect against crashes; data independence lets the EC add fields (e.g. a
+<code>verification_status</code> column) without rewriting the officers’ apps.</li>
+</ol>
+<p class="answer-line">A DBMS turns many unsynchronised spreadsheets into one controlled, constrained, secure, concurrently-updatable database — which is exactly
+what an accurate, duplicate-free, quickly revised electoral roll needs.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2026 (summer) Q1(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A university currently maintains student records using spreadsheets. Explain how migrating to a DBMS would improve data consistency, security,
+data independence and concurrent access. Compare the file system and DBMS with suitable examples.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Today the admissions office, the exam branch, the accounts section and the hostel each keep their own spreadsheet with student details — a file-processing system.</p>
+<ul>
+<li><b>Data consistency.</b> <i>Now:</i> a student’s phone number is in four sheets; a change in one leaves three stale copies. <i>DBMS:</i> one STUDENT table
+(Roll PK) referenced by MARKS, FEES, HOSTEL through foreign keys — the phone number is stored once, so it cannot disagree; constraints such as
+<code>CHECK (marks BETWEEN 0 AND 100)</code> keep values valid.</li>
+<li><b>Security.</b> <i>Now:</i> whoever opens the marks sheet sees and can edit everything. <i>DBMS:</i> user accounts and privileges — faculty may
+<code>UPDATE</code> marks only for their courses, students only <code>SELECT</code> their own result through a view, accounts sees fees but not grades.</li>
+<li><b>Data independence.</b> <i>Now:</i> inserting a new column (ABC-ID) shifts columns and breaks every macro/script using the sheet. <i>DBMS:</i> the
+three-schema architecture lets the university add a column or an index, or move to a new server, while existing applications and views keep working
+(logical and physical data independence).</li>
+<li><b>Concurrent access.</b> <i>Now:</i> “file locked for editing” or two people saving over each other at result time. <i>DBMS:</i> hundreds of faculty
+enter marks at once; transactions and locking prevent lost updates; a crash mid-update is rolled back.</li>
+</ul>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Basis</th><th>File system (spreadsheets)</th><th>DBMS</th></tr>
+<tr><td>Redundancy</td><td>Name/phone in every sheet</td><td>Stored once, linked by Roll</td></tr>
+<tr><td>Querying</td><td>Manual filtering, VLOOKUP across sheets</td><td><code>SELECT … JOIN …</code> in one statement</td></tr>
+<tr><td>Integrity</td><td>Any value accepted</td><td>PK, FK, CHECK enforced</td></tr>
+<tr><td>Security</td><td>File-level password at best</td><td>Row/column-level via views and GRANT</td></tr>
+<tr><td>Concurrency, recovery</td><td>One editor; corruption is permanent</td><td>Many users, ACID, logs and backups</td></tr>
+<tr><td>Cost</td><td>Cheap, simple</td><td>Software, server, DBA needed</td></tr>
+</table></div>
+<p class="answer-line">For a university with many departments sharing the same student data, the DBMS’s consistency, security, independence and concurrency
+outweigh its cost.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2024 Q1(a)</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A small company currently stores its data using a simple file system. The manager wants to switch to a DBMS but is unsure if it would be worth the
+change. Describe how this transition could benefit the company in terms of data organization, retrieval and security.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Data organization.</b></p>
+<ul>
+<li>Files: customers, orders, invoices and employees are in separate files of different formats; customer details are repeated in the orders and invoice files
+→ redundancy and inconsistency, and data isolation.</li>
+<li>DBMS: data is organised in an <b>integrated, structured</b> database — CUSTOMER, PRODUCT, ORDER, EMPLOYEE tables linked by keys. Each fact is stored once
+(controlled redundancy); constraints (PK, FK, NOT NULL, CHECK price &gt; 0) keep it valid; the schema is documented in the data dictionary (metadata), so
+new staff understand the data.</li>
+</ul>
+<p><b>Data retrieval.</b></p>
+<ul>
+<li>Files: every new report needs a new program or manual work (“customers who ordered more than ₹1 lakh last quarter”).</li>
+<li>DBMS: one declarative SQL query answers it; indexes and the query optimiser make it fast; many interfaces (forms for clerks, reports for the manager).</li>
+</ul>
+<p><b>Security.</b></p>
+<ul>
+<li>Files: OS-level access only — whoever opens the salary file sees all salaries; no audit.</li>
+<li>DBMS: authentication, privileges (<code>GRANT SELECT ON orders TO sales</code>), views hiding salary columns, encryption, and audit trails.</li>
+</ul>
+<p><b>Other gains:</b> concurrent use by several employees without lost updates; automatic backup and crash recovery (no lost invoices); data independence for
+future growth.</p>
+<p><b>Is it worth it?</b> Costs are licence/hardware and training, but free DBMSs (MySQL, PostgreSQL) and cloud databases make it cheap for a small company;
+the reduction in errors and reporting effort justifies the switch, especially as the company grows.</p>
+<p class="answer-line">Yes — better organised (integrated, non-redundant, constrained) data, faster ad-hoc retrieval with SQL, and fine-grained security.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2025 Q1(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>The administration office of a college maintains student records in multiple Excel files. Over time, files become inconsistent (same student has
+different addresses in different files), and data redundancy increases. Explain how moving to a DBMS can solve the problems of redundancy, inconsistency
+and concurrency compared to file systems.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ul>
+<li><b>Redundancy:</b> in a DBMS the address is stored once in STUDENT(Roll, Name, Address, …); other tables keep only Roll as a foreign key, so there is
+nothing to duplicate.</li>
+<li><b>Inconsistency:</b> with one copy an address update is automatically seen by every office; constraints (PK on Roll, FK from FEES/MARKS) stop
+conflicting or orphan records.</li>
+<li><b>Concurrency:</b> files allow one editor at a time or overwrite each other’s saves; a DBMS runs updates as transactions with locking, so several clerks
+can update simultaneously without lost updates, and failures are rolled back.</li>
+</ul>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2026 Q1(b)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>A hospital database has separate files for Patients, Doctors, Appointments and Billing. The same patient information is stored in multiple files.
+Identify the problems illustrated by this situation and explain how a DBMS can overcome them.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Problems:</b> (i) <b>data redundancy</b> — patient name, phone, address repeated in Patients, Appointments and Billing; (ii) <b>inconsistency</b> — a changed
+phone number updated in one file only; (iii) <b>update/delete anomalies</b> — deleting an appointment file record may lose the patient’s details;
+(iv) <b>data isolation</b> — combining files for a bill is hard; (v) weak <b>security</b> of medical data.</p>
+<p><b>DBMS solution:</b> store patient details once in PATIENT(PatientID PK, …); APPOINTMENT and BILL hold only PatientID as a foreign key, so updates happen
+in one place and referential integrity prevents bills for non-existent patients; views and privileges let billing staff see payments but not medical
+history; transactions and recovery protect concurrent updates.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem (summer) Q1(a)</span><span class="chip warn">1.5 marks</span></div>
+<div class="pyq-q"><p>A university currently stores student records using a traditional file system. Discuss any three major limitations of the file system approach and
+explain how a DBMS overcomes each limitation.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Limitation of files</th><th>How a DBMS overcomes it</th></tr>
+<tr><td><b>Redundancy and inconsistency</b> — student details copied in the exam, fee and hostel files drift apart.</td><td>Single integrated STUDENT table referenced by keys; one update is seen everywhere.</td></tr>
+<tr><td><b>Difficulty in accessing data</b> — every new report needs a new program.</td><td>Ad-hoc SQL queries; optimiser and indexes.</td></tr>
+<tr><td><b>Concurrent-access anomalies / no recovery</b> — simultaneous edits lose updates; crash corrupts file.</td><td>Transactions with locking and log-based recovery (ACID).</td></tr>
+</table></div>
+<p class="small">(Integrity problems, security problems or atomicity are equally acceptable as one of the three.)</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2023 (ITITC05) Q1(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>List four applications you have used that most likely employed a database system to store persistent data. Also give examples of systems in which
+it may make sense to use traditional file processing instead of a database approach.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Four applications that use a database</b></p>
+<ol>
+<li><b>Online railway reservation (IRCTC)</b> — trains, seats, passengers, bookings; many concurrent users booking the same seat need ACID transactions.</li>
+<li><b>Internet / UPI banking</b> — accounts, balances, transactions; durability and atomicity of money transfers.</li>
+<li><b>E-commerce (Amazon, Flipkart)</b> — customers, products, carts, orders, payments, reviews.</li>
+<li><b>University ERP / IMS portal</b> — registration, attendance, marks, fees.</li>
+</ol>
+<p class="small">(Also acceptable: library management, social media, food delivery, Spotify playlists.)</p>
+<p><b>Where file processing may make sense</b> — when data is small, single-user, rarely shared and the DBMS overhead is not justified:</p>
+<ul>
+<li><b>Embedded / real-time systems</b> with limited memory: microwave or washing-machine controller, a car’s engine control unit, a pacemaker.</li>
+<li><b>Single-user personal programs:</b> a personal address book, a text editor’s settings file, a game’s save file.</li>
+<li><b>Sequential, write-once data:</b> server log files, sensor/scientific instrument dumps, CCTV video streams, compiler input files.</li>
+<li><b>One-time, small applications</b> whose development cost of a database exceeds the benefit (a one-off survey analysed in a spreadsheet).</li>
+</ul>
+<p class="answer-line">Use a DBMS for shared, concurrent, long-lived critical data; plain files for small, single-user, embedded or sequential data.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2023 (ITITC05) Q1(b)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>List five responsibilities of a database-management system. For each responsibility, explain the problems that would arise if the responsibility were
+not discharged.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Responsibility</th><th>Problem if not discharged</th></tr>
+<tr><td><b>1. Interaction with the file manager</b> — storing, retrieving and updating data by translating DML into low-level file-system commands</td><td>Data could not be stored or retrieved in an organised way; each application would manage raw files itself, bringing back redundancy, isolation and difficulty of access.</td></tr>
+<tr><td><b>2. Integrity enforcement</b> — checking constraints (keys, domains, referential integrity)</td><td>Invalid or contradictory data: an account balance below the minimum, two students with the same roll, a grade for a non-existent course.</td></tr>
+<tr><td><b>3. Security enforcement</b> — allowing each user only authorised access</td><td>Unauthorised users could read or modify confidential data (salaries, medical records) or destroy data.</td></tr>
+<tr><td><b>4. Backup and recovery</b> — restoring a consistent state after hardware/software failure</td><td>A crash could lose data permanently or leave half-done updates (money debited but not credited), i.e. an inconsistent database.</td></tr>
+<tr><td><b>5. Concurrency control</b> — keeping data consistent when many users access it simultaneously</td><td>Lost updates, dirty reads, inconsistent reports; e.g. two users booking the same last seat, or two withdrawals both reading the old balance.</td></tr>
+</table></div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">End-sem 2022 Q1(c)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Give the merits and demerits of a database management system.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<div class="grid2">
+<div><p><b>Merits</b></p>
+<ol>
+<li>Controlled redundancy — integrated data stored once.</li>
+<li>Consistency — no conflicting copies.</li>
+<li>Data sharing among users and applications.</li>
+<li>Integrity constraints enforced centrally.</li>
+<li>Security — authentication, privileges, views.</li>
+<li>Concurrency control — many simultaneous users.</li>
+<li>Backup and recovery from failures.</li>
+<li>Data independence — physical and logical.</li>
+<li>Efficient access — SQL, indexes, optimisation.</li>
+<li>Standards, easier maintenance, faster application development.</li>
+</ol></div>
+<div><p><b>Demerits</b></p>
+<ol>
+<li>High cost of DBMS software, hardware and storage.</li>
+<li>Complexity — needs skilled designers and a DBA.</li>
+<li>Large size — occupies much disk and memory.</li>
+<li>Performance overhead for small, simple applications.</li>
+<li>Higher impact of failure — centralised data; a failure or corruption affects all users.</li>
+<li>Cost of conversion from existing file systems and staff training.</li>
+</ol></div>
+</div>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2021 Q1(a)</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>What is DBMS? Discuss its disadvantages.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>A <b>DBMS</b> is a collection of interrelated data and a set of programs to access that data; its goal is to store and retrieve information conveniently
+and efficiently. It lets users <b>define</b> (DDL), <b>construct</b>, <b>manipulate</b> (DML) and <b>share</b> a database while providing security, integrity,
+concurrency control and recovery. Examples: Oracle, MySQL, PostgreSQL, SQL Server. Database + DBMS + applications = database system.</p>
+<p><b>Disadvantages</b></p>
+<ol>
+<li><b>Cost of hardware and software</b> — licences, powerful processors, large memory.</li>
+<li><b>Size</b> — the DBMS needs a lot of disk space and memory to run efficiently.</li>
+<li><b>Complexity</b> — the DBMS, and designing a database for it, is complex; requires trained DBA and designers; a bad design hurts all applications.</li>
+<li><b>Performance overhead</b> — for small single-user applications the generality (security, concurrency, logging) makes it slower than a simple file program.</li>
+<li><b>Higher impact of failure</b> — all data is in one place; a hardware failure, power failure or corruption can stop the whole organisation and data may be lost
+if backups are not maintained.</li>
+<li><b>Conversion cost</b> — moving from files to a DBMS and retraining staff.</li>
+</ol>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2023 Q5(b)</span><span class="chip warn">1 mark</span></div>
+<div class="pyq-q"><p>Explain the advantage of DBMS over file systems in terms of data redundancy and security.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>Redundancy:</b> file systems store the same data in many files (student address in fee, exam, hostel files); a DBMS integrates data and stores each fact
+once, linking tables by keys — saving space and preventing inconsistency. <b>Security:</b> files have only OS file-level permissions; a DBMS authenticates users
+and grants privileges at table/column/view level (GRANT/REVOKE), so each user sees only permitted data.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Mid-sem 2024 Q1(a)</span><span class="chip warn">2 marks</span></div>
+<div class="pyq-q"><p>How could the lack of support for ACID properties in a file system affect the reliability of data operations compared to a DBMS, especially in
+financial or transactional applications?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Take a transfer of ₹1000 from account A to B (debit A, credit B):</p>
+<ul>
+<li><b>No atomicity:</b> a crash after debiting A leaves ₹1000 lost; a file cannot roll back the half-done operation.</li>
+<li><b>No consistency:</b> rules like “total money unchanged” or “balance ≥ 0” are not enforced; invalid states are saved.</li>
+<li><b>No isolation:</b> two concurrent withdrawals both read balance 5000 and write 4000 — one withdrawal is lost (lost update); reports read half-updated data.</li>
+<li><b>No durability:</b> a write still in an OS buffer is lost on power failure even after the customer is told “success”.</li>
+</ul>
+<p>A DBMS executes the transfer as a <b>transaction</b>: the log and recovery manager give atomicity and durability (undo/redo), constraints give consistency, and
+locking (2PL) gives isolation — so financial data stays correct even with failures and thousands of concurrent users.</p>
+</div></details></div>

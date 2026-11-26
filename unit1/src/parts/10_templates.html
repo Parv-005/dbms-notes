@@ -1,0 +1,59 @@
+<h2 id="s10"><span class="num">10</span>How to answer each question type</h2>
+<p>Unit-1 questions are theory, but they are marked on <b>structure and application</b>. Use these skeletons; fill them with the scenario’s own nouns.</p>
+
+<div class="grid2">
+<div class="box key"><div class="box-t">Type 1 — “X uses files / spreadsheets; how will a DBMS help?”</div>
+<ol class="recipe">
+<li>One line: what the current system is and why it is a file-processing system.</li>
+<li><b>Problems now</b> — pick the 4–5 from RIDIACSB that the question names (redundancy, inconsistency, security, concurrency…), each with an example from the scenario.</li>
+<li><b>How a DBMS fixes each</b> — the matching advantage + the mechanism (PK/UNIQUE, FK, CHECK, GRANT/views, transactions/locking, logs/backup, SQL).</li>
+<li>Small comparison table (file system vs DBMS, 5–6 rows).</li>
+<li>Conclusion; mention one cost (DBMS is costlier) to show balance.</li>
+</ol></div>
+<div class="box key"><div class="box-t">Type 2 — “Explain levels of abstraction for database X”</div>
+<ol class="recipe">
+<li>Define data abstraction (one line).</li>
+<li>Draw the three-schema diagram (views → conceptual → internal → disk, mappings).</li>
+<li>For each level: definition + <b>a concrete example from X</b> (file/index for physical, table schemas for logical, two different user views).</li>
+<li>Say how the DBMS keeps them apart (schemas + mappings) and the benefit asked (security, no duplication, data independence).</li>
+</ol></div>
+</div>
+<div class="grid2">
+<div class="box key"><div class="box-t">Type 3 — “Data independence”</div>
+<ol class="recipe">
+<li>Definition (change one level without changing the next higher).</li>
+<li>Physical: definition + example (index, HDD→SSD) + which mapping changes.</li>
+<li>Logical: definition + example (add column / split table, views) + mapping.</li>
+<li>Why logical is harder; small table.</li>
+</ol></div>
+<div class="box key"><div class="box-t">Type 4 — “Compare models and recommend one for X”</div>
+<ol class="recipe">
+<li>Identify the <b>relationships in X</b> and their cardinality (are there M:N? multiple parents?) and the expected queries.</li>
+<li>One paragraph or diagram per model, <b>applied to X’s data</b>.</li>
+<li>Comparison table on the bases the question names.</li>
+<li>Recommendation (almost always <b>relational</b>), justified by X’s M:N relationships, ad-hoc queries, integrity and data independence; mention where
+another model would fit (a pure hierarchy, a social graph).</li>
+</ol></div>
+</div>
+<div class="grid2">
+<div class="box key"><div class="box-t">Type 5 — “SQL or NoSQL for X?”</div>
+<ol class="recipe">
+<li>Split X’s data into kinds (transactions, catalog, logs, social graph…).</li>
+<li>Compare SQL and NoSQL on the bases asked (table in section 9).</li>
+<li>Map each kind of data to RDBMS or a specific NoSQL type with a reason.</li>
+<li>Conclude: hybrid / polyglot persistence (usually).</li>
+</ol></div>
+<div class="box key"><div class="box-t">Type 6 — short definitions / differences (2 marks)</div>
+<ol class="recipe">
+<li>Definition of each term (one line each).</li>
+<li>3–4 row difference table.</li>
+<li>One example. Diagram if the question says “with diagram”.</li>
+</ol></div>
+</div>
+<div class="box warn"><div class="box-t">Common mistakes</div>
+<ul>
+<li>Writing a generic advantages list without ever using the scenario’s words (SIR voter rolls, patients, warehouses…) — loses most marks.</li>
+<li>Calling the view level “the GUI”. A view is a <b>schema</b> (subset of data), not a screen.</li>
+<li>Saying “hierarchical cannot represent relationships” — it represents 1:N well; it cannot represent <b>M:N</b> without duplication.</li>
+<li>Saying “NoSQL has no schema” — the schema is flexible / implicit, not absent.</li>
+</ul></div>

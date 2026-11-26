@@ -1,0 +1,122 @@
+<h2 id="s15"><span class="num">15</span>Practice questions (a step harder than the PYQs)</h2>
+<p>Same pattern as the papers, but each one needs you to <i>apply</i> two or three ideas together. Try writing a full answer before opening the outline.</p>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P1</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A city hospital’s pharmacy keeps stock in one Excel file per counter. During a night shift two pharmacists at different counters sell the last strip of the same
+medicine, a third updates the price in only one file, and a crash corrupts a file in the middle of saving. (a) Name the exact file-system problem shown by
+<i>each</i> event. (b) For each, name the DBMS component and mechanism that would have prevented it. (c) Give one reason the pharmacy might still hesitate to adopt a DBMS.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li>Double sale → <b>concurrent-access anomaly</b> (lost update) → <b>transaction manager</b>: concurrency control (locking/2PL) serialises the two sales; the second sees stock = 0.</li>
+<li>Price changed in one file → <b>redundancy + inconsistency</b> → integrated database with one MEDICINE row (price stored once), managed by the storage manager; PK prevents duplicates.</li>
+<li>Crash mid-save → <b>atomicity / no recovery</b> → <b>transaction manager’s recovery</b> with a write-ahead log: undo the incomplete transaction, redo committed ones; plus backups.</li>
+<li>Hesitation: cost of software/hardware and training, need for a DBA, single point of failure if the central server goes down (needs replication/UPS).</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P2</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>Classify each change as needing <b>physical</b> or <b>logical</b> data independence (or neither — programs must change), and name the mapping that absorbs it:
+(i) STUDENT table is partitioned by admission year across two disks; (ii) a column <code>Aadhaar</code> is added to STUDENT; (iii) STUDENT is split into
+STUDENT_BASIC(Roll, Name, Dept) and STUDENT_CONTACT(Roll, Phone, Email); (iv) the column <code>Phone</code> is deleted because it is no longer collected and an app
+displays it; (v) a hash index replaces a B+ tree on Roll.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ol>
+<li>(i) physical — conceptual/internal mapping.</li>
+<li>(ii) logical — external/conceptual mapping; existing views simply do not include the new column.</li>
+<li>(iii) logical — redefine the old STUDENT view as the join of the two tables on Roll; read-only programs continue (updates through the join view may not be allowed — why logical independence is hard).</li>
+<li>(iv) <b>neither</b> — information the program needs no longer exists; no mapping can hide its removal; the app must change.</li>
+<li>(v) physical — conceptual/internal mapping. (Note: range queries on Roll become slower — independence protects correctness, not performance.)</li>
+</ol></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P3</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>An Indian Railways-style system stores Trains, Stations, Routes (ordered stops of a train) and Bookings. (a) Show how the fact “train 12951 stops at Kota and
+Vadodara, and Vadodara is also a stop of train 12009” would be stored in the hierarchical, network and relational models — draw the record structure for each.
+(b) For the query “all trains stopping at Vadodara”, explain the work each model does. (c) Recommend a model.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li><b>Hierarchical</b> Train → Stop(Station): Vadodara record duplicated under both trains. Query: scan every train’s subtree — whole database.</li>
+<li><b>Network</b>: TRAIN and STATION records, STOP link records (with sequence number) owned by both. Query: find Vadodara, follow its STOP member chain, go to each owner train — fast, but written as navigation code.</li>
+<li><b>Relational</b>: TRAIN(TrainNo, Name), STATION(Code, Name), STOP(TrainNo, Code, Seq, Arr, Dep). Query: <code>SELECT TrainNo FROM stop WHERE code='BRC'</code>, an index on STOP.Code makes it fast.</li>
+<li>Recommend relational: M:N stops, ad-hoc enquiries (between two stations, by date), ACID bookings for seats, data independence.</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P4</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>For an online examination portal used by 50,000 students at once: (a) design the external, conceptual and internal schemas (give at least two external views
+and name concrete storage choices); (b) justify a 3-tier rather than 2-tier deployment with four distinct reasons specific to exams; (c) which DBMS components from
+the system-structure diagram are most stressed during the exam, and why?</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li>(a) Conceptual: STUDENT, EXAM, QUESTION, OPTION, RESPONSE(Roll, ExamID, QID, Answer, Time), RESULT. Views: <i>student</i> — own paper questions without correct answers,
+own responses; <i>examiner</i> — question bank with answers, all responses for their exam; <i>admin</i> — attendance/logs. Internal: RESPONSE clustered on (ExamID, Roll), hash index on Roll, questions cached in memory,
+SSD storage, partitioning by ExamID.</li>
+<li>(b) Security (no DB credentials/answers on clients; server validates timing and prevents answer tampering), scalability (load-balanced app servers, connection pooling for
+50,000 users), central control of rules (time limits, shuffling) changed once, ability to cache question papers in the middle tier to protect the DB.</li>
+<li>(c) Transaction manager (huge concurrent inserts of responses, must be durable — a submitted answer must survive a crash), buffer manager (hot question pages), authorization manager
+(every request checked), file manager/log disk for write throughput.</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P5</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>A food-delivery app stores: restaurant menus (items vary — combos, add-ons, sizes), live delivery-partner GPS pings every 5 seconds, orders and payments,
+customer–restaurant–cuisine preferences for recommendations, and OTP codes valid for 2 minutes. For each, choose RDBMS or a specific NoSQL type and justify in terms of
+schema, scale and consistency. Then state one risk of using many databases together.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li>Menus → document DB (nested, varying structure, read-heavy).</li>
+<li>GPS pings → column-family / time-series store (very high write rate, append-only, time-ordered, eventual consistency fine).</li>
+<li>Orders and payments → RDBMS (ACID; order + payment + restaurant payout atomic; FKs; reporting).</li>
+<li>Preferences/recommendations → graph DB (traversals customer → cuisine → restaurant → similar customers).</li>
+<li>OTPs → key-value store with TTL expiry (Redis): simple key lookup, very fast, auto-delete.</li>
+<li>Risk: keeping data consistent across stores (an order in the RDBMS but not reflected in the cache/graph), more operational complexity, more skills needed.</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P6</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>“Views give both data abstraction and security, but they are not a replacement for integrity constraints.” Explain with an example from a banking database where
+a view is used correctly for security, and a case where relying on a view (instead of a constraint) would let invalid data in.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li>Security: <code>CREATE VIEW my_account AS SELECT … WHERE cust_id = CURRENT_USER</code> and GRANT SELECT on it only — the customer cannot see others’ accounts.</li>
+<li>Integrity failure: a branch view <code>WHERE branch='Dwarka'</code> used for inserts does not stop another program inserting directly into ACCOUNT with a negative balance or a non-existent
+branch; only <code>CHECK (balance &gt;= 0)</code> and <code>FOREIGN KEY (branch) REFERENCES branch</code> on the base table guarantee validity for every path (also <code>WITH CHECK OPTION</code> limits only that view).</li>
+<li>Point: security controls <i>who</i>; integrity controls <i>what values</i>; constraints belong to the conceptual schema and apply to all users.</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P7</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>A company’s organisation chart (CEO → VPs → managers → employees) is stored relationally as EMP(EmpID, Name, ManagerID). (a) Why might a hierarchical model look
+attractive for this data? (b) Which query is easy in the hierarchical model but needs special SQL in the relational model? (c) What happens to each model when the company
+introduces matrix management (an employee reports to two managers)?</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ul>
+<li>(a) Data is a strict tree (1:N), accessed top-down — exactly the hierarchical model’s strength; pointer traversal is fast.</li>
+<li>(b) “All employees under VP X at any depth” — a tree traversal in hierarchical; in SQL needs a recursive query (<code>WITH RECURSIVE</code>) or repeated self-joins.</li>
+<li>(c) Hierarchical breaks — a child can have only one parent, so the employee must be duplicated (redundancy, inconsistency) or virtual pointers used. Relational adapts by adding
+a REPORTS_TO(EmpID, ManagerID) table (M:N) — no program needing EMP alone breaks if a view keeps the old shape (logical data independence).</li>
+</ul></div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">P8</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>Trace what happens inside the DBMS, component by component, when a clerk runs <code>UPDATE account SET balance = balance - 500 WHERE acc_no = 101;</code> followed by
+<code>COMMIT</code>, and the power fails one second after COMMIT returns.</p></div>
+<details><summary>Answer outline</summary><div class="ans">
+<ol>
+<li>Query tool sends the statement → <b>DML compiler</b> parses, checks against the <b>data dictionary</b>, optimiser chooses the index on acc_no (uses statistics) → plan to the <b>query evaluation engine</b>.</li>
+<li><b>Authorization manager</b> checks the clerk has UPDATE privilege; <b>integrity manager</b> checks constraints (e.g. CHECK balance ≥ 0).</li>
+<li><b>Transaction manager</b> starts the transaction, takes an exclusive lock on the row (concurrency control), writes a log record (old and new value).</li>
+<li><b>Buffer manager</b> brings the page into memory (via the <b>file manager</b>), the value is changed in the buffer.</li>
+<li>COMMIT: log records are forced to disk (write-ahead logging), lock released, “success” returned. The data page itself may still be only in memory.</li>
+<li>Power fails → on restart the recovery manager <b>redoes</b> the committed update from the log → durability. If the failure had been before COMMIT, it would <b>undo</b> it → atomicity.</li>
+</ol></div></details></div>
+
+<div class="box tip"><div class="box-t">Self-check before the exam</div>
+<ul>
+<li>Can you draw the three-schema diagram and the DBMS structure diagram from memory in under 3 minutes each?</li>
+<li>Can you list RIDIACSB with a one-line example each?</li>
+<li>For any scenario, can you name its M:N relationships and say why that rules out the hierarchical model?</li>
+<li>Can you give one example each of physical and logical data independence that is <i>not</i> “adding an index” or “adding a column”?</li>
+<li>Can you split an application’s data into “must be ACID” and “can be eventually consistent”?</li>
+</ul></div>

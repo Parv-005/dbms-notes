@@ -1,0 +1,44 @@
+<h2 id="s8"><span class="num">8</span>Database languages, interfaces and design phases</h2>
+<h3 id="s8-1">8.1 Database languages</h3>
+<p>A DBMS provides languages to define the schema and to read and update data. In SQL these are sub-languages of one language (details and syntax:
+<a href="../unit2/#s5-2">Unit 2 §5</a>).</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Language</th><th>Purpose</th><th>Commands</th></tr>
+<tr><td><b>DDL</b> — Data Definition Language</td><td>Define/modify the database <b>structure</b> (schema), constraints, storage. Output goes into the data dictionary. Auto-committed.</td><td>CREATE, ALTER, DROP, TRUNCATE, RENAME, COMMENT</td></tr>
+<tr><td><b>DML</b> — Data Manipulation Language</td><td>Access and change the <b>data</b> (instance): retrieve, insert, delete, modify. Can be rolled back.</td><td>SELECT, INSERT, UPDATE, DELETE, MERGE</td></tr>
+<tr><td><b>DCL</b> — Data Control Language</td><td>Control <b>access rights</b> (privileges).</td><td>GRANT, REVOKE</td></tr>
+<tr><td><b>TCL</b> — Transaction Control Language</td><td>Manage the changes made by DML as <b>transactions</b>.</td><td>COMMIT, ROLLBACK, SAVEPOINT</td></tr>
+</table></div>
+<div class="box ex"><div class="box-t">Example</div>
+<pre class="sql">CREATE TABLE student (roll CHAR(11) PRIMARY KEY, name VARCHAR(40), cgpa DECIMAL(4,2));  -- DDL
+INSERT INTO student VALUES ('2023UIT001', 'Asha', 8.9);                               -- DML
+GRANT SELECT ON student TO accounts_clerk;                                            -- DCL
+COMMIT;                                                                               -- TCL</pre></div>
+
+<h3 id="s8-2">8.2 Procedural vs non-procedural DML</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Procedural (low-level, navigational)</th><th>Non-procedural / declarative (high-level)</th></tr>
+<tr><td>User specifies <b>what</b> data is needed <b>and how</b> to get it (step by step).</td><td>User specifies only <b>what</b> data is needed; the DBMS decides how.</td></tr>
+<tr><td>Record-at-a-time; loops over records</td><td>Set-at-a-time</td></tr>
+<tr><td>Harder to write, needs knowledge of the structure</td><td>Easier; optimiser chooses the plan</td></tr>
+<tr><td>e.g. relational algebra (sequence of operations), CODASYL DML, PL/SQL, C/Java loops</td><td>e.g. SQL SELECT, tuple/domain relational calculus, QBE</td></tr>
+</table></div>
+
+<h3 id="s8-3">8.3 DBMS interfaces</h3>
+<ul>
+<li><b>Menu-based</b> (web clients, browsing) — lists of options lead the user; no syntax to remember.</li>
+<li><b>Form-based</b> — fill in a form to insert or to query (bank account opening form).</li>
+<li><b>Graphical (GUI)</b> — schema shown as a diagram; query by pointing (MySQL Workbench).</li>
+<li><b>Natural-language</b> — request written in English is interpreted (chatbots, “text-to-SQL”).</li>
+<li><b>Interfaces for parametric users</b> — a small set of operations with function keys (bank tellers, ticket counters).</li>
+<li><b>Interfaces for the DBA</b> — privileged commands: create accounts, set parameters, grant authorisation, change schema.</li>
+</ul>
+
+<h3 id="s8-4">8.4 Phases of database design</h3>
+{{svg:design_phases}}
+<ol>
+<li><b>Requirements collection and analysis</b> — interview users; list data and operations.</li>
+<li><b>Conceptual design</b> — high-level conceptual schema (ER diagram), independent of any DBMS.</li>
+<li><b>Logical design (data-model mapping)</b> — convert ER to the DBMS’s model (relational tables), normalize.</li>
+<li><b>Physical design</b> — choose storage structures, indexes, partitions for performance on the chosen DBMS (e.g. Oracle, DB2).</li>
+</ol>
