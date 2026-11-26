@@ -1,0 +1,33 @@
+<h2 id="s5"><span class="num">5</span>Keys from FDs</h2>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Term</th><th>Meaning (in terms of closure)</th></tr>
+<tr><td><b>Superkey</b></td><td>X with X<sup>+</sup> = R (determines every attribute).</td></tr>
+<tr><td><b>Candidate key</b></td><td>a <b>minimal</b> superkey: no proper subset is a superkey.</td></tr>
+<tr><td><b>Primary key</b> / alternate key</td><td>the candidate key chosen by the designer / the other candidate keys.</td></tr>
+<tr><td><b>Prime attribute</b></td><td>belongs to <b>some</b> candidate key. <b>Non-prime</b>: belongs to none.</td></tr>
+</table></div>
+<p>“Normal forms based on primary keys” (syllabus) are really based on <b>all candidate keys</b>: prime / non-prime depends on every key, so always find them all.</p>
+
+<h3 id="s5-1">Method: finding all candidate keys</h3>
+<ol class="recipe">
+<li>Split attributes into three groups: <b>never on a right-hand side</b> (must be in every key), <b>only on right-hand sides</b> (in no key), <b>on both sides</b> (may be in a key).</li>
+<li>Compute the closure of the “never on RHS” group. If it is all of R, that group is the <b>only</b> candidate key — stop.</li>
+<li>Otherwise add “both sides” attributes one at a time, then two at a time, …, computing closures. Skip any set containing a key already found (it would not be minimal).</li>
+<li>Shortcut for more keys: if key K contains attribute a and some FD X → a exists, then (K − a) ∪ X is also a superkey — test whether it (or a subset) is a new key.</li>
+</ol>
+<div class="box ex"><div class="box-t">Example (class notes) — R(ABCDEFG), F = {AB → CD, AF → D, DE → F, C → G, F → E, G → A}</div>
+{{keys:c3nf}}
+<p class="small">The class notes found the same six keys (“candidate key must have B”). With six keys, A, B, C, E, F, G are prime and only D is non-prime.</p></div>
+<div class="box ex"><div class="box-t">Example (course PDF p. 87) — R(ABCD), F = {A → B, B → C, C → A}</div>
+<p>D is never on a RHS, D<sup>+</sup> = D. Try AD: {{cl:pdf87|AD}} → key. A appears on the RHS of C → A, so replace A by C: CD is a key; C appears in
+B → C, so BD is a key. <b>Candidate keys: AD, BD, CD.</b></p></div>
+
+<h3 id="s5-2">Counting superkeys</h3>
+<p>With n attributes, a candidate key K of size k is contained in <b>2<sup>n−k</sup></b> attribute sets (each other attribute is in or out). For several keys use inclusion–exclusion
+(supersets of K<sub>1</sub> and K<sub>2</sub> are the supersets of K<sub>1</sub> ∪ K<sub>2</sub>):</p>
+<p class="center fd">#SK = Σ 2<sup>n−|K<sub>i</sub>|</sup> − Σ 2<sup>n−|K<sub>i</sub>∪K<sub>j</sub>|</sup> + Σ 2<sup>n−|K<sub>i</sub>∪K<sub>j</sub>∪K<sub>l</sub>|</sup> − …</p>
+<div class="box ex"><div class="box-t">Example (mid-sem 2021 Q3(b)) — R(ABCDE), candidate keys A and BC</div>
+<p>2<sup>5−1</sup> + 2<sup>5−2</sup> − 2<sup>5−3</sup> (supersets of ABC) = 16 + 8 − 4 = <b>20 superkeys</b>.</p></div>
+<div class="box tip"><div class="box-t">Tip — with many keys, count the complement</div>
+<p>Count the sets that are <b>not</b> superkeys (contain no key) and subtract from 2<sup>n</sup>. E.g. keys A, B, E, CD in R(ABCDE): a non-superkey contains none of A, B, E and not both C and D,
+so it is one of ∅, C, D → 32 − 3 = <b>29</b> (2022 Q3(c)).</p></div>

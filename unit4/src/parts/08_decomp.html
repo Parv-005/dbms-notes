@@ -1,0 +1,74 @@
+<h2 id="s8"><span class="num">8</span>Decomposition: lossless join and dependency preservation</h2>
+<p>Normalizing means replacing R by relations R<sub>1</sub>, …, R<sub>n</sub> (each a subset of R’s attributes). A decomposition must satisfy:</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Property</th><th>Meaning</th><th>Status</th></tr>
+<tr><td><b>Attribute preservation</b></td><td>R<sub>1</sub> ∪ … ∪ R<sub>n</sub> = R (no attribute lost)</td><td>mandatory (checked during decomposition)</td></tr>
+<tr><td><b>Lossless join</b></td><td>for every legal state r: π<sub>R1</sub>(r) ⋈ … ⋈ π<sub>Rn</sub>(r) = r (no spurious tuples)</td><td><b>mandatory</b></td></tr>
+<tr><td><b>Dependency preservation</b></td><td>(F<sub>1</sub> ∪ … ∪ F<sub>n</sub>)<sup>+</sup> = F<sup>+</sup>, where F<sub>i</sub> = FDs of F<sup>+</sup> using only R<sub>i</sub>’s attributes</td><td>desirable (always achievable for 3NF, not always for BCNF)</td></tr>
+</table></div>
+
+<h3 id="s8-1">Lossless vs lossy — spurious tuples</h3>
+<p>R(A, B, C) with A → B. Decompose on B (not a key of either part) and join back:</p>
+<div class="grid2">
+<div><div class="tbl-wrap"><table class="tbl small center"><tr><th colspan="3">r</th></tr><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>a1</td><td>b1</td><td>c1</td></tr><tr><td>a2</td><td>b1</td><td>c2</td></tr></table></div>
+<p class="small">π<sub>AB</sub> = {(a1,b1), (a2,b1)}, π<sub>BC</sub> = {(b1,c1), (b1,c2)}</p></div>
+<div><div class="tbl-wrap"><table class="tbl small center"><tr><th colspan="3">π<sub>AB</sub>(r) ⋈ π<sub>BC</sub>(r)</th></tr><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>a1</td><td>b1</td><td>c1</td></tr>
+<tr><td class="n">a1</td><td class="n">b1</td><td class="n">c2</td></tr><tr><td class="n">a2</td><td class="n">b1</td><td class="n">c1</td></tr><tr><td>a2</td><td>b1</td><td>c2</td></tr></table></div>
+<p class="small">Two <b>spurious tuples</b> (red). We get <i>more</i> rows but <i>less</i> information: we can no longer tell which rows are real. That is why it is called lossy.</p></div></div>
+<p>Splitting on A instead — R<sub>1</sub>(A, B), R<sub>2</sub>(A, C) — is lossless, because the common attribute A is a key of R<sub>1</sub>.</p>
+
+<h3 id="s8-2">Test 1 — binary decomposition (two relations)</h3>
+<div class="box def"><div class="box-t">Lossless-join test (the “3 properties”)</div>
+<p>R → R<sub>1</sub>, R<sub>2</sub> is lossless if and only if</p>
+<ol class="small">
+<li>R<sub>1</sub> ∪ R<sub>2</sub> = R (attribute preservation);</li>
+<li>R<sub>1</sub> ∩ R<sub>2</sub> ≠ ∅ (there is a common attribute);</li>
+<li>R<sub>1</sub> ∩ R<sub>2</sub> → R<sub>1</sub> or R<sub>1</sub> ∩ R<sub>2</sub> → R<sub>2</sub> is in F<sup>+</sup> — i.e. <b>the common attributes are a superkey of at least one part</b>.
+Test it with closure: (R<sub>1</sub> ∩ R<sub>2</sub>)<sup>+</sup> ⊇ R<sub>1</sub> or ⊇ R<sub>2</sub>.</li>
+</ol></div>
+<div class="box ex"><div class="box-t">Example (class notes) — R(ABCD), F = {C → D, AB → C, C → A}, R<sub>1</sub>(CD), R<sub>2</sub>(ABC)</div>
+<p>R<sub>1</sub> ∩ R<sub>2</sub> = C; {{cl:cCD|C}} ⊇ R<sub>1</sub>(CD) → <b>lossless</b>.</p></div>
+
+<h3 id="s8-3">Test 2 — three or more relations</h3>
+<p><b>Class-notes method (merge step by step):</b> pick two relations whose intersection is a key of one of them; they join losslessly, so replace them by their union.
+Repeat. If you end with R, the decomposition is lossless.</p>
+<div class="box ex"><div class="box-t">Example (class notes) — R(ABCDE), F = {A → B, B → C, C → D, D → E}; R<sub>1</sub>(ABC), R<sub>2</sub>(BCD), R<sub>3</sub>(CDE)</div>
+<ul class="small"><li>R<sub>1</sub> ∩ R<sub>2</sub> = BC; {{cl:c3way|BC}} ⊇ R<sub>2</sub> → merge: R<sub>4</sub> = ABCD.</li>
+<li>R<sub>4</sub> ∩ R<sub>3</sub> = CD; {{cl:c3way|CD}} ⊇ R<sub>3</sub> → merge: ABCDE = R → <b>lossless</b>.</li></ul></div>
+<div class="box warn"><div class="box-t">Common mistake — “R<sub>1</sub> ∩ R<sub>2</sub> ∩ R<sub>3</sub>” is not a test</div>
+<p>Intersecting all three at once is wrong (class notes say this too). Test pairs. If no pair can be merged, the merge method fails — but strictly, failure of
+one merge order does not prove lossiness. The certain test is the <b>chase</b> below; use it when you must prove “lossy” for 3+ relations.</p></div>
+
+<h3 id="s8-4">Test 3 — the chase (tableau) algorithm <span class="beyond-tag">beyond syllabus, but decisive</span></h3>
+<ol class="recipe">
+<li>Make a table: one row per R<sub>i</sub>, one column per attribute. Put <b>a</b> where the attribute is in R<sub>i</sub>, otherwise <b>b<sub>i</sub></b> (a different symbol per row).</li>
+<li>For each FD X → Y: if two rows agree on all X columns, make their Y values equal (if either is <b>a</b>, both become <b>a</b>).</li>
+<li>Repeat until nothing changes. <b>Lossless ⇔ some row is all a’s.</b></li>
+</ol>
+<div class="box ex"><div class="box-t">Example (end-sem 2023 Q3(a) and class notes) — R(ABCD), F = {A → B, B → C, C → D}; R<sub>1</sub>(AB), R<sub>2</sub>(AD), R<sub>3</sub>(CD)</div>
+{{chase:y23a|d}}
+<p class="small">Rows 1 and 2 agree on A, so they get the same B, then the same C and D — but their C is still a b. Row 3 has C as a, yet it agrees with the others only on D, and D determines nothing, so no row ever becomes all a’s. The merge method agrees: AB ∩ AD = A is a key of AB, giving ABD; then ABD ∩ CD = D with D<sup>+</sup> = D → cannot merge → <b>lossy</b>.</p></div>
+
+<h3 id="s8-5">Dependency preservation</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>Let F<sub>i</sub> = the FDs in F<sup>+</sup> that involve only attributes of R<sub>i</sub> (the <b>projection</b> of F on R<sub>i</sub>). The decomposition is
+<b>dependency preserving</b> if (F<sub>1</sub> ∪ … ∪ F<sub>n</sub>)<sup>+</sup> = F<sup>+</sup>. Then every FD can be enforced by checking one relation at a time, without joins.</p></div>
+<p><b>Quick check:</b> if every FD of F lies completely inside some R<sub>i</sub>, it is preserved. For the FDs that do not, use the algorithm from the class notes,
+which avoids computing F<sup>+</sup>:</p>
+<div class="box key"><div class="box-t">Algorithm (test one FD X → Y)</div>
+<p class="fd">res = X; repeat: for each R<sub>i</sub>: res = res ∪ ((res ∩ R<sub>i</sub>)<sup>+</sup> ∩ R<sub>i</sub>) until res stops changing.</p>
+<p class="small">X → Y is preserved iff Y ⊆ res. (Closures are taken under the original F.)</p></div>
+<div class="box ex"><div class="box-t">Example (class notes) — R(ABCD), F = {A → B, B → C, C → D, D → A}; R<sub>1</sub>(AB), R<sub>2</sub>(BC), R<sub>3</sub>(CD)</div>
+{{pres:ccyc|d}}
+<p class="small">A → B, B → C, C → D lie inside R<sub>1</sub>, R<sub>2</sub>, R<sub>3</sub>. D → A is the only one to test: res = D → CD (via R<sub>3</sub>, since D<sup>+</sup> = ABCD) → BCD (via R<sub>2</sub>) → ABCD (via R<sub>1</sub>) ∋ A.</p></div>
+<div class="box warn"><div class="box-t">Common mistake — in the class notes</div>
+<p>The class notes first write “not preserved, as D → A can’t be concluded” for this example, and only the algorithm on the next page shows it <b>is</b> preserved.
+Looking only at the given FDs is not enough: the projections contain extra FDs (here B → A, C → B, D → C, because all four attributes are equivalent). Always run the algorithm.</p></div>
+
+<div class="grid2">
+<div class="box ex"><div class="box-t">Lossless but not preserving</div>
+<p>Teach(Student, Course, Teacher) → R<sub>1</sub>(Teacher, Course), R<sub>2</sub>(Student, Teacher): common attribute Teacher is a key of R<sub>1</sub> → lossless; but
+Student, Course → Teacher is in neither relation and cannot be derived → <b>lost</b>.</p></div>
+<div class="box ex"><div class="box-t">Preserving but lossy (class notes)</div>
+<p>R(ABCD), F = {AB → CD, A → C, B → D}, R<sub>1</sub>(AC), R<sub>2</sub>(BD): A → C and B → D give AB → CD, so all FDs are preserved — but R<sub>1</sub> ∩ R<sub>2</sub> = ∅,
+so the join is a Cartesian product → <b>lossy</b>. (The class notes only check preservation; always check both.)</p></div></div>

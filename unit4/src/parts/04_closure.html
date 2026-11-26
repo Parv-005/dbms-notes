@@ -1,0 +1,35 @@
+<h2 id="s4"><span class="num">4</span>Attribute closure X<sup>+</sup></h2>
+<div class="box def"><div class="box-t">Definition</div>
+<p>The <b>closure of an attribute set X</b> under F, written X<sup>+</sup>, is the set of all attributes that X functionally determines using F (and the axioms).</p></div>
+<div class="box key"><div class="box-t">Algorithm</div>
+<ol class="small">
+<li>result := X</li>
+<li>repeat: for each FD L → R in F, if L ⊆ result then result := result ∪ R</li>
+<li>until result does not change. Then X<sup>+</sup> = result.</li>
+</ol></div>
+<div class="box ex"><div class="box-t">Example</div>
+<p>R(A, B, C, G, H, I), F = {A → B, A → C, CG → H, CG → I, B → H}.</p>
+<p>{{cl:korth|AG}}</p>
+<p>{{cl:korth|A}}</p>
+<p>So AG is a superkey (in fact the candidate key: A<sup>+</sup> and G<sup>+</sup> = G are not everything).</p></div>
+
+<h3 id="s4-1">What closure is used for</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Question</th><th>Test</th></tr>
+<tr><td>Is X a superkey of R?</td><td>X<sup>+</sup> = all attributes of R.</td></tr>
+<tr><td>Is X a candidate key?</td><td>X is a superkey and no proper subset of X is (check X minus each single attribute).</td></tr>
+<tr><td>Does F imply X → Y? (is X → Y in F<sup>+</sup>?)</td><td>Y ⊆ X<sup>+</sup>.</td></tr>
+<tr><td>Are F and G equivalent?</td><td>Every FD of G follows from F <b>and</b> every FD of F follows from G (closure tests both ways).</td></tr>
+<tr><td>Is attribute a extraneous in XY → Z? (minimal cover)</td><td>Z ⊆ (X)<sup>+</sup> computed with F (section 6).</td></tr>
+<tr><td>Is a decomposition lossless? Dependency preserving?</td><td>(R<sub>1</sub> ∩ R<sub>2</sub>)<sup>+</sup> ⊇ R<sub>1</sub> or R<sub>2</sub>; the res-algorithm (section 8).</td></tr>
+</table></div>
+
+<div class="box ex"><div class="box-t">Example — equivalence of two FD sets</div>
+<p>F = {A → C, AC → D, E → AD, E → H}, G = {A → CD, E → AH}. Are they equivalent?</p>
+<ul>
+<li>G from F: A<sup>+</sup><sub>F</sub> = ACD ⊇ CD ✔; E<sup>+</sup><sub>F</sub> = EADHC ⊇ AH ✔.</li>
+<li>F from G: A<sup>+</sup><sub>G</sub> = ACD ⊇ C ✔; (AC)<sup>+</sup><sub>G</sub> = ACD ⊇ D ✔; E<sup>+</sup><sub>G</sub> = EAHCD ⊇ AD and H ✔.</li>
+</ul>
+<p class="answer-line">F ≡ G (each covers the other).</p></div>
+<div class="box tip"><div class="box-t">Tip — write closures as a chain</div>
+<p>In the exam write <span class="fd">(AG)<sup>+</sup> = AG → ABCG (A→BC) → ABCGHI (CG→HI)</span>, naming the FD used at each step. That is what the closure lines in these notes look like.</p></div>

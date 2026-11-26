@@ -1,0 +1,79 @@
+<h2 id="s7"><span class="num">7</span>Normal forms: 1NF, 2NF, 3NF, BCNF</h2>
+
+<h3 id="s7-1">First normal form (1NF)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>R is in <b>1NF</b> if the domain of every attribute contains only <b>atomic</b> (indivisible, single) values — no multivalued attributes, no repeating groups,
+no nested relations. (The relational model assumes 1NF, so every “relation” is in 1NF.)</p></div>
+<div class="grid2">
+<div><p class="small"><b>Not in 1NF</b> (class notes): Colour is multivalued.</p>
+<div class="tbl-wrap"><table class="tbl small center"><tr><th>ProdID</th><th>Colour</th><th>Price</th></tr>
+<tr><td>ID1</td><td>red, black</td><td>20</td></tr><tr><td>ID2</td><td>black</td><td>30</td></tr><tr><td>ID3</td><td>yellow, blue, black</td><td>40</td></tr></table></div></div>
+<div><p class="small"><b>In 1NF</b>: one value per cell; key becomes (ProdID, Colour).</p>
+<div class="tbl-wrap"><table class="tbl small center"><tr><th>ProdID</th><th>Colour</th><th>Price</th></tr>
+<tr><td>ID1</td><td>red</td><td>20</td></tr><tr><td>ID1</td><td>black</td><td>20</td></tr><tr><td>ID2</td><td>black</td><td>30</td></tr>
+<tr><td>ID3</td><td>yellow</td><td>40</td></tr><tr><td>ID3</td><td>blue</td><td>40</td></tr><tr><td>ID3</td><td>black</td><td>40</td></tr></table></div></div></div>
+<p>The flattened table now repeats Price (ProdID → Price is a partial dependency on key (ProdID, Colour)) — <b>1NF does not remove redundancy</b>. The best fix is a
+separate table: Product(ProdID, Price) and ProductColour(ProdID, Colour). (A composite attribute is made atomic by storing its components as separate columns.)</p>
+
+<h3 id="s7-2">Second normal form (2NF)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>R is in <b>2NF</b> if it is in 1NF and <b>every non-prime attribute is fully functionally dependent on every candidate key</b> — i.e. there is no
+<b>partial dependency</b> of a non-prime attribute on a proper subset of a candidate key.</p></div>
+<ul class="small">
+<li>If every candidate key is a single attribute, R is automatically in 2NF (a single attribute has no proper non-empty subset).</li>
+<li>Partial dependencies of <i>prime</i> attributes are allowed in 2NF and 3NF.</li>
+</ul>
+<div class="box ex"><div class="box-t">Example (Dhruv’s notes) — R(ABCDE), F = {A → B, BC → D, E → C, D → A}</div>
+<p>E is never on a RHS. {{cl:d2nf|AE}}, and likewise BE and DE. Candidate keys AE, BE, DE; prime A, B, D, E; non-prime C.</p>
+<p><b>E → C</b>: E is part of key AE and C is non-prime → partial dependency → <b>not in 2NF</b> (highest NF = 1NF).</p></div>
+
+<h3 id="s7-3">Third normal form (3NF)</h3>
+<div class="box def"><div class="box-t">Definition (two equivalent forms — learn both)</div>
+<p><b>(a)</b> R is in 3NF if it is in 2NF and <b>no non-prime attribute is transitively dependent on a candidate key</b>.</p>
+<p><b>(b) Test form:</b> R is in 3NF if for <b>every non-trivial FD X → A</b> in F<sup>+</sup>, at least one holds:</p>
+<ol class="small"><li>X is a <b>superkey</b> of R, or</li><li>A is a <b>prime</b> attribute.</li></ol>
+<p class="small">Form (b) checks 2NF and 3NF together, so it is the one to use in answers. It is enough to test the FDs of F with single-attribute RHS.</p></div>
+<div class="box ex"><div class="box-t">Example (Dhruv’s notes) — R(ABCDE), F = {AB → CD, ABC → E, C → A}</div>
+<p>{{cl:d3nf|AB}}; {{cl:d3nf|BC}}. Keys AB, BC; prime A, B, C; non-prime D, E.</p>
+<p>AB → CD and ABC → E have superkey LHS; C → A has a prime RHS → every FD passes → <b>3NF</b>. (Not BCNF: C is not a superkey.)</p></div>
+
+<h3 id="s7-4">Boyce–Codd normal form (BCNF)</h3>
+<div class="box def"><div class="box-t">Definition</div>
+<p>R is in <b>BCNF</b> if for <b>every non-trivial FD X → A</b> in F<sup>+</sup>, <b>X is a superkey</b> of R. (“Every determinant is a candidate key.”)
+BCNF = 3NF without the “A is prime” escape clause, so it is stricter.</p></div>
+<div class="box ex"><div class="box-t">Example — 3NF but not BCNF: Teach(Student, Course, Teacher)</div>
+<p>Each teacher teaches one course (Teacher → Course); for each course a student has one teacher (Student, Course → Teacher).</p>
+{{fdd:stc}}
+<p>Keys {Student, Course} and {Student, Teacher}; all three attributes are prime, so no 2NF/3NF violation is possible → 3NF. But in
+<span class="fd">Teacher → Course</span>, Teacher is not a superkey → <b>not BCNF</b>. Redundancy that remains: “Rao teaches DBMS” is repeated for every student of Rao.</p></div>
+<div class="box key"><div class="box-t">Quick facts (class notes)</div>
+<ul class="small">
+<li>Every relation with <b>two attributes</b> is in BCNF (the only non-trivial FDs are A → B or B → A, and then the LHS is a key).</li>
+<li>If <b>all attributes are prime</b>, R is at least in 3NF.</li>
+<li>If <b>every candidate key is a single attribute</b>, R is at least in 2NF.</li>
+<li>If the only FDs have a candidate key on the left, R is in BCNF (e.g. A → B, B → C, C → A on R(A, B, C): keys A, B, C).</li>
+</ul></div>
+
+<h3 id="s7-5">Method: finding the highest normal form</h3>
+{{svg:nf_flow}}
+<ol class="recipe">
+<li>Find all candidate keys (section 5); list prime and non-prime attributes.</li>
+<li>Make a table with one row per FD: is the LHS a superkey? is the RHS prime? Classify each FD as <b>OK</b>, <b>partial</b> (LHS ⊂ key, RHS non-prime),
+<b>transitive</b> (LHS is not a superkey and not part of a key, RHS non-prime) or <b>BCNF-only violation</b> (LHS not a superkey, RHS prime).</li>
+<li>Any partial → 1NF. Else any transitive → 2NF. Else any BCNF-only violation → 3NF. Else BCNF.</li>
+</ol>
+<div class="box ex"><div class="box-t">Worked example — the running example</div>
+<p>R(Roll, Name, Course, CName, Credits, Instructor, Office, Grade) with Roll → Name; Course → CName, Credits, Instructor; Instructor → Office; Roll, Course → Grade.</p>
+{{fdd:run|Dependency diagram of the running example.}}
+{{keys:run}}
+{{nft:run}}
+<p class="small">Instructor → Office is a transitive dependency (Course → Instructor → Office). It does not change the answer — the partial dependencies already put R in 1NF — but it will matter when we go to 3NF.</p></div>
+
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th></th><th>3NF</th><th>BCNF</th></tr>
+<tr><td>Condition on non-trivial X → A</td><td>X superkey <b>or</b> A prime</td><td>X superkey</td></tr>
+<tr><td>Redundancy</td><td>a little may remain (as in Teach)</td><td>none due to FDs</td></tr>
+<tr><td>Lossless decomposition always possible?</td><td>yes</td><td>yes</td></tr>
+<tr><td>Dependency-preserving decomposition always possible?</td><td><b>yes</b> (synthesis algorithm)</td><td><b>no</b> (Teach loses Student, Course → Teacher)</td></tr>
+<tr><td>When they coincide</td><td colspan="2">a 3NF relation with only one candidate key (or with no two overlapping candidate keys) is automatically in BCNF</td></tr>
+</table></div>

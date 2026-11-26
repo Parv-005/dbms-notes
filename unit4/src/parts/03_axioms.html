@@ -1,0 +1,36 @@
+<h2 id="s3"><span class="num">3</span>Armstrong’s axioms (inference rules)</h2>
+<p>Given a set F of FDs, other FDs follow logically from it. The set of <b>all</b> FDs implied by F is the <b>closure of F</b>, written
+<span class="fd">F<sup>+</sup></span>. Armstrong’s axioms are the rules used to derive them.</p>
+<div class="box def"><div class="box-t">Definition — the three axioms</div>
+<ol>
+<li><b>Reflexivity (IR1):</b> if Y ⊆ X then X → Y. <span class="muted small">(gives the trivial FDs)</span></li>
+<li><b>Augmentation (IR2):</b> if X → Y then XZ → YZ. <span class="muted small">(add the same attributes to both sides)</span></li>
+<li><b>Transitivity (IR3):</b> if X → Y and Y → Z then X → Z.</li>
+</ol>
+<p>They are <b>sound</b> (they never produce an FD that is not implied) and <b>complete</b> (every implied FD can be produced by them).</p></div>
+
+<h3 id="s3-1">Derived rules (provable from the three)</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Rule</th><th>Statement</th><th>Proof from IR1–IR3</th></tr>
+<tr><td><b>Union / additivity (IR4)</b></td><td>X → Y, X → Z ⊢ X → YZ</td><td>X → Y gives X → XY (augment by X); X → Z gives XY → YZ (augment by Y); transitivity: X → YZ.</td></tr>
+<tr><td><b>Decomposition / projectivity (IR5)</b></td><td>X → YZ ⊢ X → Y and X → Z</td><td>YZ → Y (reflexivity); X → YZ → Y (transitivity). Same for Z.</td></tr>
+<tr><td><b>Pseudo-transitivity (IR6)</b></td><td>X → Y, WY → Z ⊢ WX → Z</td><td>X → Y gives WX → WY (augment by W); WY → Z; transitivity: WX → Z.</td></tr>
+<tr><td><b>Composition</b> <span class="muted small">(extra)</span></td><td>A → B, C → D ⊢ AC → BD</td><td>AC → BC (augment A → B by C); BC → BD (augment C → D by B); transitivity.</td></tr>
+</table></div>
+
+<div class="box ex"><div class="box-t">Example — derive FDs (Korth’s classic set)</div>
+<p>R(A, B, C, G, H, I), F = {A → B, A → C, CG → H, CG → I, B → H}. Show that A → H, CG → HI and AG → I are in F<sup>+</sup>.</p>
+<ul>
+<li>A → B and B → H ⇒ <b>A → H</b> (transitivity).</li>
+<li>CG → H and CG → I ⇒ <b>CG → HI</b> (union).</li>
+<li>A → C and CG → I ⇒ <b>AG → I</b> (pseudo-transitivity with W = G).</li>
+</ul></div>
+
+<div class="box warn"><div class="box-t">Common mistake — rules that are NOT valid</div>
+<p>You may <b>add</b> attributes to the left (X → Z ⊢ XY → Z is valid: augment, then decompose), but you may <b>not remove</b> them:
+<b>XY → Z does not give X → Z</b>. Likewise X → Y and Z → Y do not give X → Z. To show a rule is invalid, give a two-row counterexample table.
+For “AB → C ⊢ A → C”:</p>
+<div class="tbl-wrap"><table class="tbl small center" style="max-width:260px"><tr><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td>1</td><td>5</td></tr><tr><td>1</td><td>2</td><td>6</td></tr></table></div>
+<p>AB → C holds (the AB values differ), but A → C fails (same A, different C).</p></div>
+<div class="box tip"><div class="box-t">Tip — in practice you rarely apply axioms by hand</div>
+<p>To test whether X → Y is implied by F, just compute X<sup>+</sup> (next section) and check Y ⊆ X<sup>+</sup>. The closure algorithm is the axioms applied systematically.</p></div>

@@ -1,0 +1,136 @@
+<h2 id="s14"><span class="num">14</span>Practice problems (PYQ pattern, one level harder)</h2>
+<p>Same shapes as the end-sem questions, with the traps examiners like: many overlapping keys, hidden partial dependencies, 3+ relation lossless tests,
+BCNF losing a dependency, non-unique minimal covers. All answers are checked by the program.</p>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P1</span><span class="chip">keys · superkeys · NF · 3NF</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>R(A, B, C, D, E, F, G), F = {AB → C, C → D, D → A, E → F, BF → E, CE → G}. (i) Find all candidate keys. (ii) How many superkeys does R have?
+(iii) Highest normal form? (iv) Decompose into 3NF; is it lossless and dependency preserving?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>(i)</b></p>
+{{keys:pr1}}
+<p class="small">Idea: B is in every key; {A, C, D} are interchangeable (AB → C, C → D, D → A, and AB/CB/DB all reach the rest) and so are {E, F} (E → F, BF → E). Key = B + one of {A, C, D} + one of {E, F} → 3 × 2 = 6 keys.</p>
+<p><b>(ii)</b> A superkey must contain B, at least one of A, C, D and at least one of E, F; G is free. Count: (2<sup>3</sup> − 1) × (2<sup>2</sup> − 1) × 2 = 7 × 3 × 2 = <b>42</b>.</p>
+<p><b>(iii)</b> Only G is non-prime.</p>
+{{nft:pr1}}
+<p>CE → G: CE is a proper part of key BCE and G is non-prime → partial → <b>1NF</b>. Every other FD has a prime RHS (they would only break BCNF).</p>
+<p><b>(iv)</b></p>
+{{dec:pr1|3nf}}
+<p>Lossless (the key relation ABE is included) and dependency preserving (every FD of the minimal cover is inside one relation) — guaranteed by the synthesis algorithm.</p>
+<p class="answer-line">6 keys (ABE, ABF, BCE, BCF, BDE, BDF); 42 superkeys; 1NF; 3NF: ABC, CD, AD, BEF, CEG, ABE.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P2</span><span class="chip">5-way lossless test</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>R(A, B, C, D, E), F = {A → C, B → C, C → D, DE → C, CE → A}. Is the decomposition {AD, AB, BE, CDE, AE} lossless? What if AE is removed?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Merging pairs gets stuck: AD ∩ AB = A with A<sup>+</sup> = ACD ⊇ AD, so they merge to ABD; but ABD ∩ BE = B with B<sup>+</sup> = BCD, which covers neither ABD nor BE, and the other pairs fail similarly. The merge method cannot decide, so use the chase.</p>
+<p><b>With AE:</b></p>
+{{chase:pr2|five}}
+<p><b>Without AE:</b></p>
+{{chase:pr2|four}}
+<p class="small">The key of R is BE; a lossless decomposition needs some row that can be completed to all a’s. With AE present, the BE row first gets D = a (B → C and C → D link it to the AD row), then C = a (DE → C with the CDE row), and finally A = a (CE → A with the AE row). Without AE the tableau stops with no complete row — the chase is the only quick way to see this.</p>
+<p class="answer-line">Lossless with AE; lossy without it.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P3</span><span class="chip">3NF vs BCNF</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>R(A, B, C, D, E), F = {AB → C, C → D, D → BE}. Find the keys and the highest NF. Decompose into (a) BCNF and (b) 3NF. Compare the two with respect to lossless join and dependency preservation. Which would you choose?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{keys:pr3}}
+{{nft:pr3}}
+<p class="small">Hidden partial dependency: D → E with D part of key AD, E non-prime. (C → D → E also makes E depend on part of key AC.)</p>
+<p><b>(a) BCNF</b></p>
+{{dec:pr3|bcnf}}
+{{pres:pr3|b}}
+<p><b>(b) 3NF</b></p>
+{{dec:pr3|3nf}}
+{{schema:pr3|t}}
+<p><b>Choice:</b> both are lossless. BCNF loses AB → C (it can only be checked by joining the tables), 3NF keeps every FD but R1(ABC) still has C → B with C not a superkey
+(some redundancy). For a database where AB → C must be enforced cheaply, choose 3NF; if redundancy matters more and the FD can be enforced by a trigger, choose BCNF.</p>
+<p class="answer-line">Keys AB, AC, AD; 1NF; BCNF {BDE, CD, AC} (loses AB → C); 3NF {ABC, CD, BDE} (lossless + preserving).</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P4</span><span class="chip">real schema</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>An airport stores Schedule(Flight, Date, Pilot, Gate, Plane, Time). Each flight has a fixed departure time; on a given date a flight has one pilot, one plane and one gate;
+a plane at a given date and time stands at one gate. FDs: Flight, Date → Pilot, Plane, Gate; Flight → Time; Plane, Date, Time → Gate. Normalize to BCNF and to 3NF and discuss the difference.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+{{fdd:pr4}}
+{{keys:pr4}}
+{{nft:pr4}}
+<p><b>BCNF:</b></p>
+{{dec:pr4|bcnf}}
+{{pres:pr4|b}}
+<p>Plane, Date, Time → Gate is lost: Time is now only in the Flight relation, so the rule “one gate per plane per time slot” can be checked only with a join.</p>
+<p><b>3NF (synthesis):</b></p>
+{{dec:pr4|3nf}}
+{{schema:pr4|t}}
+<p>All FDs preserved and lossless. R3 repeats Gate information already derivable from R1 + R2 (a little redundancy) — the classic trade-off.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P5</span><span class="chip">inference rules</span><span class="chip warn">5 × 1 mark</span></div>
+<div class="pyq-q"><p>Prove using Armstrong’s axioms, or disprove with a counterexample:
+(a) {A → B, C → D} ⊢ AC → BD &nbsp;(b) {AB → C} ⊢ A → C &nbsp;(c) {A → B, BC → D} ⊢ AC → D &nbsp;(d) {A → B, C → B} ⊢ A → C &nbsp;(e) {AB → C, C → A} ⊢ C → B</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<ol type="a">
+<li><b>True.</b> A → B ⇒ AC → BC (augment by C); C → D ⇒ BC → BD (augment by B); transitivity ⇒ AC → BD.</li>
+<li><b>False.</b> Rows (a1, b1, c1), (a1, b2, c2): AB → C holds, A → C fails.</li>
+<li><b>True.</b> Pseudo-transitivity with W = C: A → B and CB → D ⇒ CA → D. (Or: A → B ⇒ AC → BC; BC → D; transitivity.)</li>
+<li><b>False.</b> Rows (a1, b1, c1), (a1, b1, c2) over (A, B, C): A → B and C → B hold, A → C fails.</li>
+<li><b>False.</b> C<sup>+</sup> = {C, A} ∌ B. Counterexample over (A, B, C): rows (a1, b1, c1) and (a1, b2, c1). AB → C holds (the AB values differ), C → A holds (same A), but C → B fails (b1 ≠ b2).</li>
+</ol>
+<p class="small">Fast check for any of these: compute the closure of the LHS under the given FDs. (a) (AC)<sup>+</sup> = ABCD ✔ (b) A<sup>+</sup> = A ✗ (c) (AC)<sup>+</sup> = ABCD ✔ (d) A<sup>+</sup> = AB ✗ (e) C<sup>+</sup> = AC ✗.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P6</span><span class="chip">minimal cover is not unique</span><span class="chip warn">4 marks</span></div>
+<div class="pyq-q"><p>F = {A → BC, B → AC, C → AB}. Find two different minimal covers of F and prove both are equivalent to F. Must all minimal covers have the same number of FDs?</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Split: A → B, A → C, B → A, B → C, C → A, C → B. All LHSs are single attributes (nothing extraneous). Now remove redundant FDs — the result depends on the order:</p>
+<ul>
+<li>Remove A → C (A → B → C), then B → A (B → C → A), then C → B (C → A → B): <b>G<sub>1</sub> = {A → B, B → C, C → A}</b> (a cycle).</li>
+<li>Remove A → B (A → C → B), then B → A (B → C → A): left with A → C, B → C, C → A, C → B; none of these is redundant any more → <b>G<sub>2</sub> = {A → C, B → C, C → A, C → B}</b>.</li>
+</ul>
+<p><b>Equivalence:</b> in G<sub>1</sub>, A<sup>+</sup> = B<sup>+</sup> = C<sup>+</sup> = ABC; in G<sub>2</sub>, C<sup>+</sup> = ABC, A<sup>+</sup> = ACB, B<sup>+</sup> = BCA. In F every single attribute also has closure ABC.
+So each set implies every FD of the others → G<sub>1</sub> ≡ G<sub>2</sub> ≡ F.</p>
+<p class="answer-line">Two valid minimal covers with 3 and 4 FDs — minimal covers are not unique and need not even have the same size.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P7</span><span class="chip">full analysis</span><span class="chip warn">5 marks</span></div>
+<div class="pyq-q"><p>R(A, B, C, D, E), F = {A → BC, CD → E, B → D, E → A}. (i) Candidate keys and number of superkeys. (ii) Highest NF. (iii) Is {ABC, CDE} lossless? Is {ABC, ADE}?
+(iv) Decompose into BCNF and check dependency preservation.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p><b>(i)</b></p>
+{{keys:pr7}}
+<p>Non-superkeys: sets with none of A, E, and neither BC nor CD: subsets of {B, C, D} other than those containing BC or CD → ∅, B, C, D, BD = 5. Superkeys = 32 − 5 = <b>27</b>.</p>
+<p><b>(ii)</b></p>
+{{nft:pr7}}
+<p><b>(iii)</b> ABC ∩ CDE = C, C<sup>+</sup> = C → <b>lossy</b>. ABC ∩ ADE = A, A<sup>+</sup> = ABCDE → <b>lossless</b> (but CD → E is lost — not dependency preserving).</p>
+<p><b>(iv)</b></p>
+{{dec:pr7|bcnf}}
+{{pres:pr7|b}}
+<p class="answer-line">Keys A, E, BC, CD; 27 superkeys; 3NF (not BCNF: B → D); {ABC, CDE} lossy, {ABC, ADE} lossless; BCNF {BD, ABCE} loses CD → E.</p>
+</div></details></div>
+
+<div class="pyq">
+<div class="pyq-h"><span class="chip pur">Practice P8</span><span class="chip">proof question</span><span class="chip warn">3 marks</span></div>
+<div class="pyq-q"><p>Show that R(S, C, T) with F = {S C → T, T → C} has no BCNF decomposition that is both lossless and dependency preserving.</p></div>
+<details><summary>Show answer</summary><div class="ans">
+<p>Keys: SC and ST (T → C, so ST → C). T → C violates BCNF, so R must be split. Any proper decomposition puts the three attributes into relations of at most two attributes each.
+The FD SC → T needs S, C and T together; in no two-attribute relation can it be checked, and the projections of F on two-attribute relations are only T → C (on TC) or trivial FDs,
+which do not imply SC → T. So SC → T is lost in every BCNF decomposition. Lossless ones exist (TC + ST), but none preserves SC → T.</p>
+<p class="small">This is the Teach(Student, Course, Teacher) example of section 7 — the reason the 3NF definition has the “A is prime” escape clause.</p>
+</div></details></div>
+
+<div class="box tip"><div class="box-t">Last-day checklist for a normalization question</div>
+<ol>
+<li>List <b>all</b> candidate keys (never-on-RHS attributes first) and write prime / non-prime.</li>
+<li>For “highest NF”, name the exact FD that breaks the next NF, and say why (part of key / not a key / RHS non-prime).</li>
+<li>For 3NF use synthesis from a minimal cover; add a key relation if needed; say “lossless and dependency preserving”.</li>
+<li>For BCNF split on a violating FD, recheck the new relations, then <b>test dependency preservation</b>.</li>
+<li>For “lossless?”: two relations → intersection closure; three or more → merge pairs or chase. Never intersect all at once.</li>
+<li>Underline the key of every final relation.</li>
+</ol></div>

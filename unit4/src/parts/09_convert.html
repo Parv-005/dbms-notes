@@ -1,0 +1,64 @@
+<h2 id="s9"><span class="num">9</span>Converting a relation into a required normal form</h2>
+
+<h3 id="s9-1">To 2NF — remove partial dependencies</h3>
+<ol class="recipe">
+<li>Find the candidate keys and every partial dependency X → Y (X a proper part of a key, Y non-prime).</li>
+<li>For each such X make a relation <b>(X ∪ all non-prime attributes in X<sup>+</sup>)</b> with key X — take everything X determines, including attributes it determines transitively.</li>
+<li>Keep one relation with the <b>full key</b> and the attributes that depend on the whole key.</li>
+</ol>
+<div class="box ex"><div class="box-t">Running example → 2NF</div>
+<p>Partial: Roll → Name, and Course → CName, Credits, Instructor (and, through Instructor, Office). Full: Roll, Course → Grade.</p>
+{{schema:run|twonf}}
+<p class="small">The Course relation is in 2NF but not 3NF: Instructor → Office is transitive. The class-notes example R(ABCD), A → B, C → D goes the same way: R<sub>1</sub>(AB), R<sub>2</sub>(CD), and R<sub>3</sub>(AC) as the joining (key) relation.</p></div>
+
+<h3 id="s9-2">To 3NF — synthesis algorithm (lossless and dependency preserving)</h3>
+<div class="box key"><div class="box-t">Algorithm (Bernstein synthesis)</div>
+<ol class="recipe">
+<li>Find a <b>minimal cover</b> G of F (section 6).</li>
+<li>For each LHS X in G make a relation <b>(X ∪ everything X determines in G)</b>.</li>
+<li>If no relation contains a <b>candidate key</b> of R, add one relation that is just a candidate key (this makes the join lossless).</li>
+<li>Remove any relation whose attributes are contained in another.</li>
+</ol>
+<p class="small">Result: every relation is in 3NF, the decomposition is <b>always lossless and always dependency preserving</b>.</p></div>
+<div class="box ex"><div class="box-t">Example (class notes; also end-sem 2023 Q3(b)) — R(ABCDE), F = {AB → C, C → D, D → E, A → C}</div>
+{{dec:y23b|3nf}}
+<p class="small">The class notes reach the same four relations CD, DE, AC and AB (“AB joining”). AB → C is not inside any relation, but it is preserved: A → C is, and A → C implies AB → C.</p></div>
+<p><b>Decomposition approach (equivalent in simple cases):</b> start from the 2NF result and split off each transitive dependency X → Y as (X, Y), leaving X behind as a foreign key.
+For the running example: Course(Course, CName, Credits, Instructor) + Instructor(Instructor, Office).</p>
+
+<h3 id="s9-3">To BCNF — decomposition algorithm (lossless, maybe not preserving)</h3>
+<div class="box key"><div class="box-t">Algorithm</div>
+<ol class="recipe">
+<li>Find an FD X → Y that holds on a relation R<sub>i</sub> with X <b>not a superkey of R<sub>i</sub></b>. Take Y = X<sup>+</sup> ∩ R<sub>i</sub> (minus X) so the split is as large as possible.</li>
+<li>Replace R<sub>i</sub> by <b>R<sub>a</sub> = X ∪ Y</b> (X is its key) and <b>R<sub>b</sub> = R<sub>i</sub> − Y</b> (keeps X, so the join is lossless).</li>
+<li>Repeat on the new relations (using FDs implied on them, not just the given ones) until every relation is in BCNF.</li>
+<li>Finally check which FDs of F are preserved (res-algorithm) and say so.</li>
+</ol></div>
+<div class="box ex"><div class="box-t">Running example → BCNF</div>
+{{dec:run|bcnf}}
+{{schema:run|bcnf}}
+<p class="small">Same as the 3NF result: lossless and dependency preserving. This is the usual case when every relation ends with a single candidate key.</p></div>
+<div class="box ex"><div class="box-t">When BCNF costs a dependency — Teach(Student, Course, Teacher)</div>
+{{dec:stc|bcnf}}
+{{pres:stc|bc}}
+<p class="small"><b>Choice:</b> stay in 3NF (one relation, all FDs enforceable, a little redundancy) or go to BCNF (no redundancy, but Student, Course → Teacher must be checked with a join or a trigger). Exams accept either if you state the trade-off.</p></div>
+<div class="box warn"><div class="box-t">Common mistakes</div>
+<ul>
+<li>Splitting on a violating FD but forgetting to keep X in the remaining relation → the join becomes lossy.</li>
+<li>Stopping after one split: check every new relation again (with the FDs implied on it).</li>
+<li>BCNF decomposition is <b>not unique</b>: a different violating FD first can give different relations. Any result is correct if it is lossless and every part is in BCNF.</li>
+</ul></div>
+
+<h3 id="s9-4">The process to follow — every question type on one page</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Question</th><th>Steps to write</th></tr>
+<tr><td><b>Candidate keys</b></td><td>1. never-on-RHS attributes are in every key; 2. closure of them; 3. add both-side attributes one by one, then pairs; 4. shortcut: replace a key attribute by the LHS of an FD that gives it; 5. list keys, prime and non-prime.</td></tr>
+<tr><td><b>Number of superkeys</b></td><td>2<sup>n−|K|</sup> per key, inclusion–exclusion for overlaps (or 2<sup>n</sup> − sets containing no key).</td></tr>
+<tr><td><b>Highest NF</b></td><td>keys → table of FDs (LHS superkey? RHS prime?) → partial ⇒ 1NF, transitive ⇒ 2NF, non-superkey determinant of prime ⇒ 3NF, else BCNF. Justify with the offending FD.</td></tr>
+<tr><td><b>Decompose to 2NF</b></td><td>one relation per partial-dependency LHS with its closure’s non-prime attributes + one relation with the full key.</td></tr>
+<tr><td><b>Decompose to 3NF</b></td><td>minimal cover → one relation per LHS → add a key relation if none contains a key → remove contained relations. State “lossless and dependency preserving by construction”.</td></tr>
+<tr><td><b>Decompose to BCNF</b></td><td>repeat: violating X → Y in R<sub>i</sub> ⇒ (X ∪ X<sup>+</sup>∩R<sub>i</sub>) and (R<sub>i</sub> − (X<sup>+</sup> − X)). Then state the keys of each part and check dependency preservation.</td></tr>
+<tr><td><b>Lossless?</b></td><td>2 relations: (R<sub>1</sub>∩R<sub>2</sub>)<sup>+</sup> ⊇ R<sub>1</sub> or R<sub>2</sub>. 3+ relations: merge pairs step by step, or chase tableau (decisive).</td></tr>
+<tr><td><b>Dependency preserving?</b></td><td>FDs inside one relation are preserved; for the rest run res = X; res ∪= ((res∩R<sub>i</sub>)<sup>+</sup>∩R<sub>i</sub>) until stable; check Y ⊆ res.</td></tr>
+<tr><td><b>Minimal cover</b></td><td>split RHS → remove extraneous LHS attributes → remove redundant FDs → (combine). Note non-uniqueness.</td></tr>
+</table></div>

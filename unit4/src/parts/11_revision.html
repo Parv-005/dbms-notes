@@ -1,0 +1,33 @@
+<h2 id="s11"><span class="num">11</span>One-page revision sheet</h2>
+<div class="grid2">
+<div class="box key"><div class="box-t">FD theory</div>
+<ul class="small">
+<li>X → Y: equal X ⇒ equal Y in every legal state. Instance can disprove, never prove.</li>
+<li>Trivial Y ⊆ X · full: no proper subset determines Y · partial: a proper subset does · transitive: X → Z → Y, Z not a key.</li>
+<li>Axioms: reflexivity, augmentation, transitivity (sound + complete). Derived: union, decomposition, pseudo-transitivity (X→Y, WY→Z ⊢ WX→Z).</li>
+<li>X<sup>+</sup>: keep adding RHS of FDs whose LHS is inside. X → Y ∈ F<sup>+</sup> ⇔ Y ⊆ X<sup>+</sup>.</li>
+<li>Minimal cover: split RHS → drop extraneous LHS attrs → drop redundant FDs.</li>
+</ul></div>
+<div class="box key"><div class="box-t">Keys</div>
+<ul class="small">
+<li>Superkey: X<sup>+</sup> = R. Candidate key: minimal superkey. Prime: in some key.</li>
+<li>Never-on-RHS attributes are in every key; only-on-RHS attributes in none.</li>
+<li>Superkeys of one key of size k: 2<sup>n−k</sup>; several keys: inclusion–exclusion.</li>
+</ul></div>
+</div>
+<div class="grid2">
+<div class="box key"><div class="box-t">Normal forms</div>
+<ul class="small">
+<li><b>1NF</b> atomic values.</li>
+<li><b>2NF</b> no non-prime attribute depends on part of a key.</li>
+<li><b>3NF</b> every non-trivial X → A: X superkey or A prime.</li>
+<li><b>BCNF</b> every non-trivial X → A: X superkey.</li>
+<li>2 attributes ⇒ BCNF · all attributes prime ⇒ ≥ 3NF · all keys single ⇒ ≥ 2NF.</li>
+</ul></div>
+<div class="box key"><div class="box-t">Decomposition</div>
+<ul class="small">
+<li>Lossless (2 parts): (R<sub>1</sub>∩R<sub>2</sub>)<sup>+</sup> ⊇ R<sub>1</sub> or R<sub>2</sub>. 3+: merge pairs / chase.</li>
+<li>Preserving: res = X; res ∪= ((res∩R<sub>i</sub>)<sup>+</sup>∩R<sub>i</sub>); Y ⊆ res.</li>
+<li>3NF synthesis: always lossless + preserving. BCNF decomposition: always lossless, not always preserving.</li>
+</ul></div>
+</div>

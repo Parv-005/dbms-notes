@@ -1,0 +1,13 @@
+<h2 id="s10"><span class="num">10</span>Beyond BCNF: 4NF, 5NF, denormalization <span class="beyond-tag">beyond syllabus</span></h2>
+<p>The course PDF (pp. 98–101) covers these briefly. They are not in the syllabus list, so read once and move on.</p>
+<div class="box beyond"><div class="box-t">Multivalued dependency and 4NF</div>
+<p><b>MVD</b> X →→ Y: each X value is associated with a <i>set</i> of Y values that is independent of the other attributes. Example (course PDF):
+Faculty(Faculty, Subject, Committee) — Kailash teaches {DBMS, Java, C} and sits on {Placement, Scholarship}; the two sets are independent, so the table must store all
+3 × 2 = 6 combinations. The only key is all three attributes, so it is in BCNF, yet it is redundant.</p>
+<p><b>4NF:</b> BCNF and for every non-trivial MVD X →→ Y, X is a superkey. Fix: FacultySubject(Faculty, Subject), FacultyCommittee(Faculty, Committee) — 3 + 2 rows instead of 6.</p></div>
+<div class="box beyond"><div class="box-t">Join dependency and 5NF</div>
+<p>A <b>join dependency</b> says R equals the join of some projections R<sub>1</sub>, …, R<sub>n</sub>. <b>5NF</b> (project-join NF): every non-trivial join dependency
+is implied by the candidate keys — the table cannot be split further without loss. Classic case: Agent–Company–Product where “agent sells product for company” follows from the three pairwise facts.</p></div>
+<div class="box beyond"><div class="box-t">Denormalization</div>
+<p>Deliberately merging normalized tables (or storing a derived/duplicate column) to avoid expensive joins in read-heavy systems such as reports and data warehouses.
+The price is redundancy, so the update anomalies must be handled by the application or triggers.</p></div>

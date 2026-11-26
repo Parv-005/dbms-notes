@@ -1,0 +1,30 @@
+<h2 id="s6"><span class="num">6</span>Minimal (canonical) cover</h2>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>minimal cover</b> G of F is a set of FDs equivalent to F (G<sup>+</sup> = F<sup>+</sup>) such that</p>
+<ol class="small">
+<li>every FD in G has a <b>single attribute</b> on the right-hand side;</li>
+<li>no left-hand side has an <b>extraneous</b> attribute (removing any LHS attribute changes the closure);</li>
+<li>no FD is <b>redundant</b> (removing it changes the closure).</li>
+</ol>
+<p>A <b>canonical cover</b> (Korth) is the same thing with FDs of equal LHS combined (A → B, A → C written A → BC). It is used for 3NF synthesis and to
+simplify any FD set.</p></div>
+<div class="box key"><div class="box-t">Algorithm — always in this order</div>
+<ol class="recipe">
+<li><b>Split</b> every RHS into single attributes (decomposition rule). Delete duplicates and trivial FDs.</li>
+<li><b>Remove extraneous LHS attributes:</b> in XA → B, A is extraneous if B ∈ X<sup>+</sup> (closure computed with the <i>current full</i> F). Replace by X → B.</li>
+<li><b>Remove redundant FDs:</b> X → B is redundant if B ∈ X<sup>+</sup> computed <i>without</i> that FD. Delete it.</li>
+<li>(Optional) <b>Combine</b> FDs with the same LHS → canonical cover.</li>
+</ol></div>
+<div class="box ex"><div class="box-t">Example (Korth) — F = {A → BC, B → C, A → B, AB → C}</div>
+<ol class="small">
+<li>Split: A → B, A → C, B → C, A → B (duplicate, drop), AB → C.</li>
+<li>AB → C: is B extraneous? A<sup>+</sup> = ABC ∋ C → yes, it becomes A → C (already present, drop).</li>
+<li>A → C: without it, A<sup>+</sup> = AB → ABC ∋ C → redundant, delete.</li>
+</ol>
+<p class="answer-line">Minimal cover: {A → B, B → C}.</p></div>
+<div class="box warn"><div class="box-t">Common mistakes</div>
+<ul>
+<li>Doing step 3 before step 2 can leave a non-minimal result. Always remove extraneous LHS attributes first.</li>
+<li>When testing redundancy, compute the closure <b>without</b> the FD being tested — otherwise everything looks redundant.</li>
+<li>A minimal cover is <b>not unique</b>: a different order of testing can give a different (equally correct) answer. Mention this in the exam.</li>
+</ul></div>

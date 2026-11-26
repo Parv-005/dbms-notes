@@ -1,0 +1,33 @@
+<h2 id="s2"><span class="num">2</span>Functional dependencies</h2>
+<div class="box def"><div class="box-t">Definition</div>
+<p>A <b>functional dependency</b> <span class="fd">X → Y</span> on relation R means: any two tuples that agree on X must agree on Y.
+X is the <b>determinant</b> (left-hand side), Y the <b>dependent</b>. “X functionally determines Y”, “Y is functionally dependent on X”.</p>
+<p class="small">Formally: for all tuples t<sub>1</sub>, t<sub>2</sub> in every legal state r(R): t<sub>1</sub>[X] = t<sub>2</sub>[X] ⇒ t<sub>1</sub>[Y] = t<sub>2</sub>[Y].</p></div>
+<p>An FD is a statement about the <b>meaning</b> of the data (Roll → Name because every student has one name), so it must hold in <i>every</i> state of the relation.</p>
+
+<h3 id="s2-1">Checking an FD on a table instance</h3>
+<p>Group the rows by the X value; inside each group the Y value must be the same. Example (from the class notes):</p>
+<div class="grid2">
+<div class="tbl-wrap"><table class="tbl small center"><tr><th>A</th><th>B</th></tr>
+<tr><td>a1</td><td>b1</td></tr><tr><td>a2</td><td>b3</td></tr><tr><td>a1</td><td>b1</td></tr><tr><td>a3</td><td>b3</td></tr><tr><td>a2</td><td>b3</td></tr></table></div>
+<div><p><span class="fd">A → B</span> holds: each A value always has the same B (a1→b1, a2→b3, a3→b3).</p>
+<p><span class="fd">B → A</span> does not hold: b3 appears with a2 and a3.</p></div></div>
+<div class="box warn"><div class="box-t">Common mistake — an instance can disprove an FD, never prove it</div>
+<p>One table state can show that an FD is <b>violated</b>. If it is not violated, all we can say is that the FD <i>may</i> hold — the next inserted row
+could break it. FDs are declared by the designer from the meaning of the attributes, not inferred from a particular state. (This is 2025 end-sem Q4(a) part (b).)</p></div>
+
+<h3 id="s2-2">Types of functional dependency</h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Type</th><th>Condition on X → Y</th><th>Example</th></tr>
+<tr><td><b>Trivial</b></td><td>Y ⊆ X (always true)</td><td>AB → A, AB → AB</td></tr>
+<tr><td><b>Non-trivial</b></td><td>Y ⊄ X</td><td>AB → BC</td></tr>
+<tr><td><b>Completely non-trivial</b></td><td>X ∩ Y = ∅</td><td>AB → C</td></tr>
+<tr><td><b>Simple</b> (class notes)</td><td>X is a single attribute</td><td>A → B</td></tr>
+<tr><td><b>Full</b> (fully functional)</td><td>no proper subset Z ⊂ X has Z → Y</td><td>(Roll, Course) → Grade</td></tr>
+<tr><td><b>Partial</b></td><td>some proper subset Z ⊂ X has Z → Y</td><td>(Roll, Course) → Name, because Roll → Name</td></tr>
+<tr><td><b>Transitive</b></td><td>X → Z and Z → Y, with Z not a key (and Z ↛ X)</td><td>Course → Instructor → Office</td></tr>
+<tr><td><b>Multivalued</b> <span class="beyond-tag">beyond</span></td><td>X →→ Y: an X value determines a <i>set</i> of Y values, independent of the rest</td><td>Faculty →→ Subject (section 10)</td></tr>
+</table></div>
+<div class="box key"><div class="box-t">Remember</div>
+<p>“Partial” and “transitive” are always measured against a <b>candidate key</b>: a partial dependency is a non-prime attribute depending on <i>part</i>
+of a key (breaks 2NF); a transitive dependency is a non-prime attribute depending on a <i>non-key</i> set (breaks 3NF).</p></div>

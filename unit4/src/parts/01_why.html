@@ -1,0 +1,38 @@
+<h2 id="s1"><span class="num">1</span>Why normalize: redundancy and anomalies</h2>
+<div class="box def"><div class="box-t">Definition</div>
+<p><b>Normalization</b> is the process of analysing a relation schema using its functional dependencies and keys, and decomposing it into smaller,
+well-structured relations so that <b>redundancy is minimised</b> and <b>insertion, deletion and update anomalies</b> are removed — without losing
+information (lossless join) and, if possible, without losing dependencies (dependency preservation).</p></div>
+
+<p>Take one table that mixes facts about students and courses (the running example of this unit):</p>
+<div class="tbl-wrap"><table class="tbl small center">
+<tr><th>Roll</th><th>Name</th><th>Course</th><th>CName</th><th>Credits</th><th>Instructor</th><th>Office</th><th>Grade</th></tr>
+<tr><td>101</td><td>Asha</td><td>CS301</td><td>DBMS</td><td>4</td><td>Rao</td><td>B-12</td><td>A</td></tr>
+<tr><td>102</td><td>Vikram</td><td>CS301</td><td>DBMS</td><td>4</td><td>Rao</td><td>B-12</td><td>B</td></tr>
+<tr><td>101</td><td>Asha</td><td>CS302</td><td>OS</td><td>3</td><td>Mehta</td><td>C-04</td><td>A</td></tr>
+<tr><td>103</td><td>Neha</td><td>CS301</td><td>DBMS</td><td>4</td><td>Rao</td><td>B-12</td><td>C</td></tr>
+</table></div>
+<p><b>Redundancy:</b> “CS301 is DBMS, 4 credits, taught by Rao, office B-12” is stored once per enrolled student. Redundancy causes three anomalies:</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Anomaly</th><th>What goes wrong here</th></tr>
+<tr><td><b>Insertion</b></td><td>A new course CS305 with no students yet cannot be inserted: the key is (Roll, Course) and Roll would be NULL (entity integrity).</td></tr>
+<tr><td><b>Update (modification)</b></td><td>If Rao moves to office B-20, every row of CS301 must change; missing one row leaves the database <b>inconsistent</b>.</td></tr>
+<tr><td><b>Deletion</b></td><td>If Asha drops OS and she was its only student, deleting her row also deletes the fact that OS is taught by Mehta in C-04.</td></tr>
+</table></div>
+<p>The cure is to store each fact once: Student(Roll, Name), Course(Course, CName, Credits, Instructor), Instructor(Instructor, Office), Enrolment(Roll, Course, Grade).
+Sections 7–9 show how to get exactly this decomposition mechanically from the FDs.</p>
+
+<h3 id="s1-2">Informal design guidelines (Elmasri)</h3>
+<ol>
+<li><b>Clear semantics:</b> each relation should describe one entity type or one relationship type — do not mix attributes of several entities.</li>
+<li><b>Avoid redundancy</b> and therefore insertion / deletion / update anomalies.</li>
+<li><b>Avoid NULLs as far as possible.</b> NULLs waste space and are ambiguous — a NULL can mean “not applicable”, “unknown” or “known but not recorded yet”.
+They also make joins and aggregates (COUNT, SUM) behave unexpectedly. If many tuples would have NULL in some attributes, move those attributes to a separate relation.</li>
+<li><b>No spurious tuples:</b> design relations so that joining them on primary key / foreign key attributes gives back only real tuples. Never split a
+relation so that the common attributes are not a key of either part (section <a href="#s8">8</a>).</li>
+</ol>
+<div class="box tip"><div class="box-t">Tip — the one-line goals of normalization</div>
+<p>Remove redundancy → remove anomalies; keep the decomposition <b>lossless</b> (mandatory) and <b>dependency preserving</b> (desirable).</p></div>
+<div class="box note"><div class="box-t">Cost of normalization</div>
+<p>More tables mean more joins in queries, so read-heavy systems sometimes deliberately <b>denormalize</b> (section <a href="#s10">10</a>).
+Normalization is the default; denormalization is a performance decision taken later.</p></div>
