@@ -48,7 +48,9 @@
 <li>“Not only SQL”: key-value (Redis), document (MongoDB), column-family (Cassandra), graph (Neo4j).</li>
 <li>Flexible schema, horizontal scaling, replication, BASE (basically available, soft state, eventually consistent).</li>
 <li>CAP: at most 2 of consistency, availability, partition tolerance in a partition.</li>
-<li>Choose SQL for transactions/integrity, NoSQL for volume/variety/availability — often both.</li></ul></div>
+<li>Choose SQL for transactions/integrity, NoSQL for volume/variety/availability — often both.</li>
+<li>MongoDB = document (collections, flexible fields) · Redis = in-memory key-value (cache, sessions) · Cassandra = distributed wide-column (scale, availability).</li>
+<li>Limitations: no standard query language, eventual consistency, weak joins/relationships, duplication.</li></ul></div>
 </div>
 
 <h3 id="s12-1">12.1 Important differences (ready to write)</h3>
@@ -112,6 +114,9 @@
 <tr><td>Expand NoSQL and BASE.</td><td>Not only SQL; Basically Available, Soft state, Eventually consistent.</td></tr>
 <tr><td>State the CAP theorem.</td><td>A distributed system cannot simultaneously guarantee consistency, availability and partition tolerance; during a partition it must give up C or A.</td></tr>
 <tr><td>Which NoSQL type for a social network’s friend graph? For shopping carts?</td><td>Graph database; key-value store.</td></tr>
+<tr><td>Why is Redis fast? Give two uses.</td><td>It keeps data in memory (RAM); caching and user sessions (also gaming, real-time apps).</td></tr>
+<tr><td>What is a collection in MongoDB?</td><td>A group of related documents (like a table, but documents can have different fields).</td></tr>
+<tr><td>Name four limitations of NoSQL.</td><td>Lack of standardisation, eventual consistency, complex relationships/joins, data duplication.</td></tr>
 </table></div>
 
 <!-- ============================================================ 13 -->

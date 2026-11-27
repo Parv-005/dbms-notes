@@ -181,7 +181,8 @@ figcaption{font-size:.86rem;color:var(--muted);margin-top:6px;max-width:720px;ma
 @media (max-width:700px){.toc-mini{columns:1}}
 
 /* grids */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.grid2>*{min-width:0}
 .grid2>.box{margin:0}
 @media (max-width:820px){.grid2{grid-template-columns:1fr}}
 

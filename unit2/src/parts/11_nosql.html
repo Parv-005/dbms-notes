@@ -16,6 +16,14 @@ relational schema needs ALTER TABLE for every change.</li>
 <li><b>Availability</b> — a global service must keep answering even when some servers or network links fail.</li>
 </ul>
 {{svg:scaling}}
+<div class="box ex"><div class="box-t">Example: why an online shop needs flexibility <span class="chip acc">prof’s handout</span></div>
+<p>An online shop stores customer details, product information, shopping carts, customer reviews and order history. Products do <b>not</b> all have the same
+attributes: a <b>mobile phone</b> has RAM and storage, a <b>shirt</b> has size and colour. In one relational <code>product</code> table this means many
+NULL columns, or a new column with ALTER TABLE for every new category. A NoSQL document store simply gives each product the fields it needs:</p>
+<pre>{ "_id": 1, "name": "Galaxy M35", "price": 15999, "ram": "8 GB", "storage": "128 GB" }
+{ "_id": 2, "name": "Linen shirt", "price": 1299, "size": "M", "colour": "blue" }</pre></div>
+<div class="box warn"><div class="box-t">Important</div><p>NoSQL does <b>not</b> mean “no SQL” or that SQL is eliminated. It means <b>“Not Only SQL”</b>:
+alternative approaches used <i>alongside</i> relational databases.</p></div>
 
 <h3 id="s11-2">11.2 Features of NoSQL databases</h3>
 <ul>
@@ -74,9 +82,97 @@ replicas eventually hold the same value. Optimistic: availability first.</p></di
 <tr><td>Best suited for</td><td>banking, accounting, ERP, inventory, reservations, university records — anything needing multi-row transactions and integrity</td><td>big data, real-time web/mobile apps, catalogues, social feeds, IoT, caching, recommendation</td></tr>
 <tr><td>Examples</td><td>Oracle, MySQL, PostgreSQL, SQL Server</td><td>MongoDB, Cassandra, Redis, Neo4j, DynamoDB, HBase</td></tr>
 </table></div>
+<div class="box ex"><div class="box-t">Example: storing students <span class="chip acc">prof’s handout</span></div>
+<div class="grid2"><div><p><b>SQL:</b> every student follows the same table structure.</p>
+<div class="tbl-wrap"><table class="tbl small"><tr><th>RollNo</th><th>Name</th><th>Course</th></tr>
+<tr><td>101</td><td>Rahul</td><td>BTech</td></tr><tr><td>102</td><td>Aman</td><td>BTech</td></tr><tr><td>103</td><td>Priya</td><td>BTech</td></tr></table></div></div>
+<div><p><b>NoSQL (document):</b> each student is a document; one may have skills or projects, another internships.</p>
+<pre>{ "roll": 101,
+  "name": "Rahul",
+  "skills": ["Python", "SQL"] }
+{ "roll": 102,
+  "name": "Aman",
+  "internship": "XYZ, 2 months" }</pre></div></div>
+<p>Useful when the data structure changes often.</p></div>
+<div class="box tip"><div class="box-t">Which one should we use? <span class="chip acc">prof’s handout</span></div>
+<p><b>SQL:</b> structured data, relationships and reliable transactions, e.g. banking and financial systems.
+<b>NoSQL:</b> large amounts of varied or rapidly changing data, e.g. social media, real-time applications, recommendation systems.
+<b>Neither is universally better</b>; the choice depends on the application’s requirements.</p></div>
 <div class="box exam"><div class="box-t">How to answer “which database would you choose and why?”</div>
 <p>These questions (e-commerce like Amazon, social-media content, product reviews + transactions) almost always have the answer
 <b>polyglot persistence</b> — use <b>both</b>: an RDBMS for data needing ACID and integrity (orders, payments, inventory, user accounts) and NoSQL for
 high-volume, variable or read-heavy data (product catalogue → document store, carts/sessions → key-value, reviews/browsing history/clickstream →
 document or wide-column, recommendations → graph). Justify each choice by one property from the table (schema flexibility, horizontal scaling,
 ACID, joins). Full model answers are in section 14.7.</p></div>
+
+<h3 id="s11-6">11.6 Popular NoSQL databases used in real life <span class="chip acc">prof’s handout</span></h3>
+<p>Each popular product is built for one way of storing data. Know these three with their type, one example and uses.</p>
+<div class="grid2">
+<div class="box def"><div class="box-t">MongoDB — document database</div>
+<ul>
+<li>Stores data as <b>documents</b> in a JSON-like format (internally BSON). Each document has a unique <code>_id</code>.</li>
+<li>A group of related documents is a <b>collection</b> (≈ a table); documents in one collection may have different fields.</li>
+<li><b>Example:</b> an e-commerce product catalogue: one product has size and colour, another has RAM and storage.</li>
+<li><b>Used for:</b> e-commerce sites, content management systems, mobile apps, product catalogues.</li>
+<li><b>Why useful:</b> flexible structure when different records have different fields.</li>
+</ul>
+<pre>db.products.insertOne(
+  { name: "Shirt", size: "M" })
+db.products.find(
+  { price: { $lt: 2000 } })</pre></div>
+<div class="box def"><div class="box-t">Redis — key-value database</div>
+<ul>
+<li>An <b>in-memory</b> data store: data is kept mainly in <b>RAM</b>, so access is very fast.</li>
+<li>Stores <b>key → value</b> pairs; a value is retrieved directly by its key.</li>
+<li><b>Example:</b> a website stores your <b>login session</b> in Redis, so it can check it quickly on every page without going to the main database.</li>
+<li><b>Used for:</b> caching frequently used data, user session management, real-time applications, gaming (leaderboards).</li>
+</ul>
+<div class="tbl-wrap"><table class="tbl small"><tr><th>Key</th><th>Value</th></tr>
+<tr><td>User101</td><td>Rahul</td></tr><tr><td>User102</td><td>Aman</td></tr><tr><td>User103</td><td>Priya</td></tr></table></div>
+<pre>SET User101 "Rahul"
+GET User101   → "Rahul"</pre></div>
+</div>
+<div class="box def"><div class="box-t">Apache Cassandra — wide-column database</div>
+<ul>
+<li>A <b>distributed</b> database that spreads huge amounts of data across <b>many servers</b>, with no single master (no single point of failure).</li>
+<li>Organises data in rows with <b>flexible groups of columns</b>: different rows may have different columns.</li>
+<li><b>Example:</b> a social-media platform where millions of users create posts, comments and activity records every second. Cassandra spreads this
+workload over many servers.</li>
+<li><b>Used for:</b> large-scale data management, activity and event tracking, IoT, distributed applications.</li>
+<li><b>Why useful:</b> high availability, distributed storage and horizontal scalability.</li>
+</ul></div>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Database</th><th>Type</th><th>Stores data as</th><th>Key strength</th><th>Typical use</th></tr>
+<tr><td><b>MongoDB</b></td><td>Document</td><td>JSON-like documents in collections</td><td>Flexible schema</td><td>Product catalogue, CMS, mobile apps</td></tr>
+<tr><td><b>Redis</b></td><td>Key-value</td><td>Key → value pairs, in RAM</td><td>Very fast access</td><td>Cache, sessions, gaming, real time</td></tr>
+<tr><td><b>Cassandra</b></td><td>Wide-column</td><td>Rows with flexible column groups, on many servers</td><td>Availability, horizontal scaling</td><td>Activity/event tracking, IoT, big data</td></tr>
+<tr><td><b>Neo4j</b></td><td>Graph</td><td>Nodes and edges</td><td>Relationship queries</td><td>Social networks, recommendations</td></tr>
+</table></div>
+
+<h3 id="s11-7">11.7 Applications of NoSQL databases <span class="chip acc">prof’s handout</span></h3>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Application</th><th>Data it handles</th><th>Why NoSQL</th><th>Example</th></tr>
+<tr><td><b>Social media platforms</b></td><td>Profiles, posts, comments, likes, connections</td><td>Huge volume; varied content; friend graphs</td><td>Facebook, Instagram</td></tr>
+<tr><td><b>E-commerce websites</b></td><td>Product details, customers, carts, orders, reviews</td><td>Product catalogues with different attributes per product</td><td>Amazon, other online shops</td></tr>
+<tr><td><b>Real-time applications</b></td><td>Game state, live chat, messages</td><td>Fast access and frequent updates (e.g. Redis)</td><td>Messaging apps, online games</td></tr>
+<tr><td><b>Internet of Things (IoT)</b></td><td>Readings from sensors, smart devices, machines</td><td>Continuous, high-rate data; easy to scale out</td><td>Smart homes, industrial sensors, smart cities</td></tr>
+</table></div>
+
+<h3 id="s11-8">11.8 Challenges and limitations of NoSQL <span class="chip acc">prof’s handout</span></h3>
+<ol>
+<li><b>Lack of standardisation:</b> there is no common query language like SQL. Each NoSQL database has its own data model and query method, so learning
+and switching between them is hard.</li>
+<li><b>Data consistency:</b> distributed NoSQL systems often put availability and performance before immediate consistency (eventual consistency, BASE).
+An update may not be visible on every server at the same moment.</li>
+<li><b>Complex relationships:</b> relationships and multi-table joins are not handled as conveniently as in relational databases; they need extra
+application code or a different data design.</li>
+<li><b>Data duplication (denormalisation):</b> for speed, the same data is often stored in several places. Updating every copy is harder, and copies can
+become inconsistent (the update anomaly of Unit 4).</li>
+</ol>
+<p class="small">Other commonly cited limits: weaker or limited multi-record transactions (ACID) in many systems, integrity constraints left to the
+application, fewer mature tools and experts.</p>
+<div class="box exam"><div class="box-t">Exam: “advantages and limitations of NoSQL” (5 marks)</div>
+<p><b>Advantages:</b> flexible schema · horizontal scalability · high availability through replication · fast simple reads/writes at huge volume ·
+handles structured, semi-structured and unstructured data. <b>Limitations:</b> the four points above. Add one real database per point
+(e.g. MongoDB for flexible schema, Cassandra for scaling, Redis for speed).</p></div>
+
