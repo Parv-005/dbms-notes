@@ -570,3 +570,8 @@ S('pr3', '@R1(A), W1(A), R2(A), W2(A), R2(B), W2(B), R1(B), W1(B)', cap='Practic
 S('pr4', '@r1(X); w1(X); r2(X); w2(X); c2; c1', cap='Practice 4')
 S('pr5', '@r1(X); w1(X); r2(Y); c1; r2(X); w2(X); c2', cap='Practice 5')
 S('pr6', '@r1(A); r2(A); w1(A); w2(A); c1; c2', cap='Practice 6', gcap='Precedence graph')
+
+
+# ---------------------------------------------------------------- summary page
+S('sumA', '@r1(A); r2(B); w2(A); r3(A); w1(B); w3(B)', cap='S1: r1(A), r2(B), w2(A), r3(A), w1(B), w3(B)', gcap='Precedence graph of S1')
+S('sumB', '@r1(A); w1(A); r3(B); r2(A); w3(B); w2(A); r1(B)', cap='S2: r1(A), w1(A), r3(B), r2(A), w3(B), w2(A), r1(B)', gcap='Precedence graph of S2')

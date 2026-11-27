@@ -400,7 +400,7 @@ def toc(body):
 
 
 def main():
-    parts_dir = os.path.join(BASE, 'parts')
+    parts_dir = os.path.join(BASE, os.environ.get('PARTS_DIR', 'parts'))
     body = ''
     for fn in sorted(os.listdir(parts_dir)):
         if fn.endswith('.html') and os.environ.get('PARTS','') in fn:
@@ -413,8 +413,8 @@ def main():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DBMS Unit 5 Notes</title>
-<meta name="description" content="Complete notes for DBMS Unit 5: transactions, ACID, schedules, serializability, recoverability, locking (2PL family), deadlocks, database recovery and database security, with topic-wise solved PYQs.">
+<title>{os.environ.get('PAGE_TITLE', 'DBMS Unit 5 Notes')}</title>
+<meta name="description" content="{os.environ.get('PAGE_DESC', '')}Complete notes for DBMS Unit 5: transactions, ACID, schedules, serializability, recoverability, locking (2PL family), deadlocks, database recovery and database security, with topic-wise solved PYQs.">
 <style>{css}</style>
 </head>
 <body>
@@ -422,7 +422,7 @@ def main():
 <aside class="sidebar" id="sidebar">
   <div class="side-head">
     <a class="side-home" href="../">← All units</a>
-    <div class="side-title">DBMS · Unit 5</div>
+    <div class="side-title">{os.environ.get('SIDE_TITLE', 'DBMS · Unit 5')}</div>
     <div class="side-tools">
       <button id="themeBtn" title="Toggle light / dark">◐ Theme</button>
       <button id="expandBtn" title="Show / hide all PYQ answers">▾ Answers</button>

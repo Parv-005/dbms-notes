@@ -1,0 +1,49 @@
+<header class="hero">
+  <h1>Unit 5 — Complete Summary</h1>
+  <p class="sub">Transactions, concurrency control, recovery and security on one page: every definition, rule and method you need, kept short.
+  For full explanations and the 30+ solved PYQs, open the <a href="./">complete Unit 5 notes</a>.</p>
+  <div class="chips">
+    <span class="chip acc">ACID · states</span><span class="chip warn">Concurrency problems</span><span class="chip warn">Serializability</span>
+    <span class="chip warn">Recoverability</span><span class="chip good">2PL family · deadlocks</span><span class="chip bad">Recovery</span><span class="chip pur">Security</span>
+  </div>
+</header>
+
+<h2 id="s1"><span class="num">1</span>Transactions and ACID</h2>
+<div class="box def"><div class="box-t">Transaction</div>
+A <b>transaction</b> is a logical unit of work: a sequence of read/write operations that must be executed as one whole. It ends with <b>commit</b>
+(make changes permanent) or <b>abort/rollback</b> (undo all its changes). <code>read(X)</code> copies X from disk to a buffer and then to a
+local variable; <code>write(X)</code> copies the local value to the buffer, and the buffer reaches disk later.</div>
+
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Property</th><th>Meaning</th><th>Ensured by</th><th>Transfer ₹100 A→B</th></tr>
+<tr><td><b>Atomicity</b></td><td>All or nothing</td><td>Recovery manager (log, UNDO)</td><td>Never debit A without crediting B</td></tr>
+<tr><td><b>Consistency</b></td><td>Valid state → valid state</td><td>Programmer + integrity constraints</td><td>A + B unchanged</td></tr>
+<tr><td><b>Isolation</b></td><td>Runs as if alone; no one sees partial results</td><td>Concurrency control (locking)</td><td>Others never see A debited, B not yet credited</td></tr>
+<tr><td><b>Durability</b></td><td>Committed changes survive failures</td><td>Recovery manager (log, REDO)</td><td>After “success”, a crash cannot undo it</td></tr>
+</table></div>
+
+<h3 id="s1-1">1.1 Transaction states</h3>
+<p><b>Active</b> (executing) → <b>Partially committed</b> (last statement done, output still in buffers) → <b>Committed</b> (log forced to disk).
+Failure from active or partially committed → <b>Failed</b> → <b>Aborted</b> (rolled back). After abort: <b>restart</b> (if the failure was not a logic error) or <b>kill</b>.
+Committed and aborted are the two <b>terminated</b> states.</p>
+{{svg:states}}
+
+<h3 id="s1-2">1.2 Serial, concurrent, parallel</h3>
+<ul>
+<li><b>Serial:</b> one transaction runs completely, then the next. Always correct; poor throughput, long waits.</li>
+<li><b>Concurrent:</b> operations of several transactions are <b>interleaved</b> on one CPU (while one waits for I/O, another runs). Better throughput and
+response time, but needs concurrency control.</li>
+<li><b>Parallel:</b> operations run <b>at the same instant</b> on multiple CPUs/disks. Concurrency is about interleaving; parallelism is simultaneous execution.</li>
+</ul>
+
+<h2 id="s2"><span class="num">2</span>Concurrency problems</h2>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Problem</th><th>What happens</th><th>Pattern</th><th>Prevented by</th></tr>
+<tr><td><b>Lost update</b></td><td>Two transactions read the same X; the second write overwrites the first.</td><td>r1(X) r2(X) w1(X) w2(X)</td><td>Exclusive locks / 2PL</td></tr>
+<tr><td><b>Dirty read</b> (temporary update)</td><td>T2 reads X written by T1, then T1 aborts; T2 used a value that never existed.</td><td>w1(X) r2(X) … a1</td><td>Strict 2PL (hold X-locks till commit)</td></tr>
+<tr><td><b>Unrepeatable read</b></td><td>T1 reads X twice and gets different values because T2 updated X in between.</td><td>r1(X) w2(X) c2 r1(X)</td><td>Hold S-locks till end (2PL)</td></tr>
+<tr><td><b>Phantom read</b></td><td>T1 runs the same <i>query</i> twice; T2 inserted/deleted rows in between, so new rows (“phantoms”) appear.</td><td>SELECT … WHERE cond; INSERT by T2; SELECT again</td><td>Predicate / index / table locks</td></tr>
+<tr><td>Incorrect summary <span class="beyond-tag">beyond</span></td><td>An aggregate reads some values before and some after another transaction’s update.</td><td>sum while transfer runs</td><td>2PL</td></tr>
+</table></div>
+<p class="small"><b>SQL isolation levels</b> <span class="beyond-tag">beyond</span>: READ UNCOMMITTED (allows all three) → READ COMMITTED (stops dirty reads) →
+REPEATABLE READ (also stops unrepeatable reads) → SERIALIZABLE (also stops phantoms).</p>

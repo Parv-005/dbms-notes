@@ -1,0 +1,41 @@
+<h2 id="s7"><span class="num">7</span>Database recovery</h2>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Failure</th><th>Examples</th><th>Handled by</th></tr>
+<tr><td><b>Transaction failure</b></td><td>Logical error (bad input, division by zero); system error (deadlock victim)</td><td>UNDO that transaction</td></tr>
+<tr><td><b>System crash</b></td><td>Power failure, OS crash: main memory is lost, disk is safe</td><td>Log: UNDO uncommitted, REDO committed transactions</td></tr>
+<tr><td><b>Disk (media) failure</b></td><td>Head crash: data on disk is lost</td><td>Restore the latest backup/dump, then REDO from the archived log</td></tr>
+</table></div>
+<p><b>Storage:</b> volatile (RAM, lost on a crash) · non-volatile (disk, SSD) · <b>stable storage</b> (in theory never lost; approximated by keeping copies on several disks/sites). The log is kept on stable storage.</p>
+
+<h3 id="s7-1">7.1 The log</h3>
+<p>The log is a sequential file of records: <code>&lt;Ti start&gt;</code>, <code>&lt;Ti, X, old value, new value&gt;</code>, <code>&lt;Ti commit&gt;</code>, <code>&lt;Ti abort&gt;</code>.
+<b>Write-ahead logging (WAL):</b> a log record must reach stable storage <b>before</b> the data page it describes is written to disk, and all of a transaction’s log records,
+including <code>&lt;commit&gt;</code>, must be on stable storage before it is declared committed. The <b>commit point</b> is the moment the commit record is in the log.</p>
+{{svg:wal}}
+
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th></th><th>Deferred modification</th><th>Immediate modification</th></tr>
+<tr><td>When the database is updated</td><td>Only after the transaction commits (writes held in the log/buffers until then)</td><td>Possibly before commit (written in place)</td></tr>
+<tr><td>Log record</td><td>&lt;Ti, X, new&gt; (no old value needed)</td><td>&lt;Ti, X, old, new&gt;</td></tr>
+<tr><td>After a crash</td><td><b>REDO</b> transactions with both start and commit in the log; ignore the others</td><td><b>UNDO</b> transactions with start but no commit (scan backwards, restore old values); <b>REDO</b> those with commit (scan forwards)</td></tr>
+<tr><td>Name</td><td>NO-UNDO / REDO</td><td>UNDO / REDO</td></tr>
+</table></div>
+<p class="small">UNDO and REDO are <b>idempotent</b>: applying them twice (for example, after a crash during recovery) gives the same result. In immediate modification, UNDO is done before REDO.</p>
+
+<h3 id="s7-2">7.2 Checkpoints</h3>
+<p>Without checkpoints, recovery would scan the whole log. A <b>checkpoint</b> does three things: (1) write all log records in memory to stable storage, (2) write all modified
+buffer blocks to disk, (3) write <code>&lt;checkpoint L&gt;</code>, where L is the list of active transactions. On recovery, start from the last checkpoint:
+transactions that committed <b>before</b> it need nothing; those that committed after it are <b>REDOne</b>; those in L or started after it that have no commit are <b>UNDOne</b>.</p>
+{{svg:checkpoint}}
+<div class="box ex"><div class="box-t">Method for “which transactions are undone or redone?” questions</div>
+<ol>
+<li>Find the last &lt;checkpoint&gt; before the crash.</li>
+<li>Commit before the checkpoint: no action.</li>
+<li>Commit between the checkpoint and the crash: <b>REDO</b> (forward pass).</li>
+<li>No commit by the crash (active at the checkpoint or started after it): <b>UNDO</b> (backward pass, restore the old values from the log).</li>
+</ol></div>
+
+<h3 id="s7-3">7.3 Shadow paging</h3>
+<p>Keep two page tables. The <b>shadow page table</b> (on disk) is never changed during the transaction; the <b>current page table</b> points to new copies of the
+modified pages. Commit = atomically switch the root pointer to the current page table. Abort = discard it. No log, so no UNDO and no REDO; but the data
+becomes fragmented, garbage pages must be collected, commit overhead is high, and it is hard to extend to concurrent transactions.</p>

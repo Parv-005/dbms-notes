@@ -1,0 +1,50 @@
+<h2 id="s8"><span class="num">8</span>Database security</h2>
+<div class="grid2">
+<div class="box def"><div class="box-t">Security vs integrity</div>
+<b>Security</b> protects data from <b>unauthorised</b> access, modification or destruction. <b>Integrity</b> keeps data <b>accurate and consistent</b>
+against mistakes by authorised users (constraints). Security keeps out the wrong people; integrity keeps out wrong values.</div>
+<div class="box key"><div class="box-t">CIA triad</div>
+<b>Confidentiality</b>: only authorised users can read. <b>Integrity</b>: only authorised, valid changes. <b>Availability</b>: data is accessible when needed (backups, protection against DoS).</div>
+</div>
+<p><b>Threats:</b> loss of confidentiality, integrity or availability; SQL injection; privilege abuse by insiders; weak authentication; unencrypted backups;
+malware and denial of service. <b>Control measures:</b> access control, inference control, flow control, encryption. The <b>DBA</b> creates accounts, grants and
+revokes privileges, assigns security levels and audits.</p>
+
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Mechanism</th><th>Key points</th></tr>
+<tr><td><b>Authentication vs authorization</b></td><td>Authentication = <i>who are you?</i> (password, OTP, biometrics). Authorization = <i>what may you do?</i> (privileges). Authentication comes first.</td></tr>
+<tr><td><b>DAC</b> (discretionary)</td><td>The owner grants privileges at their own discretion: <code>GRANT SELECT, UPDATE ON emp TO u1 WITH GRANT OPTION;</code>
+<code>REVOKE UPDATE ON emp FROM u1 CASCADE;</code>. Revoking cascades to the grants u1 passed on (shown in an authorization graph). Flexible, but cannot control
+where copied information flows (Trojan horse).</td></tr>
+<tr><td><b>MAC</b> (mandatory)</td><td>The system assigns security classes to subjects and objects (TS &gt; S &gt; C &gt; U). <b>Bell–LaPadula:</b> <b>no read up</b> (simple security property: read only
+if class(S) ≥ class(O)) and <b>no write down</b> (*-property: write only if class(S) ≤ class(O)). Used in military and government systems; rigid.</td></tr>
+<tr><td><b>RBAC</b> (role-based)</td><td>Privileges are granted to <b>roles</b> (clerk, manager); users are assigned roles: <code>CREATE ROLE clerk; GRANT SELECT ON acct TO clerk; GRANT clerk TO asha;</code>.
+Easy to manage; supports least privilege and separation of duties.</td></tr>
+<tr><td><b>Views</b></td><td>Grant access to a view that exposes only some rows or columns (for example, hiding salaries).</td></tr>
+<tr><td><b>SQL injection</b></td><td>User input becomes part of the SQL text: <code>' OR '1'='1</code> turns <code>WHERE pwd = '…'</code> into a condition that is always true.
+Prevent it with <b>parameterised queries / prepared statements</b>, input validation, least-privilege accounts and stored procedures.</td></tr>
+<tr><td><b>Encryption</b></td><td>Data at rest (TDE) and in transit (TLS); hash passwords with a salt. Symmetric (AES) or public-key (RSA).</td></tr>
+<tr><td><b>Auditing</b></td><td>An audit trail logs who did what and when; used to detect misuse.</td></tr>
+<tr><td><b>Statistical DB security</b> <span class="beyond-tag">beyond</span></td><td>Only aggregate queries are allowed, but a series of them can reveal an individual’s value (inference). Counter it with a minimum query-set size, limits on overlap between queries, and added noise.</td></tr>
+</table></div>
+
+<h2 id="s9"><span class="num">9</span>Exam checklist</h2>
+<div class="grid2">
+<div class="box exam"><div class="box-t">Schedule questions</div>
+<ol>
+<li>Write the schedule as r/w operations with transaction subscripts.</li>
+<li>Conflict serializable? List the conflicting pairs, draw the precedence graph, look for a cycle; if there is none, give the topological (serial) order.</li>
+<li>If it has a cycle, look for blind writes and check view serializability (initial read, reads-from, final write).</li>
+<li>Recoverable / cascadeless / strict? List the reads-from pairs and compare them with the commit order.</li>
+<li>Possible under 2PL / strict 2PL? Insert lock and unlock instructions and check the phases.</li>
+</ol></div>
+<div class="box exam"><div class="box-t">Theory questions</div>
+<ul>
+<li>ACID: define each property and say which component ensures it (table in §1).</li>
+<li>Concurrency problems: give the operation pattern plus a numeric example.</li>
+<li>2PL variants: draw the lock-count-vs-time sketches and copy the comparison table.</li>
+<li>Recovery: give the log records, the WAL rule, the UNDO/REDO lists and the checkpoint method.</li>
+<li>Security: define the term, then DAC/MAC/RBAC with SQL, and SQL injection with a fix.</li>
+</ul></div>
+</div>
+<p class="small">Full explanations, every Unit-5 PYQ solved and practice numericals: <a href="./">complete Unit 5 notes</a> · <a href="../">all units</a>.</p>

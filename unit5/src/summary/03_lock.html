@@ -1,0 +1,55 @@
+<h2 id="s5"><span class="num">5</span>Lock-based concurrency control</h2>
+<div class="grid2">
+<div class="box def"><div class="box-t">Locks</div>
+<b>Shared (S) lock</b>, written lock-S(X): read only; many transactions can hold it together. <b>Exclusive (X) lock</b>, written lock-X(X): read and write; only one holder.
+The <b>lock manager</b> grants a request only if it is compatible with the locks other transactions already hold; otherwise the requester waits.</div>
+<div class="box key"><div class="box-t">Compatibility matrix</div>
+<div class="tbl-wrap"><table class="tbl small center">
+<tr><th>held \ requested</th><th>S</th><th>X</th></tr>
+<tr><td>S</td><td class="y">✔</td><td class="n">✘</td></tr>
+<tr><td>X</td><td class="n">✘</td><td class="n">✘</td></tr>
+</table></div>
+<p class="small">Upgrade S → X and downgrade X → S are allowed (upgrades only in the growing phase).</p></div>
+</div>
+<p>Locking alone is not enough: releasing a lock too early (lock-X(A) … unlock(A) … lock-X(B)) still lets another transaction see an inconsistent state.
+A <b>protocol</b> is needed that says <i>when</i> locks may be released.</p>
+
+<h3 id="s5-1">5.1 Two-phase locking (2PL) and its variants</h3>
+<p><b>2PL:</b> each transaction has a <b>growing phase</b> (it may acquire locks but not release any) followed by a <b>shrinking phase</b> (it may release locks but not
+acquire any). The moment of the last lock acquisition is the <b>lock point</b>; ordering transactions by lock point gives an equivalent serial order.</p>
+{{svg:twopl_variants}}
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Protocol</th><th>Rule</th><th>Conflict serializable</th><th>Cascadeless / strict</th><th>Deadlock-free</th></tr>
+<tr><td><b>Basic 2PL</b></td><td>Growing phase, then shrinking phase</td><td class="y">Yes</td><td class="n">No (cascading rollback possible; may not be recoverable)</td><td class="n">No</td></tr>
+<tr><td><b>Strict 2PL</b></td><td>2PL + hold all <b>X-locks</b> until commit/abort</td><td class="y">Yes</td><td class="y">Strict, so cascadeless</td><td class="n">No</td></tr>
+<tr><td><b>Rigorous 2PL</b></td><td>2PL + hold <b>all</b> locks (S and X) until commit/abort</td><td class="y">Yes (serial order = commit order)</td><td class="y">Strict</td><td class="n">No</td></tr>
+<tr><td><b>Conservative (static) 2PL</b></td><td>Acquire <b>all</b> locks before the first operation, all or nothing</td><td class="y">Yes</td><td>Not necessarily (unless combined with strict)</td><td class="y">Yes (no hold-and-wait)</td></tr>
+</table></div>
+<div class="box warn"><div class="box-t">Common mistake</div>
+2PL guarantees conflict serializability but <b>not</b> freedom from deadlock or from cascading rollback. Only conservative 2PL is deadlock-free, and only
+strict/rigorous 2PL prevent cascading rollback. Rigorous ⊂ strict ⊂ basic 2PL.</div>
+
+<h2 id="s6"><span class="num">6</span>Deadlock and starvation</h2>
+<p><b>Deadlock:</b> each transaction in a set waits for a lock held by another in the set (T1 holds A and wants B; T2 holds B and wants A). Coffman conditions:
+mutual exclusion, hold and wait, no preemption, circular wait. <b>Starvation:</b> one transaction waits indefinitely (for example, it is repeatedly chosen as the
+victim, or S-locks keep being granted ahead of its X request) while the others progress. Fix starvation with FIFO lock queues or by counting rollbacks when choosing the victim.</p>
+<div class="tbl-wrap"><table class="tbl small">
+<tr><th>Approach</th><th>How</th></tr>
+<tr><td><b>Prevention</b></td><td>Conservative 2PL (lock everything up front); lock items in a fixed order; timestamp schemes:
+<br><b>Wait-die</b> (non-preemptive): an older transaction requesting a lock may <i>wait</i>; a younger one <i>dies</i> (rolls back, restarts with the same timestamp).
+<br><b>Wound-wait</b> (preemptive): an older transaction <i>wounds</i> the younger holder (forces its rollback); a younger one <i>waits</i>.
+<br>In both schemes the older transaction is never rolled back, so there is no starvation.</td></tr>
+<tr><td><b>Timeout</b></td><td>Roll back any transaction that waits longer than a limit. Simple, but may roll back transactions that were not deadlocked.</td></tr>
+<tr><td><b>Detection</b></td><td>Build a <b>wait-for graph</b> (edge Ti → Tj if Ti waits for a lock Tj holds) and check it periodically. A <b>cycle means deadlock</b>.</td></tr>
+<tr><td><b>Recovery</b></td><td>Choose a <b>victim</b> (minimum cost: least work done, fewest locks, fewest rollbacks so far), roll it back (totally or partially), and avoid starvation by including its rollback count in the cost.</td></tr>
+</table></div>
+{{svg:waitfor}}
+
+<h3 id="s6-1">6.1 Other protocols <span class="beyond-tag">beyond syllabus</span></h3>
+<ul class="small">
+<li><b>Timestamp ordering:</b> each transaction gets a timestamp TS; each item keeps R-TS and W-TS. A read is rejected if TS &lt; W-TS(X); a write is rejected if
+TS &lt; R-TS(X) or TS &lt; W-TS(X) (with <b>Thomas’ write rule</b>, an obsolete write is ignored instead). Deadlock-free, but cascading rollback is possible.</li>
+<li><b>Validation (optimistic):</b> read phase → validation phase → write phase. Good when conflicts are rare.</li>
+<li><b>Multiple granularity:</b> lock a database, table, page or row, using intention locks IS, IX and SIX.</li>
+<li><b>Multiversion / snapshot isolation:</b> readers see an old version and never block writers.</li>
+</ul>
