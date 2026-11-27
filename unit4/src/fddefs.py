@@ -87,7 +87,11 @@ Prob('y26b', 'PaperID, Title, AuthorID, AuthorName, Department, Conference, Year
 Prob('y23a', 'ABCD', 'A->B, B->C, C->D', keys=['A'], nf='2NF',
      decomps={'d': (['AB', 'AD', 'CD'], False, False)})
 Prob('y23b', 'ABCDE', 'AB->C, C->D, D->E, A->C', keys=['AB'], nf='1NF',
-     tnf=['AC', 'CD', 'DE', 'AB'], decomps={'t': (['AC', 'CD', 'DE', 'AB'], True, True)})
+     tnf=['AC', 'CD', 'DE', 'AB'], twonf=['AB', 'ACDE'],
+     decomps={'t': (['AC', 'CD', 'DE', 'AB'], True, True),
+              'd2': (['AB', 'ACDE'], True, True),          # decomposition approach, step 1 (2NF)
+              'd3': (['AB', 'ACD', 'DE'], True, True),     # step 2: split off D -> E
+              'bad': (['AB', 'CD', 'ACE'], True, False)})  # wrong order: C -> D split alone loses D -> E
 Prob('y22b', 'ABCDE', 'A->B, BC->E, ED->A', keys=['ACD', 'BCD', 'CDE'], nf='3NF', superkeys=7)
 Prob('y22c', 'ABCDE', 'A->BC, CD->E, B->D, E->A, B->E', keys=['A', 'B', 'E', 'CD'], nf='BCNF', superkeys=29,
      decomps={'d': (['ABC', 'ADE'], True, False)})

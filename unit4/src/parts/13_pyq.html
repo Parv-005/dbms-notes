@@ -203,6 +203,13 @@ non-prime → <b>partial dependency</b> → not in 2NF. Old relation: <b>1NF onl
 <p>A → C: A is part of the key, C non-prime → partial → <b>1NF</b>.</p>
 <p><b>3NF (synthesis):</b></p>
 {{dec:y23b|3nf}}
+<p><b>Alternative — decomposition approach</b> (gives the same relations; full working in section <a href="#s9-2">9.2</a>):</p>
+<ul class="small">
+<li>Partial A → C, and A<sup>+</sup> = ACDE: R → R1(A, C, D, E) [key A] + R2(A, B) [key AB]. Now in 2NF.</li>
+<li>R1 has the transitive chain A → C → D → E. Split on D → E: R1 → (D, E) + (A, C, D).</li>
+<li>Split on C → D: (A, C, D) → (C, D) + (A, C).</li>
+<li>Result: AB, AC, CD, DE. Each split is on a key of one part, so every step is lossless.</li>
+</ul>
 <p><b>Lossless</b> (merge method, as in the class notes): AC ∩ CD = C, C<sup>+</sup> = CDE ⊇ CD → ACD; ACD ∩ DE = D, D<sup>+</sup> = DE → ACDE; ACDE ∩ AB = A, A<sup>+</sup> = ACDE → ABCDE = R ✔.</p>
 <p><b>Dependency preserving:</b></p>
 {{pres:y23b|t}}

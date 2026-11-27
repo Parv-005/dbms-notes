@@ -23,8 +23,33 @@
 <div class="box ex"><div class="box-t">Example (class notes; also end-sem 2023 Q3(b)) — R(ABCDE), F = {AB → C, C → D, D → E, A → C}</div>
 {{dec:y23b|3nf}}
 <p class="small">The class notes reach the same four relations CD, DE, AC and AB (“AB joining”). AB → C is not inside any relation, but it is preserved: A → C is, and A → C implies AB → C.</p></div>
-<p><b>Decomposition approach (equivalent in simple cases):</b> start from the 2NF result and split off each transitive dependency X → Y as (X, Y), leaving X behind as a foreign key.
+<p><b>Decomposition approach (equivalent in simple cases):</b> start from the 2NF result and split off each transitive dependency X → Y as (X ∪ (X<sup>+</sup> ∩ R<sub>i</sub>)), leaving X behind as a foreign key.
 For the running example: Course(Course, CName, Credits, Instructor) + Instructor(Instructor, Office).</p>
+<div class="box ex"><div class="box-t">Same example by the decomposition approach — R(ABCDE), F = {AB → C, C → D, D → E, A → C}</div>
+<p>Instead of building relations from the minimal cover, keep <b>splitting R</b> on the dependency that breaks the normal form, until every part is in 3NF.</p>
+<ol class="recipe">
+<li><b>Key and NF.</b> A and B never appear on a RHS, and (AB)<sup>+</sup> = ABCDE, so the key is <b>AB</b>. Prime: A, B; non-prime: C, D, E.
+A → C is a partial dependency (A is part of the key), so R is in <b>1NF</b>.</li>
+<li><b>To 2NF: remove the partial dependency A → C.</b> Take everything A determines: A<sup>+</sup> = ACDE.
+<br>R → <b>R1(A, C, D, E)</b> with key A, and <b>R2(A, B)</b> with key AB. A stays in R2 as the foreign key.
+<br><span class="small">R1 keeps A → C, C → D, D → E. R2 has no non-trivial FD, so it is in BCNF. The common attribute A is the key of R1, so this split is lossless.</span></li>
+<li><b>R1 is in 2NF but not 3NF</b> (key A; C → D and D → E are transitive). Split off the <b>last link of the chain first</b>, D → E (D<sup>+</sup> ∩ R1 = DE):
+<br>R1 → <b>R11(D, E)</b> with key D, and <b>R12(A, C, D)</b>.
+<br><span class="small">Common attribute D is the key of R11, so the split is lossless. R12 still has A → C, C → D, and C → D is transitive.</span></li>
+<li><b>Split R12 on C → D</b> (C<sup>+</sup> ∩ R12 = CD): R12 → <b>R121(C, D)</b> with key C, and <b>R122(A, C)</b> with key A. Common attribute C is the key of R121, so this split is lossless.</li>
+<li><b>Result:</b> R2(AB), R122(AC), R121(CD), R11(DE). This is the same as synthesis: <b>AB, AC, CD, DE</b>, all in BCNF (so in 3NF too).</li>
+<li><b>Check.</b> Lossless: every step split on a key of one of the two parts. Dependency preserving: A → C is in AC, C → D in CD, D → E in DE, and AB → C follows from A → C.</li>
+</ol>
+<p class="small">Decomposition tree: ABCDE → {AB, ACDE}; ACDE → {DE, ACD}; ACD → {CD, AC}.</p>
+</div>
+<div class="box warn"><div class="box-t">Common mistake — splitting in the wrong order</div>
+<p>From R1(ACDE), splitting off C → D <b>alone</b> as (C, D) leaves (A, C, E). That is lossless, but D → E is now <b>lost</b>: D and E are no longer in the same relation,
+and (A, C, E) has only A → C and C → E. The fix is to split off X ∪ (X<sup>+</sup> ∩ R<sub>i</sub>) whenever you split on X: C<sup>+</sup> ∩ R1 = CDE, giving (CDE) and (AC).
+Splitting (CDE) again on D → E gives (CD) and (DE), the same answer. Synthesis can never make this mistake, which is why it is the safer method for 3NF.</p></div>
+<p><b>When the two approaches differ:</b> on simple chains like this one they give the same relations. On harder inputs, splitting can lose a dependency or need
+extra splits, while synthesis is guaranteed to be lossless <i>and</i> dependency preserving. If the question says “decompose” without naming a method, either
+is accepted. If dependency preservation is asked, use synthesis or check the result with the res-algorithm.</p>
+
 
 <h3 id="s9-3">To BCNF — decomposition algorithm (lossless, maybe not preserving)</h3>
 <div class="box key"><div class="box-t">Algorithm</div>
